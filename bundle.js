@@ -8,6 +8,11 @@ const {
     pubToAddress,
 } = require('@ethereumjs/util');
 const fcl = require('@onflow/fcl');
+const {
+    network,
+    fclConfigInfo,
+    updateAuthUI
+} = require('./utils.js');
 
 document.addEventListener('DOMContentLoaded', (event) => {
     document.getElementById('signButton').addEventListener('click', signMessageWithMetaMask);
@@ -16,29 +21,29 @@ document.addEventListener('DOMContentLoaded', (event) => {
 });
 
 
-const fclConfigInfo = {
-    emulator: {
-        accessNode: 'http://127.0.0.1:8888',
-        discoveryWallet: 'http://localhost:8701/fcl/authn',
-        discoveryAuthInclude: []
-    },
-    testnet: {
-        accessNode: 'https://rest-testnet.onflow.org',
-        discoveryWallet: 'https://fcl-discovery.onflow.org/testnet/authn',
-        discoveryAuthnEndpoint: 'https://fcl-discovery.onflow.org/api/testnet/authn',
-        // Adds in Dapper + Ledger
-        discoveryAuthInclude: ["0x82ec283f88a62e65", "0x9d2e44203cb13051"]
-    },
-    mainnet: {
-        accessNode: 'https://rest-mainnet.onflow.org',
-        discoveryWallet: 'https://fcl-discovery.onflow.org/authn',
-        discoveryAuthnEndpoint: 'https://fcl-discovery.onflow.org/api/authn',
-        // Adds in Dapper + Ledger
-        discoveryAuthInclude: ["0xead892083b3e2c6c", "0xe5cd26afebe62781"]
-    }
-};
+// const fclConfigInfo = {
+//     emulator: {
+//         accessNode: 'http://127.0.0.1:8888',
+//         discoveryWallet: 'http://localhost:8701/fcl/authn',
+//         discoveryAuthInclude: []
+//     },
+//     testnet: {
+//         accessNode: 'https://rest-testnet.onflow.org',
+//         discoveryWallet: 'https://fcl-discovery.onflow.org/testnet/authn',
+//         discoveryAuthnEndpoint: 'https://fcl-discovery.onflow.org/api/testnet/authn',
+//         // Adds in Dapper + Ledger
+//         discoveryAuthInclude: ["0x82ec283f88a62e65", "0x9d2e44203cb13051"]
+//     },
+//     mainnet: {
+//         accessNode: 'https://rest-mainnet.onflow.org',
+//         discoveryWallet: 'https://fcl-discovery.onflow.org/authn',
+//         discoveryAuthnEndpoint: 'https://fcl-discovery.onflow.org/api/authn',
+//         // Adds in Dapper + Ledger
+//         discoveryAuthInclude: ["0xead892083b3e2c6c", "0xe5cd26afebe62781"]
+//     }
+// };
 
-const network = 'emulator';
+// const network = 'emulator';
 
 fcl.config({
     "app.detail.title": "Flow Affiliated Accounts", // the name of your DApp
@@ -57,25 +62,25 @@ let user = { loggedIn: false, addr: "" };
 // Subscribe to user changes
 fcl.currentUser().subscribe((currentUser) => {
     user = currentUser;
-    updateAuthUI();
+    updateAuthUI(user);
 });
 
-// Update UI based on authentication state
-function updateAuthUI() {
-    const loginButton = document.getElementById('loginButton');
-    const logoutButton = document.getElementById('logoutButton');
-    const userAddress = document.getElementById('userAddress');
+// // Update UI based on authentication state
+// function updateAuthUI() {
+//     const loginButton = document.getElementById('loginButton');
+//     const logoutButton = document.getElementById('logoutButton');
+//     const userAddress = document.getElementById('userAddress');
 
-    if (user.loggedIn) {
-        loginButton.style.display = 'none';
-        logoutButton.style.display = 'block';
-        userAddress.textContent = `Welcome, ${user.addr}!`;
-    } else {
-        loginButton.style.display = 'block';
-        logoutButton.style.display = 'none';
-        userAddress.textContent = 'Please log in.';
-    }
-}
+//     if (user.loggedIn) {
+//         loginButton.style.display = 'none';
+//         logoutButton.style.display = 'block';
+//         userAddress.textContent = `Welcome, ${user.addr}!`;
+//     } else {
+//         loginButton.style.display = 'block';
+//         logoutButton.style.display = 'none';
+//         userAddress.textContent = 'Please log in.';
+//     }
+// }
 
 // Authenticate with Flow
 async function authenticateWithFlow() {
@@ -176,11 +181,11 @@ async function verifySignature() {
         };
 
         // Hash the original message in the same way it was hashed during signing
-        const messageHash = ethers.utils.hashMessage(originalMessage);
-        const messageHashBytes = ethers.utils.arrayify(messageHash);
+        const messageHash = ethers.hashMessage(originalMessage);
+        const messageHashBytes = ethers.arrayify(messageHash);
 
         // Recover the address from the signature
-        const recoveredAddress = ethers.utils.recoverAddress(messageHashBytes, fullSignature);
+        const recoveredAddress = ethers.recoverAddress(messageHashBytes, fullSignature);
 
         if (recoveredAddress.toLowerCase() === signerAddress.toLowerCase()) {
             verificationResultElement.textContent = 'Signature is valid.';
@@ -196,39 +201,7 @@ async function verifySignature() {
     }
 }
 
-
-// async function verifySignatureWithMetaMask() {
-//     const signerAddress = document.getElementById('verifyAddressInput').value.trim();
-//     const originalMessage = document.getElementById('verifyMessageInput').value.trim();
-//     const signature = document.getElementById('verifySignatureInput').value.trim();
-//     const verificationResultElement = document.getElementById('verificationResult');
-
-//     if (!signerAddress || !originalMessage || !signature) {
-//         alert('Please enter the signer address, the original message, and the signature.');
-//         return;
-//     }
-
-//     try {
-//         const messageHash = ethers.utils.hashMessage(originalMessage);
-//         const messageHashBytes = ethers.utils.arrayify(messageHash);
-//         const signatureParams = ethers.utils.splitSignature(signature);
-//         const recoveredAddress = ethers.utils.recoverAddress(messageHashBytes, signatureParams);
-
-//         if (recoveredAddress.toLowerCase() === signerAddress.toLowerCase()) {
-//             verificationResultElement.textContent = 'Signature is valid.';
-//             verificationResultElement.style.color = 'green';
-//         } else {
-//             verificationResultElement.textContent = 'Signature is invalid.';
-//             verificationResultElement.style.color = 'red';
-//         }
-//     } catch (err) {
-//         console.error(err);
-//         verificationResultElement.textContent = 'An error occurred during the verification process.';
-//         verificationResultElement.style.color = 'red';
-//     }
-// }
-
-},{"@ethereumjs/util":31,"@onflow/fcl":181,"ethers":222}],2:[function(require,module,exports){
+},{"./utils.js":271,"@ethereumjs/util":31,"@onflow/fcl":181,"ethers":222}],2:[function(require,module,exports){
 function _arrayLikeToArray(arr, len) {
   if (len == null || len > arr.length) len = arr.length;
   for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i];
@@ -1666,7 +1639,7 @@ class AsyncEventEmitter extends events_1.EventEmitter {
 }
 exports.AsyncEventEmitter = AsyncEventEmitter;
 
-},{"events":274}],25:[function(require,module,exports){
+},{"events":275}],25:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.commitmentsToVersionedHashes = exports.computeVersionedHash = exports.blobsToProofs = exports.blobsToCommitments = exports.getBlobs = void 0;
@@ -31956,7 +31929,7 @@ exports.unauthenticate = unauthenticate;
 exports.verifyUserSignatures = verifyUserSignatures;
 
 
-},{"@babel/runtime/helpers/asyncToGenerator":5,"@babel/runtime/helpers/createForOfIteratorHelper":6,"@babel/runtime/helpers/defineProperty":7,"@babel/runtime/helpers/objectSpread2":12,"@babel/runtime/helpers/slicedToArray":14,"@babel/runtime/helpers/toConsumableArray":15,"@babel/runtime/helpers/typeof":18,"@babel/runtime/regenerator":20,"@onflow/config":180,"@onflow/rlp":182,"@onflow/sdk":183,"@onflow/types":185,"@onflow/util-actor":186,"@onflow/util-address":187,"@onflow/util-invariant":188,"@onflow/util-logger":189,"@onflow/util-template":190,"@onflow/util-uid":191,"buffer":273,"node-fetch":241}],182:[function(require,module,exports){
+},{"@babel/runtime/helpers/asyncToGenerator":5,"@babel/runtime/helpers/createForOfIteratorHelper":6,"@babel/runtime/helpers/defineProperty":7,"@babel/runtime/helpers/objectSpread2":12,"@babel/runtime/helpers/slicedToArray":14,"@babel/runtime/helpers/toConsumableArray":15,"@babel/runtime/helpers/typeof":18,"@babel/runtime/regenerator":20,"@onflow/config":180,"@onflow/rlp":182,"@onflow/sdk":183,"@onflow/types":185,"@onflow/util-actor":186,"@onflow/util-address":187,"@onflow/util-invariant":188,"@onflow/util-logger":189,"@onflow/util-template":190,"@onflow/util-uid":191,"buffer":274,"node-fetch":241}],182:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -32214,7 +32187,7 @@ exports.getLength = getLength;
 exports.toBuffer = toBuffer;
 
 
-},{"buffer":273}],183:[function(require,module,exports){
+},{"buffer":274}],183:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -42920,7 +42893,7 @@ module.exports = {
   };
 })(typeof module === 'undefined' || module, this);
 
-},{"buffer":272}],196:[function(require,module,exports){
+},{"buffer":273}],196:[function(require,module,exports){
 var r;
 
 module.exports = function rand(len) {
@@ -42987,7 +42960,7 @@ if (typeof self === 'object') {
   }
 }
 
-},{"crypto":272}],197:[function(require,module,exports){
+},{"crypto":273}],197:[function(require,module,exports){
 var global = typeof self !== 'undefined' ? self : this;
 var __self__ = (function () {
 function F() {
@@ -50887,7 +50860,7 @@ utils.intFromLE = intFromLE;
   };
 })(typeof module === 'undefined' || module, this);
 
-},{"buffer":272}],214:[function(require,module,exports){
+},{"buffer":273}],214:[function(require,module,exports){
 module.exports={
   "name": "elliptic",
   "version": "6.5.4",
@@ -53355,7 +53328,7 @@ if (typeof Object.create === 'function') {
 })();
 
 }).call(this)}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":276}],239:[function(require,module,exports){
+},{"_process":277}],239:[function(require,module,exports){
 module.exports = assert;
 
 function assert(val, msg) {
@@ -53962,11 +53935,11 @@ module.exports = typeof queueMicrotask === 'function'
 })(this);
 
 }).call(this)}).call(this,require("timers").setImmediate)
-},{"timers":277}],244:[function(require,module,exports){
+},{"timers":278}],244:[function(require,module,exports){
 "use strict";Object.defineProperty(exports,"__esModule",{value:true});exports["default"]=exports.SHAKE=exports.SHA3Hash=exports.SHA3=exports.Keccak=void 0;var _buffer=require("buffer");var _sponge=_interopRequireDefault(require("./sponge"));function _interopRequireDefault(obj){return obj&&obj.__esModule?obj:{"default":obj}}var createHash=function createHash(_ref){var allowedSizes=_ref.allowedSizes,defaultSize=_ref.defaultSize,padding=_ref.padding;return function Hash(){var _this=this;var size=arguments.length>0&&arguments[0]!==undefined?arguments[0]:defaultSize;if(!this||this.constructor!==Hash){return new Hash(size)}if(allowedSizes&&!allowedSizes.includes(size)){throw new Error("Unsupported hash length")}var sponge=new _sponge["default"]({capacity:size});this.update=function(input){var encoding=arguments.length>1&&arguments[1]!==undefined?arguments[1]:"utf8";if(_buffer.Buffer.isBuffer(input)){sponge.absorb(input);return _this}if(typeof input==="string"){return _this.update(_buffer.Buffer.from(input,encoding))}throw new TypeError("Not a string or buffer")};this.digest=function(){var formatOrOptions=arguments.length>0&&arguments[0]!==undefined?arguments[0]:"binary";var options=typeof formatOrOptions==="string"?{format:formatOrOptions}:formatOrOptions;var buffer=sponge.squeeze({buffer:options.buffer,padding:options.padding||padding});if(options.format&&options.format!=="binary"){return buffer.toString(options.format)}return buffer};this.reset=function(){sponge.reset();return _this};return this}};var Keccak=createHash({allowedSizes:[224,256,384,512],defaultSize:512,padding:1});exports.Keccak=Keccak;var SHA3=createHash({allowedSizes:[224,256,384,512],defaultSize:512,padding:6});exports.SHA3=SHA3;var SHAKE=createHash({allowedSizes:[128,256],defaultSize:256,padding:31});exports.SHAKE=SHAKE;var SHA3Hash=Keccak;exports.SHA3Hash=SHA3Hash;SHA3.SHA3Hash=SHA3Hash;var _default=SHA3;exports["default"]=_default;
-},{"./sponge":245,"buffer":273}],245:[function(require,module,exports){
+},{"./sponge":245,"buffer":274}],245:[function(require,module,exports){
 "use strict";Object.defineProperty(exports,"__esModule",{value:true});exports["default"]=void 0;var _buffer=require("buffer");var _permute=_interopRequireDefault(require("./permute"));function _interopRequireDefault(obj){return obj&&obj.__esModule?obj:{"default":obj}}var xorWords=function xorWords(I,O){for(var i=0;i<I.length;i+=8){var o=i/4;O[o]^=I[i+7]<<24|I[i+6]<<16|I[i+5]<<8|I[i+4];O[o+1]^=I[i+3]<<24|I[i+2]<<16|I[i+1]<<8|I[i]}return O};var readWords=function readWords(I,O){for(var o=0;o<O.length;o+=8){var i=o/4;O[o]=I[i+1];O[o+1]=I[i+1]>>>8;O[o+2]=I[i+1]>>>16;O[o+3]=I[i+1]>>>24;O[o+4]=I[i];O[o+5]=I[i]>>>8;O[o+6]=I[i]>>>16;O[o+7]=I[i]>>>24}return O};var Sponge=function Sponge(_ref){var _this=this;var capacity=_ref.capacity,padding=_ref.padding;var keccak=(0,_permute["default"])();var stateSize=200;var blockSize=capacity/8;var queueSize=stateSize-capacity/4;var queueOffset=0;var state=new Uint32Array(stateSize/4);var queue=_buffer.Buffer.allocUnsafe(queueSize);this.absorb=function(buffer){for(var i=0;i<buffer.length;i++){queue[queueOffset]=buffer[i];queueOffset+=1;if(queueOffset>=queueSize){xorWords(queue,state);keccak(state);queueOffset=0}}return _this};this.squeeze=function(){var options=arguments.length>0&&arguments[0]!==undefined?arguments[0]:{};var output={buffer:options.buffer||_buffer.Buffer.allocUnsafe(blockSize),padding:options.padding||padding,queue:_buffer.Buffer.allocUnsafe(queue.length),state:new Uint32Array(state.length)};queue.copy(output.queue);for(var i=0;i<state.length;i++){output.state[i]=state[i]}output.queue.fill(0,queueOffset);output.queue[queueOffset]|=output.padding;output.queue[queueSize-1]|=128;xorWords(output.queue,output.state);for(var offset=0;offset<output.buffer.length;offset+=queueSize){keccak(output.state);readWords(output.state,output.buffer.slice(offset,offset+queueSize))}return output.buffer};this.reset=function(){queue.fill(0);state.fill(0);queueOffset=0;return _this};return this};var _default=Sponge;exports["default"]=_default;
-},{"./permute":248,"buffer":273}],246:[function(require,module,exports){
+},{"./permute":248,"buffer":274}],246:[function(require,module,exports){
 "use strict";Object.defineProperty(exports,"__esModule",{value:true});exports["default"]=void 0;var _copy=_interopRequireDefault(require("../copy"));function _interopRequireDefault(obj){return obj&&obj.__esModule?obj:{"default":obj}}var chi=function chi(_ref){var A=_ref.A,C=_ref.C;for(var y=0;y<25;y+=5){for(var x=0;x<5;x++){(0,_copy["default"])(A,y+x)(C,x)}for(var _x=0;_x<5;_x++){var xy=(y+_x)*2;var x1=(_x+1)%5*2;var x2=(_x+2)%5*2;A[xy]^=~C[x1]&C[x2];A[xy+1]^=~C[x1+1]&C[x2+1]}}};var _default=chi;exports["default"]=_default;
 },{"../copy":247}],247:[function(require,module,exports){
 "use strict";var copy=function copy(I,i){return function(O,o){var oi=o*2;var ii=i*2;O[oi]=I[ii];O[oi+1]=I[ii+1]}};module.exports=copy;
@@ -54848,6 +54821,48 @@ function version(uuid) {
 var _default = version;
 exports.default = _default;
 },{"./validate.js":269}],271:[function(require,module,exports){
+module.exports.network = 'emulator'
+
+module.exports.fclConfigInfo = {
+    emulator: {
+        accessNode: 'http://127.0.0.1:8888',
+        discoveryWallet: 'http://localhost:8701/fcl/authn',
+        discoveryAuthInclude: []
+    },
+    testnet: {
+        accessNode: 'https://rest-testnet.onflow.org',
+        discoveryWallet: 'https://fcl-discovery.onflow.org/testnet/authn',
+        discoveryAuthnEndpoint: 'https://fcl-discovery.onflow.org/api/testnet/authn',
+        // Adds in Dapper + Ledger
+        discoveryAuthInclude: ["0x82ec283f88a62e65", "0x9d2e44203cb13051"]
+    },
+    mainnet: {
+        accessNode: 'https://rest-mainnet.onflow.org',
+        discoveryWallet: 'https://fcl-discovery.onflow.org/authn',
+        discoveryAuthnEndpoint: 'https://fcl-discovery.onflow.org/api/authn',
+        // Adds in Dapper + Ledger
+        discoveryAuthInclude: ["0xead892083b3e2c6c", "0xe5cd26afebe62781"]
+    }
+}
+
+    // Update UI based on authentication state
+module.exports.updateAuthUI = function(user) {
+    const loginButton = document.getElementById('loginButton');
+    const logoutButton = document.getElementById('logoutButton');
+    const userAddress = document.getElementById('userAddress');
+
+    if (user.loggedIn) {
+        loginButton.style.display = 'none';
+        logoutButton.style.display = 'block';
+        userAddress.textContent = `Welcome, ${user.addr}!`;
+    } else {
+        loginButton.style.display = 'block';
+        logoutButton.style.display = 'none';
+        userAddress.textContent = 'Please log in.';
+    }
+}
+
+},{}],272:[function(require,module,exports){
 'use strict'
 
 exports.byteLength = byteLength
@@ -54999,9 +55014,9 @@ function fromByteArray (uint8) {
   return parts.join('')
 }
 
-},{}],272:[function(require,module,exports){
-
 },{}],273:[function(require,module,exports){
+
+},{}],274:[function(require,module,exports){
 (function (Buffer){(function (){
 /*!
  * The buffer module from node.js, for the browser.
@@ -56782,7 +56797,7 @@ function numberIsNaN (obj) {
 }
 
 }).call(this)}).call(this,require("buffer").Buffer)
-},{"base64-js":271,"buffer":273,"ieee754":275}],274:[function(require,module,exports){
+},{"base64-js":272,"buffer":274,"ieee754":276}],275:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -57281,7 +57296,7 @@ function eventTargetAgnosticAddListener(emitter, name, listener, flags) {
   }
 }
 
-},{}],275:[function(require,module,exports){
+},{}],276:[function(require,module,exports){
 /*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> */
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
@@ -57368,7 +57383,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128
 }
 
-},{}],276:[function(require,module,exports){
+},{}],277:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -57554,7 +57569,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],277:[function(require,module,exports){
+},{}],278:[function(require,module,exports){
 (function (setImmediate,clearImmediate){(function (){
 var nextTick = require('process/browser.js').nextTick;
 var apply = Function.prototype.apply;
@@ -57633,4 +57648,4 @@ exports.clearImmediate = typeof clearImmediate === "function" ? clearImmediate :
   delete immediateIds[id];
 };
 }).call(this)}).call(this,require("timers").setImmediate,require("timers").clearImmediate)
-},{"process/browser.js":276,"timers":277}]},{},[1]);
+},{"process/browser.js":277,"timers":278}]},{},[1]);

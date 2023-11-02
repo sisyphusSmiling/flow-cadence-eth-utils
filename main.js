@@ -7,6 +7,11 @@ const {
     pubToAddress,
 } = require('@ethereumjs/util');
 const fcl = require('@onflow/fcl');
+const {
+    network,
+    fclConfigInfo,
+    updateAuthUI
+} = require('./utils.js');
 
 document.addEventListener('DOMContentLoaded', (event) => {
     document.getElementById('signButton').addEventListener('click', signMessageWithMetaMask);
@@ -15,29 +20,29 @@ document.addEventListener('DOMContentLoaded', (event) => {
 });
 
 
-const fclConfigInfo = {
-    emulator: {
-        accessNode: 'http://127.0.0.1:8888',
-        discoveryWallet: 'http://localhost:8701/fcl/authn',
-        discoveryAuthInclude: []
-    },
-    testnet: {
-        accessNode: 'https://rest-testnet.onflow.org',
-        discoveryWallet: 'https://fcl-discovery.onflow.org/testnet/authn',
-        discoveryAuthnEndpoint: 'https://fcl-discovery.onflow.org/api/testnet/authn',
-        // Adds in Dapper + Ledger
-        discoveryAuthInclude: ["0x82ec283f88a62e65", "0x9d2e44203cb13051"]
-    },
-    mainnet: {
-        accessNode: 'https://rest-mainnet.onflow.org',
-        discoveryWallet: 'https://fcl-discovery.onflow.org/authn',
-        discoveryAuthnEndpoint: 'https://fcl-discovery.onflow.org/api/authn',
-        // Adds in Dapper + Ledger
-        discoveryAuthInclude: ["0xead892083b3e2c6c", "0xe5cd26afebe62781"]
-    }
-};
+// const fclConfigInfo = {
+//     emulator: {
+//         accessNode: 'http://127.0.0.1:8888',
+//         discoveryWallet: 'http://localhost:8701/fcl/authn',
+//         discoveryAuthInclude: []
+//     },
+//     testnet: {
+//         accessNode: 'https://rest-testnet.onflow.org',
+//         discoveryWallet: 'https://fcl-discovery.onflow.org/testnet/authn',
+//         discoveryAuthnEndpoint: 'https://fcl-discovery.onflow.org/api/testnet/authn',
+//         // Adds in Dapper + Ledger
+//         discoveryAuthInclude: ["0x82ec283f88a62e65", "0x9d2e44203cb13051"]
+//     },
+//     mainnet: {
+//         accessNode: 'https://rest-mainnet.onflow.org',
+//         discoveryWallet: 'https://fcl-discovery.onflow.org/authn',
+//         discoveryAuthnEndpoint: 'https://fcl-discovery.onflow.org/api/authn',
+//         // Adds in Dapper + Ledger
+//         discoveryAuthInclude: ["0xead892083b3e2c6c", "0xe5cd26afebe62781"]
+//     }
+// };
 
-const network = 'emulator';
+// const network = 'emulator';
 
 fcl.config({
     "app.detail.title": "Flow Affiliated Accounts", // the name of your DApp
@@ -56,25 +61,25 @@ let user = { loggedIn: false, addr: "" };
 // Subscribe to user changes
 fcl.currentUser().subscribe((currentUser) => {
     user = currentUser;
-    updateAuthUI();
+    updateAuthUI(user);
 });
 
-// Update UI based on authentication state
-function updateAuthUI() {
-    const loginButton = document.getElementById('loginButton');
-    const logoutButton = document.getElementById('logoutButton');
-    const userAddress = document.getElementById('userAddress');
+// // Update UI based on authentication state
+// function updateAuthUI() {
+//     const loginButton = document.getElementById('loginButton');
+//     const logoutButton = document.getElementById('logoutButton');
+//     const userAddress = document.getElementById('userAddress');
 
-    if (user.loggedIn) {
-        loginButton.style.display = 'none';
-        logoutButton.style.display = 'block';
-        userAddress.textContent = `Welcome, ${user.addr}!`;
-    } else {
-        loginButton.style.display = 'block';
-        logoutButton.style.display = 'none';
-        userAddress.textContent = 'Please log in.';
-    }
-}
+//     if (user.loggedIn) {
+//         loginButton.style.display = 'none';
+//         logoutButton.style.display = 'block';
+//         userAddress.textContent = `Welcome, ${user.addr}!`;
+//     } else {
+//         loginButton.style.display = 'block';
+//         logoutButton.style.display = 'none';
+//         userAddress.textContent = 'Please log in.';
+//     }
+// }
 
 // Authenticate with Flow
 async function authenticateWithFlow() {
@@ -175,11 +180,11 @@ async function verifySignature() {
         };
 
         // Hash the original message in the same way it was hashed during signing
-        const messageHash = ethers.utils.hashMessage(originalMessage);
-        const messageHashBytes = ethers.utils.arrayify(messageHash);
+        const messageHash = ethers.hashMessage(originalMessage);
+        const messageHashBytes = ethers.arrayify(messageHash);
 
         // Recover the address from the signature
-        const recoveredAddress = ethers.utils.recoverAddress(messageHashBytes, fullSignature);
+        const recoveredAddress = ethers.recoverAddress(messageHashBytes, fullSignature);
 
         if (recoveredAddress.toLowerCase() === signerAddress.toLowerCase()) {
             verificationResultElement.textContent = 'Signature is valid.';
