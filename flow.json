@@ -1,18 +1,10 @@
 {
 	"contracts": {
-		"AddressUtils": "cadence/contracts/flow-utils/AddressUtils.cdc",
+		"AddressUtils": "./cadence/contracts/flow-utils/AddressUtils.cdc",
 		"ArrayUtils": "cadence/contracts/flow-utils/ArrayUtils.cdc",
-		"StringUtils": "cadence/contracts/flow-utils/StringUtils.cdc",
-		"FungibleToken": {
-			"source": "cadence/contracts/FungibleToken.cdc",
-			"aliases": {
-				"emulator": "ee82856bf20e2aa6",
-				"mainnet": "f233dcee88fe0abe",
-				"testnet": "9a0766d93b6608b7"
-			}
-		},
-		"ETHUtils" : "cadence/contracts/ETHUtils.cdc",
-		"ETHAffiliatedAccount": "cadence/contracts/ETHAffiliatedAccount.cdc"
+		"ETHAffiliatedAccount": "cadence/contracts/ETHAffiliatedAccount.cdc",
+		"ETHUtils": "cadence/contracts/ETHUtils.cdc",
+		"StringUtils": "cadence/contracts/flow-utils/StringUtils.cdc"
 	},
 	"networks": {
 		"emulator": "127.0.0.1:3569",
@@ -37,10 +29,10 @@
 		"emulator": {
 			"emulator-account": [
 				"ArrayUtils",
-				"AddressUtils",
 				"StringUtils",
 				"ETHUtils",
-				"ETHAffiliatedAccount"
+				"ETHAffiliatedAccount",
+				"AddressUtils"
 			]
 		},
 		"testnet": {
