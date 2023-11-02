@@ -9,6 +9,7 @@ const {
 // import * as ethereumjs from '@ethereumjs/util';
 
 document.getElementById('signButton').addEventListener('click', signMessageWithMetaMask);
+document.getElementById('verifyButton').addEventListener('click', verifySignatureWithMetaMask);
 
 async function signMessageWithMetaMask() {
     // Check if MetaMask is installed
@@ -67,3 +68,35 @@ async function signMessageWithMetaMask() {
         alert('An error occurred during the message signing process.');
     }
 }
+
+async function verifySignatureWithMetaMask() {
+    const signerAddress = document.getElementById('verifyAddressInput').value.trim();
+    const originalMessage = document.getElementById('verifyMessageInput').value.trim();
+    const signature = document.getElementById('verifySignatureInput').value.trim();
+    const verificationResultElement = document.getElementById('verificationResult');
+
+    if (!signerAddress || !originalMessage || !signature) {
+        alert('Please enter the signer address, the original message, and the signature.');
+        return;
+    }
+
+    try {
+        const messageHash = ethers.utils.hashMessage(originalMessage);
+        const messageHashBytes = ethers.utils.arrayify(messageHash);
+        const signatureParams = ethers.utils.splitSignature(signature);
+        const recoveredAddress = ethers.utils.recoverAddress(messageHashBytes, signatureParams);
+
+        if (recoveredAddress.toLowerCase() === signerAddress.toLowerCase()) {
+            verificationResultElement.textContent = 'Signature is valid.';
+            verificationResultElement.style.color = 'green';
+        } else {
+            verificationResultElement.textContent = 'Signature is invalid.';
+            verificationResultElement.style.color = 'red';
+        }
+    } catch (err) {
+        console.error(err);
+        verificationResultElement.textContent = 'An error occurred during the verification process.';
+        verificationResultElement.style.color = 'red';
+    }
+}
+

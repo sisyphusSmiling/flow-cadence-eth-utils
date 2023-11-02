@@ -74,14 +74,32 @@
         p {
             word-wrap: break-word;
         }
+
+        .verification-result {
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: inline-block;
+        }
+
+        .valid {
+            background-color: #4CAF50;
+        }
+
+        .invalid {
+            background-color: #F44336;
+        }
     </style>
 </head>
 
 <body>
 
     <h1 class="title">Ethereum Notary Service</h1>
-    <h2 class="subheading">Sign verifiable messages using Metamask</h2>
 
+    <!-- Signature Creation Section -->
+    <h2 class="subheading">Sign verifiable messages using Metamask</h2>
+   
     <div class="container">
         <input type="text" id="messageInput" placeholder="Type your message here" />
         <button id="signButton">Sign Message with MetaMask</button>
@@ -89,6 +107,19 @@
         <p>Message: <span id="message"></span></p>
         <p>Public Key: <span id="publicKey"></span></p>
         <p>Signature: <span id="signature"></span></p>
+    </div>
+
+    <!-- Signature Verification Section -->
+
+    <h2 class="subheading">Verify signed messages</h2>
+    
+    <div class="container">
+        <h2>Verify Signature</h2>
+        <input type="text" id="verifyAddressInput" placeholder="Signer's Address" />
+        <input type="text" id="verifyMessageInput" placeholder="Original Message" />
+        <input type="text" id="verifySignatureInput" placeholder="Signature to Verify" />
+        <button id="verifyButton">Verify Signature</button>
+        <p id="verificationResult"></p>
     </div>
 
     <script src="bundle.js"></script>
