@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Ethereum Notary Service</title>
+
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #333;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            padding-top: 50px;
+            /* Added padding to ensure the title is visible */
+        }
+
+        .title {
+            color: #4CAF50;
+            margin-bottom: 10px;
+            /* Space between title and subheading */
+        }
+
+        .subheading {
+            color: #ccc;
+            margin-bottom: 30px;
+            /* Space between subheading and container */
+        }
+
+        .container {
+            background-color: #555;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 300px;
+            margin: 20px;
+        }
+
+        input,
+        button {
+            width: calc(100% - 20px);
+            /* Adjust width to match the button */
+            padding: 10px;
+            margin-bottom: 10px;
+            /* Even margin below the input field */
+            border: none;
+            border-radius: 5px;
+        }
+
+        input {
+            background-color: #fff;
+            color: #333;
+            margin-top: 10px;
+            /* Even margin above the input field */
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        p {
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1 class="title">Ethereum Notary Service</h1>
+    <h2 class="subheading">Sign verifiable messages using Metamask</h2>
+
+    <div class="container">
+        <input type="text" id="messageInput" placeholder="Type your message here" />
+        <button id="signButton">Sign Message with MetaMask</button>
+        <p>Signer Address: <span id="address"></span></p>
+        <p>Message: <span id="message"></span></p>
+        <p>Public Key: <span id="publicKey"></span></p>
+        <p>Signature: <span id="signature"></span></p>
+    </div>
+
+    <script src="bundle.js"></script>
+
+</body>
+
+</html>
