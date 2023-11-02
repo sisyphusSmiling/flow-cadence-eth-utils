@@ -1,5 +1,4 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-(function (Buffer){(function (){
 // document.getElementById('signButton').addEventListener('click', signMessageWithMetaMask);
 const ethers = require('ethers');
 // Import the entire ethereumjs-util module
@@ -8,10 +7,85 @@ const {
     toBuffer,
     pubToAddress,
 } = require('@ethereumjs/util');
-// import * as ethereumjs from '@ethereumjs/util';
+const fcl = require('@onflow/fcl');
 
-document.getElementById('signButton').addEventListener('click', signMessageWithMetaMask);
-document.getElementById('verifyButton').addEventListener('click', verifySignatureWithMetaMask);
+document.addEventListener('DOMContentLoaded', (event) => {
+    document.getElementById('signButton').addEventListener('click', signMessageWithMetaMask);
+    document.getElementById('loginButton').addEventListener('click', authenticateWithFlow);
+    document.getElementById('logoutButton').addEventListener('click', unauthenticateWithFlow);
+});
+
+
+const fclConfigInfo = {
+    emulator: {
+        accessNode: 'http://127.0.0.1:8888',
+        discoveryWallet: 'http://localhost:8701/fcl/authn',
+        discoveryAuthInclude: []
+    },
+    testnet: {
+        accessNode: 'https://rest-testnet.onflow.org',
+        discoveryWallet: 'https://fcl-discovery.onflow.org/testnet/authn',
+        discoveryAuthnEndpoint: 'https://fcl-discovery.onflow.org/api/testnet/authn',
+        // Adds in Dapper + Ledger
+        discoveryAuthInclude: ["0x82ec283f88a62e65", "0x9d2e44203cb13051"]
+    },
+    mainnet: {
+        accessNode: 'https://rest-mainnet.onflow.org',
+        discoveryWallet: 'https://fcl-discovery.onflow.org/authn',
+        discoveryAuthnEndpoint: 'https://fcl-discovery.onflow.org/api/authn',
+        // Adds in Dapper + Ledger
+        discoveryAuthInclude: ["0xead892083b3e2c6c", "0xe5cd26afebe62781"]
+    }
+};
+
+const network = 'emulator';
+
+fcl.config({
+    "app.detail.title": "Flow Affiliated Accounts", // the name of your DApp
+    "app.detail.icon": "https://assets-global.website-files.com/5f734f4dbd95382f4fdfa0ea/63ce603ae36f46f6bb67e51e_flow-logo.svg", // your DApps icon
+    "flow.network": network,
+    "accessNode.api": fclConfigInfo[network].accessNode,
+    "discovery.wallet": fclConfigInfo[network].discoveryWallet,
+    "discovery.authn.endpoint": fclConfigInfo[network].discoveryAuthnEndpoint,
+    // adds in opt-in wallets like Dapper and Ledger
+    "discovery.authn.include": fclConfigInfo[network].discoveryAuthInclude
+});
+
+// Initialize user state
+let user = { loggedIn: false, addr: "" };
+
+// Subscribe to user changes
+fcl.currentUser().subscribe((currentUser) => {
+    user = currentUser;
+    updateAuthUI();
+});
+
+// Update UI based on authentication state
+function updateAuthUI() {
+    const loginButton = document.getElementById('loginButton');
+    const logoutButton = document.getElementById('logoutButton');
+    const userAddress = document.getElementById('userAddress');
+
+    if (user.loggedIn) {
+        loginButton.style.display = 'none';
+        logoutButton.style.display = 'block';
+        userAddress.textContent = `Welcome, ${user.addr}!`;
+    } else {
+        loginButton.style.display = 'block';
+        logoutButton.style.display = 'none';
+        userAddress.textContent = 'Please log in.';
+    }
+}
+
+// Authenticate with Flow
+async function authenticateWithFlow() {
+    await fcl.authenticate();
+}
+
+// Unauthenticate with Flow
+function unauthenticateWithFlow() {
+    fcl.unauthenticate();
+}
 
 async function signMessageWithMetaMask() {
     // Check if MetaMask is installed
@@ -21,57 +95,58 @@ async function signMessageWithMetaMask() {
     }
 
     try {
-        // Request account access
-        await window.ethereum.request({ method: 'eth_requestAccounts' });
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const provider = new ethers.providers.Web3Provider(window.ethereum, "any");
+
+        // Send a request to access the user's Ethereum accounts
+        await provider.send("eth_requestAccounts", []);
+
         const signer = provider.getSigner();
-        const address = await signer.getAddress();
+        const signerAddress = (await signer.getAddress()).toLowerCase();
 
-        // Get the message from the input field
-        const message = document.getElementById('messageInput').value;
-        if (!message) {
-            alert('Please enter a message to sign.');
-            return;
-        }
+        // Define a string message to be signed
+        const user = await fcl.authenticate()
+        const message = `${user.addr}:${signerAddress}`
 
-        // Sign the message
-        const signature = await signer.signMessage(message);
+        const ethSig = await signer.signMessage(message);
 
-        // Output the results
-        console.log('Message:', message);
-        console.log('Signature:', signature);
-        console.log('Signer Address:', address);
+        // Remove the '0x' prefix from the signature string
+        const removedPrefix = ethSig.replace(/^0x/, '');
 
+        // Construct the sigObj object that consists of the following parts
+        let sigObj = {
+            r: removedPrefix.slice(0, 64),  // first 32 bytes of the signature
+            s: removedPrefix.slice(64, 128),  // next 32 bytes of the signature
+            recoveryParam: parseInt(removedPrefix.slice(128, 130), 16),  // the final byte (called v), used for recovering the public key
+        };
+
+        // Combine the 'r' and 's' parts to form the full signature
+        const signature = sigObj.r + sigObj.s;
+
+        // Construct the Ethereum signed message, following Ethereum's \x19Ethereum Signed Message:\n<length of message><message> convention.
+        // The purpose of this convention is to prevent the signed data from being a valid Ethereum transaction
+        const ethMessageVersion = `\x19Ethereum Signed Message:\n${message.length}${message}`;
+
+        // Compute the Keccak-256 hash of the message, which is used to recover the public key
+        const messageHash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(ethMessageVersion));
+
+        const pubKeyWithPrefix = ethers.utils.recoverPublicKey(messageHash, ethSig);
+
+        // Remove the prefix of the recovered public key
+        const publicKey = pubKeyWithPrefix.slice(4);
+
+        // The pubKey, toSign, and signature can now be used to interact with Cadence
         // Display the results on the webpage
-        document.getElementById('message').textContent = message;
-        document.getElementById('signature').textContent = signature;
-        document.getElementById('address').textContent = address;
-
-        // Recover the public key using ethereumjs-util
-        const messageHash = ethers.utils.hashMessage(message);
-        const msgHashUint8Array = Uint8Array.from(Buffer.from(ethers.utils.arrayify(messageHash)));
-        const signatureParams = ethers.utils.splitSignature(signature);
-        const vBigInt = BigInt(signatureParams.v);
-        const rUint8Array = Uint8Array.from(Buffer.from(signatureParams.r.slice(2), 'hex'));
-        const sUint8Array = Uint8Array.from(Buffer.from(signatureParams.s.slice(2), 'hex'));
-
-        const publicKey = ecrecover(msgHashUint8Array, vBigInt, rUint8Array, sUint8Array);
-        // const publicKeyString = bufferToHex(Buffer.from(publicKey));
-        const publicKeyString = '0x' + Buffer.from(publicKey).toString('hex');
-
-        // Display the public key
-        document.getElementById('publicKey').textContent = publicKeyString;
-
-        // Display the public key
-        document.getElementById('publicKey').textContent = publicKeyString;
+        console.log(`Signed message: ${message}`);
+        console.log(`Signature: ${signature}`);
+        console.log(`Signer address: ${signerAddress}`);
+        console.log(`Signer public key: ${publicKey}`);
 
     } catch (err) {
-        console.error(err);
-        alert('An error occurred during the message signing process.');
+        console.error(err);  // Log any errors
     }
 }
 
-async function verifySignatureWithMetaMask() {
+async function verifySignature() {
     const signerAddress = document.getElementById('verifyAddressInput').value.trim();
     const originalMessage = document.getElementById('verifyMessageInput').value.trim();
     const signature = document.getElementById('verifySignatureInput').value.trim();
@@ -83,10 +158,29 @@ async function verifySignatureWithMetaMask() {
     }
 
     try {
+        // Ensure the signature includes the 'v' value
+        if (signature.length !== 132) {
+            throw new Error('The signature is not the correct length.');
+        }
+
+        // Extract the 'v' value from the signature
+        const r = signature.slice(0, 66);
+        const s = '0x' + signature.slice(66, 130);
+        const v = '0x' + signature.slice(130, 132);
+
+        // Construct a full signature object expected by ethers
+        const fullSignature = {
+            r: r,
+            s: s,
+            v: parseInt(v, 16)
+        };
+
+        // Hash the original message in the same way it was hashed during signing
         const messageHash = ethers.utils.hashMessage(originalMessage);
         const messageHashBytes = ethers.utils.arrayify(messageHash);
-        const signatureParams = ethers.utils.splitSignature(signature);
-        const recoveredAddress = ethers.utils.recoverAddress(messageHashBytes, signatureParams);
+
+        // Recover the address from the signature
+        const recoveredAddress = ethers.utils.recoverAddress(messageHashBytes, fullSignature);
 
         if (recoveredAddress.toLowerCase() === signerAddress.toLowerCase()) {
             verificationResultElement.textContent = 'Signature is valid.';
@@ -96,15 +190,617 @@ async function verifySignatureWithMetaMask() {
             verificationResultElement.style.color = 'red';
         }
     } catch (err) {
-        console.error(err);
+        console.error('Error during FCL authentication or MetaMask signing:', err);
         verificationResultElement.textContent = 'An error occurred during the verification process.';
         verificationResultElement.style.color = 'red';
     }
 }
 
 
-}).call(this)}).call(this,require("buffer").Buffer)
-},{"@ethereumjs/util":12,"buffer":211,"ethers":189}],2:[function(require,module,exports){
+// async function verifySignatureWithMetaMask() {
+//     const signerAddress = document.getElementById('verifyAddressInput').value.trim();
+//     const originalMessage = document.getElementById('verifyMessageInput').value.trim();
+//     const signature = document.getElementById('verifySignatureInput').value.trim();
+//     const verificationResultElement = document.getElementById('verificationResult');
+
+//     if (!signerAddress || !originalMessage || !signature) {
+//         alert('Please enter the signer address, the original message, and the signature.');
+//         return;
+//     }
+
+//     try {
+//         const messageHash = ethers.utils.hashMessage(originalMessage);
+//         const messageHashBytes = ethers.utils.arrayify(messageHash);
+//         const signatureParams = ethers.utils.splitSignature(signature);
+//         const recoveredAddress = ethers.utils.recoverAddress(messageHashBytes, signatureParams);
+
+//         if (recoveredAddress.toLowerCase() === signerAddress.toLowerCase()) {
+//             verificationResultElement.textContent = 'Signature is valid.';
+//             verificationResultElement.style.color = 'green';
+//         } else {
+//             verificationResultElement.textContent = 'Signature is invalid.';
+//             verificationResultElement.style.color = 'red';
+//         }
+//     } catch (err) {
+//         console.error(err);
+//         verificationResultElement.textContent = 'An error occurred during the verification process.';
+//         verificationResultElement.style.color = 'red';
+//     }
+// }
+
+},{"@ethereumjs/util":31,"@onflow/fcl":181,"ethers":222}],2:[function(require,module,exports){
+function _arrayLikeToArray(arr, len) {
+  if (len == null || len > arr.length) len = arr.length;
+  for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i];
+  return arr2;
+}
+module.exports = _arrayLikeToArray, module.exports.__esModule = true, module.exports["default"] = module.exports;
+},{}],3:[function(require,module,exports){
+function _arrayWithHoles(arr) {
+  if (Array.isArray(arr)) return arr;
+}
+module.exports = _arrayWithHoles, module.exports.__esModule = true, module.exports["default"] = module.exports;
+},{}],4:[function(require,module,exports){
+var arrayLikeToArray = require("./arrayLikeToArray.js");
+function _arrayWithoutHoles(arr) {
+  if (Array.isArray(arr)) return arrayLikeToArray(arr);
+}
+module.exports = _arrayWithoutHoles, module.exports.__esModule = true, module.exports["default"] = module.exports;
+},{"./arrayLikeToArray.js":2}],5:[function(require,module,exports){
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {
+  try {
+    var info = gen[key](arg);
+    var value = info.value;
+  } catch (error) {
+    reject(error);
+    return;
+  }
+  if (info.done) {
+    resolve(value);
+  } else {
+    Promise.resolve(value).then(_next, _throw);
+  }
+}
+function _asyncToGenerator(fn) {
+  return function () {
+    var self = this,
+      args = arguments;
+    return new Promise(function (resolve, reject) {
+      var gen = fn.apply(self, args);
+      function _next(value) {
+        asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);
+      }
+      function _throw(err) {
+        asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);
+      }
+      _next(undefined);
+    });
+  };
+}
+module.exports = _asyncToGenerator, module.exports.__esModule = true, module.exports["default"] = module.exports;
+},{}],6:[function(require,module,exports){
+var unsupportedIterableToArray = require("./unsupportedIterableToArray.js");
+function _createForOfIteratorHelper(o, allowArrayLike) {
+  var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"];
+  if (!it) {
+    if (Array.isArray(o) || (it = unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") {
+      if (it) o = it;
+      var i = 0;
+      var F = function F() {};
+      return {
+        s: F,
+        n: function n() {
+          if (i >= o.length) return {
+            done: true
+          };
+          return {
+            done: false,
+            value: o[i++]
+          };
+        },
+        e: function e(_e) {
+          throw _e;
+        },
+        f: F
+      };
+    }
+    throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+  }
+  var normalCompletion = true,
+    didErr = false,
+    err;
+  return {
+    s: function s() {
+      it = it.call(o);
+    },
+    n: function n() {
+      var step = it.next();
+      normalCompletion = step.done;
+      return step;
+    },
+    e: function e(_e2) {
+      didErr = true;
+      err = _e2;
+    },
+    f: function f() {
+      try {
+        if (!normalCompletion && it["return"] != null) it["return"]();
+      } finally {
+        if (didErr) throw err;
+      }
+    }
+  };
+}
+module.exports = _createForOfIteratorHelper, module.exports.__esModule = true, module.exports["default"] = module.exports;
+},{"./unsupportedIterableToArray.js":19}],7:[function(require,module,exports){
+var toPropertyKey = require("./toPropertyKey.js");
+function _defineProperty(obj, key, value) {
+  key = toPropertyKey(key);
+  if (key in obj) {
+    Object.defineProperty(obj, key, {
+      value: value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  } else {
+    obj[key] = value;
+  }
+  return obj;
+}
+module.exports = _defineProperty, module.exports.__esModule = true, module.exports["default"] = module.exports;
+},{"./toPropertyKey.js":17}],8:[function(require,module,exports){
+function _iterableToArray(iter) {
+  if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
+}
+module.exports = _iterableToArray, module.exports.__esModule = true, module.exports["default"] = module.exports;
+},{}],9:[function(require,module,exports){
+function _iterableToArrayLimit(r, l) {
+  var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"];
+  if (null != t) {
+    var e,
+      n,
+      i,
+      u,
+      a = [],
+      f = !0,
+      o = !1;
+    try {
+      if (i = (t = t.call(r)).next, 0 === l) {
+        if (Object(t) !== t) return;
+        f = !1;
+      } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0);
+    } catch (r) {
+      o = !0, n = r;
+    } finally {
+      try {
+        if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return;
+      } finally {
+        if (o) throw n;
+      }
+    }
+    return a;
+  }
+}
+module.exports = _iterableToArrayLimit, module.exports.__esModule = true, module.exports["default"] = module.exports;
+},{}],10:[function(require,module,exports){
+function _nonIterableRest() {
+  throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+}
+module.exports = _nonIterableRest, module.exports.__esModule = true, module.exports["default"] = module.exports;
+},{}],11:[function(require,module,exports){
+function _nonIterableSpread() {
+  throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+}
+module.exports = _nonIterableSpread, module.exports.__esModule = true, module.exports["default"] = module.exports;
+},{}],12:[function(require,module,exports){
+var defineProperty = require("./defineProperty.js");
+function ownKeys(e, r) {
+  var t = Object.keys(e);
+  if (Object.getOwnPropertySymbols) {
+    var o = Object.getOwnPropertySymbols(e);
+    r && (o = o.filter(function (r) {
+      return Object.getOwnPropertyDescriptor(e, r).enumerable;
+    })), t.push.apply(t, o);
+  }
+  return t;
+}
+function _objectSpread2(e) {
+  for (var r = 1; r < arguments.length; r++) {
+    var t = null != arguments[r] ? arguments[r] : {};
+    r % 2 ? ownKeys(Object(t), !0).forEach(function (r) {
+      defineProperty(e, r, t[r]);
+    }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) {
+      Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r));
+    });
+  }
+  return e;
+}
+module.exports = _objectSpread2, module.exports.__esModule = true, module.exports["default"] = module.exports;
+},{"./defineProperty.js":7}],13:[function(require,module,exports){
+var _typeof = require("./typeof.js")["default"];
+function _regeneratorRuntime() {
+  "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */
+  module.exports = _regeneratorRuntime = function _regeneratorRuntime() {
+    return e;
+  }, module.exports.__esModule = true, module.exports["default"] = module.exports;
+  var t,
+    e = {},
+    r = Object.prototype,
+    n = r.hasOwnProperty,
+    o = Object.defineProperty || function (t, e, r) {
+      t[e] = r.value;
+    },
+    i = "function" == typeof Symbol ? Symbol : {},
+    a = i.iterator || "@@iterator",
+    c = i.asyncIterator || "@@asyncIterator",
+    u = i.toStringTag || "@@toStringTag";
+  function define(t, e, r) {
+    return Object.defineProperty(t, e, {
+      value: r,
+      enumerable: !0,
+      configurable: !0,
+      writable: !0
+    }), t[e];
+  }
+  try {
+    define({}, "");
+  } catch (t) {
+    define = function define(t, e, r) {
+      return t[e] = r;
+    };
+  }
+  function wrap(t, e, r, n) {
+    var i = e && e.prototype instanceof Generator ? e : Generator,
+      a = Object.create(i.prototype),
+      c = new Context(n || []);
+    return o(a, "_invoke", {
+      value: makeInvokeMethod(t, r, c)
+    }), a;
+  }
+  function tryCatch(t, e, r) {
+    try {
+      return {
+        type: "normal",
+        arg: t.call(e, r)
+      };
+    } catch (t) {
+      return {
+        type: "throw",
+        arg: t
+      };
+    }
+  }
+  e.wrap = wrap;
+  var h = "suspendedStart",
+    l = "suspendedYield",
+    f = "executing",
+    s = "completed",
+    y = {};
+  function Generator() {}
+  function GeneratorFunction() {}
+  function GeneratorFunctionPrototype() {}
+  var p = {};
+  define(p, a, function () {
+    return this;
+  });
+  var d = Object.getPrototypeOf,
+    v = d && d(d(values([])));
+  v && v !== r && n.call(v, a) && (p = v);
+  var g = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(p);
+  function defineIteratorMethods(t) {
+    ["next", "throw", "return"].forEach(function (e) {
+      define(t, e, function (t) {
+        return this._invoke(e, t);
+      });
+    });
+  }
+  function AsyncIterator(t, e) {
+    function invoke(r, o, i, a) {
+      var c = tryCatch(t[r], t, o);
+      if ("throw" !== c.type) {
+        var u = c.arg,
+          h = u.value;
+        return h && "object" == _typeof(h) && n.call(h, "__await") ? e.resolve(h.__await).then(function (t) {
+          invoke("next", t, i, a);
+        }, function (t) {
+          invoke("throw", t, i, a);
+        }) : e.resolve(h).then(function (t) {
+          u.value = t, i(u);
+        }, function (t) {
+          return invoke("throw", t, i, a);
+        });
+      }
+      a(c.arg);
+    }
+    var r;
+    o(this, "_invoke", {
+      value: function value(t, n) {
+        function callInvokeWithMethodAndArg() {
+          return new e(function (e, r) {
+            invoke(t, n, e, r);
+          });
+        }
+        return r = r ? r.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg();
+      }
+    });
+  }
+  function makeInvokeMethod(e, r, n) {
+    var o = h;
+    return function (i, a) {
+      if (o === f) throw new Error("Generator is already running");
+      if (o === s) {
+        if ("throw" === i) throw a;
+        return {
+          value: t,
+          done: !0
+        };
+      }
+      for (n.method = i, n.arg = a;;) {
+        var c = n.delegate;
+        if (c) {
+          var u = maybeInvokeDelegate(c, n);
+          if (u) {
+            if (u === y) continue;
+            return u;
+          }
+        }
+        if ("next" === n.method) n.sent = n._sent = n.arg;else if ("throw" === n.method) {
+          if (o === h) throw o = s, n.arg;
+          n.dispatchException(n.arg);
+        } else "return" === n.method && n.abrupt("return", n.arg);
+        o = f;
+        var p = tryCatch(e, r, n);
+        if ("normal" === p.type) {
+          if (o = n.done ? s : l, p.arg === y) continue;
+          return {
+            value: p.arg,
+            done: n.done
+          };
+        }
+        "throw" === p.type && (o = s, n.method = "throw", n.arg = p.arg);
+      }
+    };
+  }
+  function maybeInvokeDelegate(e, r) {
+    var n = r.method,
+      o = e.iterator[n];
+    if (o === t) return r.delegate = null, "throw" === n && e.iterator["return"] && (r.method = "return", r.arg = t, maybeInvokeDelegate(e, r), "throw" === r.method) || "return" !== n && (r.method = "throw", r.arg = new TypeError("The iterator does not provide a '" + n + "' method")), y;
+    var i = tryCatch(o, e.iterator, r.arg);
+    if ("throw" === i.type) return r.method = "throw", r.arg = i.arg, r.delegate = null, y;
+    var a = i.arg;
+    return a ? a.done ? (r[e.resultName] = a.value, r.next = e.nextLoc, "return" !== r.method && (r.method = "next", r.arg = t), r.delegate = null, y) : a : (r.method = "throw", r.arg = new TypeError("iterator result is not an object"), r.delegate = null, y);
+  }
+  function pushTryEntry(t) {
+    var e = {
+      tryLoc: t[0]
+    };
+    1 in t && (e.catchLoc = t[1]), 2 in t && (e.finallyLoc = t[2], e.afterLoc = t[3]), this.tryEntries.push(e);
+  }
+  function resetTryEntry(t) {
+    var e = t.completion || {};
+    e.type = "normal", delete e.arg, t.completion = e;
+  }
+  function Context(t) {
+    this.tryEntries = [{
+      tryLoc: "root"
+    }], t.forEach(pushTryEntry, this), this.reset(!0);
+  }
+  function values(e) {
+    if (e || "" === e) {
+      var r = e[a];
+      if (r) return r.call(e);
+      if ("function" == typeof e.next) return e;
+      if (!isNaN(e.length)) {
+        var o = -1,
+          i = function next() {
+            for (; ++o < e.length;) if (n.call(e, o)) return next.value = e[o], next.done = !1, next;
+            return next.value = t, next.done = !0, next;
+          };
+        return i.next = i;
+      }
+    }
+    throw new TypeError(_typeof(e) + " is not iterable");
+  }
+  return GeneratorFunction.prototype = GeneratorFunctionPrototype, o(g, "constructor", {
+    value: GeneratorFunctionPrototype,
+    configurable: !0
+  }), o(GeneratorFunctionPrototype, "constructor", {
+    value: GeneratorFunction,
+    configurable: !0
+  }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, u, "GeneratorFunction"), e.isGeneratorFunction = function (t) {
+    var e = "function" == typeof t && t.constructor;
+    return !!e && (e === GeneratorFunction || "GeneratorFunction" === (e.displayName || e.name));
+  }, e.mark = function (t) {
+    return Object.setPrototypeOf ? Object.setPrototypeOf(t, GeneratorFunctionPrototype) : (t.__proto__ = GeneratorFunctionPrototype, define(t, u, "GeneratorFunction")), t.prototype = Object.create(g), t;
+  }, e.awrap = function (t) {
+    return {
+      __await: t
+    };
+  }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, c, function () {
+    return this;
+  }), e.AsyncIterator = AsyncIterator, e.async = function (t, r, n, o, i) {
+    void 0 === i && (i = Promise);
+    var a = new AsyncIterator(wrap(t, r, n, o), i);
+    return e.isGeneratorFunction(r) ? a : a.next().then(function (t) {
+      return t.done ? t.value : a.next();
+    });
+  }, defineIteratorMethods(g), define(g, u, "Generator"), define(g, a, function () {
+    return this;
+  }), define(g, "toString", function () {
+    return "[object Generator]";
+  }), e.keys = function (t) {
+    var e = Object(t),
+      r = [];
+    for (var n in e) r.push(n);
+    return r.reverse(), function next() {
+      for (; r.length;) {
+        var t = r.pop();
+        if (t in e) return next.value = t, next.done = !1, next;
+      }
+      return next.done = !0, next;
+    };
+  }, e.values = values, Context.prototype = {
+    constructor: Context,
+    reset: function reset(e) {
+      if (this.prev = 0, this.next = 0, this.sent = this._sent = t, this.done = !1, this.delegate = null, this.method = "next", this.arg = t, this.tryEntries.forEach(resetTryEntry), !e) for (var r in this) "t" === r.charAt(0) && n.call(this, r) && !isNaN(+r.slice(1)) && (this[r] = t);
+    },
+    stop: function stop() {
+      this.done = !0;
+      var t = this.tryEntries[0].completion;
+      if ("throw" === t.type) throw t.arg;
+      return this.rval;
+    },
+    dispatchException: function dispatchException(e) {
+      if (this.done) throw e;
+      var r = this;
+      function handle(n, o) {
+        return a.type = "throw", a.arg = e, r.next = n, o && (r.method = "next", r.arg = t), !!o;
+      }
+      for (var o = this.tryEntries.length - 1; o >= 0; --o) {
+        var i = this.tryEntries[o],
+          a = i.completion;
+        if ("root" === i.tryLoc) return handle("end");
+        if (i.tryLoc <= this.prev) {
+          var c = n.call(i, "catchLoc"),
+            u = n.call(i, "finallyLoc");
+          if (c && u) {
+            if (this.prev < i.catchLoc) return handle(i.catchLoc, !0);
+            if (this.prev < i.finallyLoc) return handle(i.finallyLoc);
+          } else if (c) {
+            if (this.prev < i.catchLoc) return handle(i.catchLoc, !0);
+          } else {
+            if (!u) throw new Error("try statement without catch or finally");
+            if (this.prev < i.finallyLoc) return handle(i.finallyLoc);
+          }
+        }
+      }
+    },
+    abrupt: function abrupt(t, e) {
+      for (var r = this.tryEntries.length - 1; r >= 0; --r) {
+        var o = this.tryEntries[r];
+        if (o.tryLoc <= this.prev && n.call(o, "finallyLoc") && this.prev < o.finallyLoc) {
+          var i = o;
+          break;
+        }
+      }
+      i && ("break" === t || "continue" === t) && i.tryLoc <= e && e <= i.finallyLoc && (i = null);
+      var a = i ? i.completion : {};
+      return a.type = t, a.arg = e, i ? (this.method = "next", this.next = i.finallyLoc, y) : this.complete(a);
+    },
+    complete: function complete(t, e) {
+      if ("throw" === t.type) throw t.arg;
+      return "break" === t.type || "continue" === t.type ? this.next = t.arg : "return" === t.type ? (this.rval = this.arg = t.arg, this.method = "return", this.next = "end") : "normal" === t.type && e && (this.next = e), y;
+    },
+    finish: function finish(t) {
+      for (var e = this.tryEntries.length - 1; e >= 0; --e) {
+        var r = this.tryEntries[e];
+        if (r.finallyLoc === t) return this.complete(r.completion, r.afterLoc), resetTryEntry(r), y;
+      }
+    },
+    "catch": function _catch(t) {
+      for (var e = this.tryEntries.length - 1; e >= 0; --e) {
+        var r = this.tryEntries[e];
+        if (r.tryLoc === t) {
+          var n = r.completion;
+          if ("throw" === n.type) {
+            var o = n.arg;
+            resetTryEntry(r);
+          }
+          return o;
+        }
+      }
+      throw new Error("illegal catch attempt");
+    },
+    delegateYield: function delegateYield(e, r, n) {
+      return this.delegate = {
+        iterator: values(e),
+        resultName: r,
+        nextLoc: n
+      }, "next" === this.method && (this.arg = t), y;
+    }
+  }, e;
+}
+module.exports = _regeneratorRuntime, module.exports.__esModule = true, module.exports["default"] = module.exports;
+},{"./typeof.js":18}],14:[function(require,module,exports){
+var arrayWithHoles = require("./arrayWithHoles.js");
+var iterableToArrayLimit = require("./iterableToArrayLimit.js");
+var unsupportedIterableToArray = require("./unsupportedIterableToArray.js");
+var nonIterableRest = require("./nonIterableRest.js");
+function _slicedToArray(arr, i) {
+  return arrayWithHoles(arr) || iterableToArrayLimit(arr, i) || unsupportedIterableToArray(arr, i) || nonIterableRest();
+}
+module.exports = _slicedToArray, module.exports.__esModule = true, module.exports["default"] = module.exports;
+},{"./arrayWithHoles.js":3,"./iterableToArrayLimit.js":9,"./nonIterableRest.js":10,"./unsupportedIterableToArray.js":19}],15:[function(require,module,exports){
+var arrayWithoutHoles = require("./arrayWithoutHoles.js");
+var iterableToArray = require("./iterableToArray.js");
+var unsupportedIterableToArray = require("./unsupportedIterableToArray.js");
+var nonIterableSpread = require("./nonIterableSpread.js");
+function _toConsumableArray(arr) {
+  return arrayWithoutHoles(arr) || iterableToArray(arr) || unsupportedIterableToArray(arr) || nonIterableSpread();
+}
+module.exports = _toConsumableArray, module.exports.__esModule = true, module.exports["default"] = module.exports;
+},{"./arrayWithoutHoles.js":4,"./iterableToArray.js":8,"./nonIterableSpread.js":11,"./unsupportedIterableToArray.js":19}],16:[function(require,module,exports){
+var _typeof = require("./typeof.js")["default"];
+function _toPrimitive(input, hint) {
+  if (_typeof(input) !== "object" || input === null) return input;
+  var prim = input[Symbol.toPrimitive];
+  if (prim !== undefined) {
+    var res = prim.call(input, hint || "default");
+    if (_typeof(res) !== "object") return res;
+    throw new TypeError("@@toPrimitive must return a primitive value.");
+  }
+  return (hint === "string" ? String : Number)(input);
+}
+module.exports = _toPrimitive, module.exports.__esModule = true, module.exports["default"] = module.exports;
+},{"./typeof.js":18}],17:[function(require,module,exports){
+var _typeof = require("./typeof.js")["default"];
+var toPrimitive = require("./toPrimitive.js");
+function _toPropertyKey(arg) {
+  var key = toPrimitive(arg, "string");
+  return _typeof(key) === "symbol" ? key : String(key);
+}
+module.exports = _toPropertyKey, module.exports.__esModule = true, module.exports["default"] = module.exports;
+},{"./toPrimitive.js":16,"./typeof.js":18}],18:[function(require,module,exports){
+function _typeof(o) {
+  "@babel/helpers - typeof";
+
+  return (module.exports = _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) {
+    return typeof o;
+  } : function (o) {
+    return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o;
+  }, module.exports.__esModule = true, module.exports["default"] = module.exports), _typeof(o);
+}
+module.exports = _typeof, module.exports.__esModule = true, module.exports["default"] = module.exports;
+},{}],19:[function(require,module,exports){
+var arrayLikeToArray = require("./arrayLikeToArray.js");
+function _unsupportedIterableToArray(o, minLen) {
+  if (!o) return;
+  if (typeof o === "string") return arrayLikeToArray(o, minLen);
+  var n = Object.prototype.toString.call(o).slice(8, -1);
+  if (n === "Object" && o.constructor) n = o.constructor.name;
+  if (n === "Map" || n === "Set") return Array.from(o);
+  if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return arrayLikeToArray(o, minLen);
+}
+module.exports = _unsupportedIterableToArray, module.exports.__esModule = true, module.exports["default"] = module.exports;
+},{"./arrayLikeToArray.js":2}],20:[function(require,module,exports){
+// TODO(Babel 8): Remove this file.
+
+var runtime = require("../helpers/regeneratorRuntime")();
+module.exports = runtime;
+
+// Copied from https://github.com/facebook/regenerator/blob/main/packages/runtime/runtime.js#L736=
+try {
+  regeneratorRuntime = runtime;
+} catch (accidentalStrictMode) {
+  if (typeof globalThis === "object") {
+    globalThis.regeneratorRuntime = runtime;
+  } else {
+    Function("r", "regeneratorRuntime = r")(runtime);
+  }
+}
+
+},{"../helpers/regeneratorRuntime":13}],21:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RLP = exports.utils = exports.decode = exports.encode = void 0;
@@ -363,7 +1059,7 @@ exports.utils = {
 };
 exports.RLP = { encode, decode };
 
-},{}],3:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.accountBodyToRLP = exports.accountBodyToSlim = exports.accountBodyFromSlim = exports.isZeroAddress = exports.zeroAddress = exports.importPublic = exports.privateToAddress = exports.privateToPublic = exports.publicToAddress = exports.pubToAddress = exports.isValidPublic = exports.isValidPrivate = exports.generateAddress2 = exports.generateAddress = exports.isValidChecksumAddress = exports.toChecksumAddress = exports.isValidAddress = exports.Account = void 0;
@@ -683,7 +1379,7 @@ function accountBodyToRLP(body, couldBeSlim = true) {
 }
 exports.accountBodyToRLP = accountBodyToRLP;
 
-},{"./bytes.js":7,"./constants.js":8,"./helpers.js":11,"./internal.js":13,"@ethereumjs/rlp":2,"ethereum-cryptography/keccak.js":182,"ethereum-cryptography/secp256k1.js":184}],4:[function(require,module,exports){
+},{"./bytes.js":26,"./constants.js":27,"./helpers.js":30,"./internal.js":32,"@ethereumjs/rlp":21,"ethereum-cryptography/keccak.js":215,"ethereum-cryptography/secp256k1.js":217}],23:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Address = void 0;
@@ -800,7 +1496,7 @@ class Address {
 }
 exports.Address = Address;
 
-},{"./account.js":3,"./bytes.js":7}],5:[function(require,module,exports){
+},{"./account.js":22,"./bytes.js":26}],24:[function(require,module,exports){
 "use strict";
 /**
  * Ported to Typescript from original implementation below:
@@ -970,7 +1666,7 @@ class AsyncEventEmitter extends events_1.EventEmitter {
 }
 exports.AsyncEventEmitter = AsyncEventEmitter;
 
-},{"events":212}],6:[function(require,module,exports){
+},{"events":274}],25:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.commitmentsToVersionedHashes = exports.computeVersionedHash = exports.blobsToProofs = exports.blobsToCommitments = exports.getBlobs = void 0;
@@ -1064,7 +1760,7 @@ const commitmentsToVersionedHashes = (commitments) => {
 };
 exports.commitmentsToVersionedHashes = commitmentsToVersionedHashes;
 
-},{"./bytes.js":7,"./kzg.js":14,"ethereum-cryptography/sha256.js":185}],7:[function(require,module,exports){
+},{"./bytes.js":26,"./kzg.js":33,"ethereum-cryptography/sha256.js":218}],26:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.utf8ToBytes = exports.equalsBytes = exports.bytesToUtf8 = exports.concatBytes = exports.randomBytes = exports.compareBytes = exports.intToUnpaddedBytes = exports.bigIntToUnpaddedBytes = exports.bigIntToHex = exports.validateNoLeadingZeroes = exports.short = exports.addHexPrefix = exports.toUnsigned = exports.fromSigned = exports.toBytes = exports.unpadHex = exports.unpadArray = exports.unpadBytes = exports.setLengthRight = exports.setLengthLeft = exports.zeros = exports.bigIntToBytes = exports.intToBytes = exports.intToHex = exports.hexToBytes = exports.bytesToInt = exports.bytesToBigInt = exports.bytesToHex = exports.unprefixedHexToBytes = exports.bytesToUnprefixedHex = void 0;
@@ -1471,7 +2167,7 @@ Object.defineProperty(exports, "bytesToUtf8", { enumerable: true, get: function 
 Object.defineProperty(exports, "equalsBytes", { enumerable: true, get: function () { return utils_js_2.equalsBytes; } });
 Object.defineProperty(exports, "utf8ToBytes", { enumerable: true, get: function () { return utils_js_2.utf8ToBytes; } });
 
-},{"./helpers.js":11,"./internal.js":13,"ethereum-cryptography/random.js":183,"ethereum-cryptography/utils.js":186}],8:[function(require,module,exports){
+},{"./helpers.js":30,"./internal.js":32,"ethereum-cryptography/random.js":216,"ethereum-cryptography/utils.js":219}],27:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RIPEMD160_ADDRESS_STRING = exports.MAX_WITHDRAWALS_PER_PAYLOAD = exports.RLP_EMPTY_STRING = exports.KECCAK256_RLP = exports.KECCAK256_RLP_S = exports.KECCAK256_RLP_ARRAY = exports.KECCAK256_RLP_ARRAY_S = exports.KECCAK256_NULL = exports.KECCAK256_NULL_S = exports.TWO_POW256 = exports.SECP256K1_ORDER_DIV_2 = exports.SECP256K1_ORDER = exports.MAX_INTEGER_BIGINT = exports.MAX_INTEGER = exports.MAX_UINT64 = void 0;
@@ -1528,7 +2224,7 @@ exports.RLP_EMPTY_STRING = Uint8Array.from([0x80]);
 exports.MAX_WITHDRAWALS_PER_PAYLOAD = 16;
 exports.RIPEMD160_ADDRESS_STRING = '0000000000000000000000000000000000000003';
 
-},{"./bytes.js":7,"ethereum-cryptography/secp256k1.js":184}],9:[function(require,module,exports){
+},{"./bytes.js":26,"ethereum-cryptography/secp256k1.js":217}],28:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ValueEncoding = exports.KeyEncoding = void 0;
@@ -1545,7 +2241,7 @@ var ValueEncoding;
     ValueEncoding["JSON"] = "json";
 })(ValueEncoding = exports.ValueEncoding || (exports.ValueEncoding = {}));
 
-},{}],10:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.parseGethGenesisState = void 0;
@@ -1570,7 +2266,7 @@ function parseGethGenesisState(json) {
 }
 exports.parseGethGenesisState = parseGethGenesisState;
 
-},{"./bytes.js":7,"./internal.js":13}],11:[function(require,module,exports){
+},{"./bytes.js":26,"./internal.js":32}],30:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.assertIsString = exports.assertIsArray = exports.assertIsBytes = exports.assertIsHexString = void 0;
@@ -1620,7 +2316,7 @@ const assertIsString = function (input) {
 };
 exports.assertIsString = assertIsString;
 
-},{"./internal.js":13}],12:[function(require,module,exports){
+},{"./internal.js":32}],31:[function(require,module,exports){
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -1696,7 +2392,7 @@ __exportStar(require("./lock.js"), exports);
 __exportStar(require("./mapDB.js"), exports);
 __exportStar(require("./provider.js"), exports);
 
-},{"./account.js":3,"./address.js":4,"./asyncEventEmitter.js":5,"./blobs.js":6,"./bytes.js":7,"./constants.js":8,"./db.js":9,"./genesis.js":10,"./internal.js":13,"./kzg.js":14,"./lock.js":15,"./mapDB.js":16,"./provider.js":17,"./signature.js":18,"./types.js":19,"./units.js":20,"./withdrawal.js":21}],13:[function(require,module,exports){
+},{"./account.js":22,"./address.js":23,"./asyncEventEmitter.js":24,"./blobs.js":25,"./bytes.js":26,"./constants.js":27,"./db.js":28,"./genesis.js":29,"./internal.js":32,"./kzg.js":33,"./lock.js":34,"./mapDB.js":35,"./provider.js":36,"./signature.js":37,"./types.js":38,"./units.js":39,"./withdrawal.js":40}],32:[function(require,module,exports){
 "use strict";
 /*
 The MIT License
@@ -1889,7 +2585,7 @@ function isHexString(value, length) {
 }
 exports.isHexString = isHexString;
 
-},{"./bytes.js":7}],14:[function(require,module,exports){
+},{"./bytes.js":26}],33:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.initKZG = exports.kzg = void 0;
@@ -1914,7 +2610,7 @@ function initKZG(kzgLib, trustedSetupPath) {
 }
 exports.initKZG = initKZG;
 
-},{}],15:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Lock = void 0;
@@ -1960,7 +2656,7 @@ class Lock {
 }
 exports.Lock = Lock;
 
-},{}],16:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MapDB = void 0;
@@ -2005,7 +2701,7 @@ class MapDB {
 }
 exports.MapDB = MapDB;
 
-},{"./bytes.js":7}],17:[function(require,module,exports){
+},{"./bytes.js":26}],36:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getProvider = exports.fetchFromProvider = void 0;
@@ -2054,7 +2750,7 @@ const getProvider = (provider) => {
 };
 exports.getProvider = getProvider;
 
-},{}],18:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.hashPersonalMessage = exports.isValidSignature = exports.fromRpcSig = exports.toCompactSig = exports.toRpcSig = exports.ecrecover = exports.ecsign = void 0;
@@ -2216,7 +2912,7 @@ const hashPersonalMessage = function (message) {
 };
 exports.hashPersonalMessage = hashPersonalMessage;
 
-},{"./bytes.js":7,"./constants.js":8,"./helpers.js":11,"ethereum-cryptography/keccak.js":182,"ethereum-cryptography/secp256k1.js":184}],19:[function(require,module,exports){
+},{"./bytes.js":26,"./constants.js":27,"./helpers.js":30,"ethereum-cryptography/keccak.js":215,"ethereum-cryptography/secp256k1.js":217}],38:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.toType = exports.TypeOutput = void 0;
@@ -2266,14 +2962,14 @@ function toType(input, outputType) {
 }
 exports.toType = toType;
 
-},{"./bytes.js":7,"./internal.js":13}],20:[function(require,module,exports){
+},{"./bytes.js":26,"./internal.js":32}],39:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GWEI_TO_WEI = void 0;
 /** Easy conversion from Gwei to wei */
 exports.GWEI_TO_WEI = BigInt(1000000000);
 
-},{}],21:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Withdrawal = void 0;
@@ -2355,13 +3051,13 @@ class Withdrawal {
 }
 exports.Withdrawal = Withdrawal;
 
-},{"./address.js":4,"./bytes.js":7,"./types.js":19}],22:[function(require,module,exports){
+},{"./address.js":23,"./bytes.js":26,"./types.js":38}],41:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "abi/5.7.0";
 
-},{}],23:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.defaultAbiCoder = exports.AbiCoder = void 0;
@@ -2466,7 +3162,7 @@ var AbiCoder = /** @class */ (function () {
 exports.AbiCoder = AbiCoder;
 exports.defaultAbiCoder = new AbiCoder();
 
-},{"./_version":22,"./coders/abstract-coder":24,"./coders/address":25,"./coders/array":27,"./coders/boolean":28,"./coders/bytes":29,"./coders/fixed-bytes":30,"./coders/null":31,"./coders/number":32,"./coders/string":33,"./coders/tuple":34,"./fragments":35,"@ethersproject/bytes":52,"@ethersproject/logger":79,"@ethersproject/properties":85}],24:[function(require,module,exports){
+},{"./_version":41,"./coders/abstract-coder":43,"./coders/address":44,"./coders/array":46,"./coders/boolean":47,"./coders/bytes":48,"./coders/fixed-bytes":49,"./coders/null":50,"./coders/number":51,"./coders/string":52,"./coders/tuple":53,"./fragments":54,"@ethersproject/bytes":71,"@ethersproject/logger":98,"@ethersproject/properties":104}],43:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Reader = exports.Writer = exports.Coder = exports.checkResultErrors = void 0;
@@ -2640,7 +3336,7 @@ var Reader = /** @class */ (function () {
 }());
 exports.Reader = Reader;
 
-},{"../_version":22,"@ethersproject/bignumber":50,"@ethersproject/bytes":52,"@ethersproject/logger":79,"@ethersproject/properties":85}],25:[function(require,module,exports){
+},{"../_version":41,"@ethersproject/bignumber":69,"@ethersproject/bytes":71,"@ethersproject/logger":98,"@ethersproject/properties":104}],44:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -2686,7 +3382,7 @@ var AddressCoder = /** @class */ (function (_super) {
 }(abstract_coder_1.Coder));
 exports.AddressCoder = AddressCoder;
 
-},{"./abstract-coder":24,"@ethersproject/address":43,"@ethersproject/bytes":52}],26:[function(require,module,exports){
+},{"./abstract-coder":43,"@ethersproject/address":62,"@ethersproject/bytes":71}],45:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -2727,7 +3423,7 @@ var AnonymousCoder = /** @class */ (function (_super) {
 }(abstract_coder_1.Coder));
 exports.AnonymousCoder = AnonymousCoder;
 
-},{"./abstract-coder":24}],27:[function(require,module,exports){
+},{"./abstract-coder":43}],46:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -2964,7 +3660,7 @@ var ArrayCoder = /** @class */ (function (_super) {
 }(abstract_coder_1.Coder));
 exports.ArrayCoder = ArrayCoder;
 
-},{"../_version":22,"./abstract-coder":24,"./anonymous":26,"@ethersproject/logger":79}],28:[function(require,module,exports){
+},{"../_version":41,"./abstract-coder":43,"./anonymous":45,"@ethersproject/logger":98}],47:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -3002,7 +3698,7 @@ var BooleanCoder = /** @class */ (function (_super) {
 }(abstract_coder_1.Coder));
 exports.BooleanCoder = BooleanCoder;
 
-},{"./abstract-coder":24}],29:[function(require,module,exports){
+},{"./abstract-coder":43}],48:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -3055,7 +3751,7 @@ var BytesCoder = /** @class */ (function (_super) {
 }(DynamicBytesCoder));
 exports.BytesCoder = BytesCoder;
 
-},{"./abstract-coder":24,"@ethersproject/bytes":52}],30:[function(require,module,exports){
+},{"./abstract-coder":43,"@ethersproject/bytes":71}],49:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -3103,7 +3799,7 @@ var FixedBytesCoder = /** @class */ (function (_super) {
 }(abstract_coder_1.Coder));
 exports.FixedBytesCoder = FixedBytesCoder;
 
-},{"./abstract-coder":24,"@ethersproject/bytes":52}],31:[function(require,module,exports){
+},{"./abstract-coder":43,"@ethersproject/bytes":71}],50:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -3145,7 +3841,7 @@ var NullCoder = /** @class */ (function (_super) {
 }(abstract_coder_1.Coder));
 exports.NullCoder = NullCoder;
 
-},{"./abstract-coder":24}],32:[function(require,module,exports){
+},{"./abstract-coder":43}],51:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -3210,7 +3906,7 @@ var NumberCoder = /** @class */ (function (_super) {
 }(abstract_coder_1.Coder));
 exports.NumberCoder = NumberCoder;
 
-},{"./abstract-coder":24,"@ethersproject/bignumber":50,"@ethersproject/constants":56}],33:[function(require,module,exports){
+},{"./abstract-coder":43,"@ethersproject/bignumber":69,"@ethersproject/constants":75}],52:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -3249,7 +3945,7 @@ var StringCoder = /** @class */ (function (_super) {
 }(bytes_1.DynamicBytesCoder));
 exports.StringCoder = StringCoder;
 
-},{"./bytes":29,"@ethersproject/strings":123}],34:[function(require,module,exports){
+},{"./bytes":48,"@ethersproject/strings":142}],53:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -3329,7 +4025,7 @@ var TupleCoder = /** @class */ (function (_super) {
 }(abstract_coder_1.Coder));
 exports.TupleCoder = TupleCoder;
 
-},{"./abstract-coder":24,"./array":27}],35:[function(require,module,exports){
+},{"./abstract-coder":43,"./array":46}],54:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -4230,7 +4926,7 @@ function splitNesting(value) {
     return result;
 }
 
-},{"./_version":22,"@ethersproject/bignumber":50,"@ethersproject/logger":79,"@ethersproject/properties":85}],36:[function(require,module,exports){
+},{"./_version":41,"@ethersproject/bignumber":69,"@ethersproject/logger":98,"@ethersproject/properties":104}],55:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TransactionDescription = exports.LogDescription = exports.checkResultErrors = exports.Indexed = exports.Interface = exports.defaultAbiCoder = exports.AbiCoder = exports.FormatTypes = exports.ParamType = exports.FunctionFragment = exports.Fragment = exports.EventFragment = exports.ErrorFragment = exports.ConstructorFragment = void 0;
@@ -4252,7 +4948,7 @@ Object.defineProperty(exports, "Interface", { enumerable: true, get: function ()
 Object.defineProperty(exports, "LogDescription", { enumerable: true, get: function () { return interface_1.LogDescription; } });
 Object.defineProperty(exports, "TransactionDescription", { enumerable: true, get: function () { return interface_1.TransactionDescription; } });
 
-},{"./abi-coder":23,"./fragments":35,"./interface":37}],37:[function(require,module,exports){
+},{"./abi-coder":42,"./fragments":54,"./interface":56}],56:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -4917,13 +5613,13 @@ var Interface = /** @class */ (function () {
 }());
 exports.Interface = Interface;
 
-},{"./_version":22,"./abi-coder":23,"./coders/abstract-coder":24,"./fragments":35,"@ethersproject/address":43,"@ethersproject/bignumber":50,"@ethersproject/bytes":52,"@ethersproject/hash":65,"@ethersproject/keccak256":77,"@ethersproject/logger":79,"@ethersproject/properties":85}],38:[function(require,module,exports){
+},{"./_version":41,"./abi-coder":42,"./coders/abstract-coder":43,"./fragments":54,"@ethersproject/address":62,"@ethersproject/bignumber":69,"@ethersproject/bytes":71,"@ethersproject/hash":84,"@ethersproject/keccak256":96,"@ethersproject/logger":98,"@ethersproject/properties":104}],57:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "abstract-provider/5.7.0";
 
-},{}],39:[function(require,module,exports){
+},{}],58:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -5110,13 +5806,13 @@ var Provider = /** @class */ (function () {
 }());
 exports.Provider = Provider;
 
-},{"./_version":38,"@ethersproject/bignumber":50,"@ethersproject/bytes":52,"@ethersproject/logger":79,"@ethersproject/properties":85}],40:[function(require,module,exports){
+},{"./_version":57,"@ethersproject/bignumber":69,"@ethersproject/bytes":71,"@ethersproject/logger":98,"@ethersproject/properties":104}],59:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "abstract-signer/5.7.0";
 
-},{}],41:[function(require,module,exports){
+},{}],60:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -5554,13 +6250,13 @@ var VoidSigner = /** @class */ (function (_super) {
 }(Signer));
 exports.VoidSigner = VoidSigner;
 
-},{"./_version":40,"@ethersproject/logger":79,"@ethersproject/properties":85}],42:[function(require,module,exports){
+},{"./_version":59,"@ethersproject/logger":98,"@ethersproject/properties":104}],61:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "address/5.7.0";
 
-},{}],43:[function(require,module,exports){
+},{}],62:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getCreate2Address = exports.getContractAddress = exports.getIcapAddress = exports.isAddress = exports.getAddress = void 0;
@@ -5702,7 +6398,7 @@ function getCreate2Address(from, salt, initCodeHash) {
 }
 exports.getCreate2Address = getCreate2Address;
 
-},{"./_version":42,"@ethersproject/bignumber":50,"@ethersproject/bytes":52,"@ethersproject/keccak256":77,"@ethersproject/logger":79,"@ethersproject/rlp":110}],44:[function(require,module,exports){
+},{"./_version":61,"@ethersproject/bignumber":69,"@ethersproject/bytes":71,"@ethersproject/keccak256":96,"@ethersproject/logger":98,"@ethersproject/rlp":129}],63:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.encode = exports.decode = void 0;
@@ -5726,7 +6422,7 @@ function encode(data) {
 }
 exports.encode = encode;
 
-},{"@ethersproject/bytes":52}],45:[function(require,module,exports){
+},{"@ethersproject/bytes":71}],64:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.encode = exports.decode = void 0;
@@ -5734,7 +6430,7 @@ var base64_1 = require("./base64");
 Object.defineProperty(exports, "decode", { enumerable: true, get: function () { return base64_1.decode; } });
 Object.defineProperty(exports, "encode", { enumerable: true, get: function () { return base64_1.encode; } });
 
-},{"./base64":44}],46:[function(require,module,exports){
+},{"./base64":63}],65:[function(require,module,exports){
 "use strict";
 /**
  * var basex = require("base-x");
@@ -5860,13 +6556,13 @@ exports.Base58 = Base58;
 //console.log(Base58.decode("Qmd2V777o5XvJbYMeMb8k2nU5f8d3ciUQ5YpYuWhzv8iDj"))
 //console.log(Base58.encode(Base58.decode("Qmd2V777o5XvJbYMeMb8k2nU5f8d3ciUQ5YpYuWhzv8iDj")))
 
-},{"@ethersproject/bytes":52,"@ethersproject/properties":85}],47:[function(require,module,exports){
+},{"@ethersproject/bytes":71,"@ethersproject/properties":104}],66:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "bignumber/5.7.0";
 
-},{}],48:[function(require,module,exports){
+},{}],67:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -6182,7 +6878,7 @@ function _base16To36(value) {
 }
 exports._base16To36 = _base16To36;
 
-},{"./_version":47,"@ethersproject/bytes":52,"@ethersproject/logger":79,"bn.js":163}],49:[function(require,module,exports){
+},{"./_version":66,"@ethersproject/bytes":71,"@ethersproject/logger":98,"bn.js":195}],68:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FixedNumber = exports.FixedFormat = exports.parseFixed = exports.formatFixed = void 0;
@@ -6552,7 +7248,7 @@ exports.FixedNumber = FixedNumber;
 var ONE = FixedNumber.from(1);
 var BUMP = FixedNumber.from("0.5");
 
-},{"./_version":47,"./bignumber":48,"@ethersproject/bytes":52,"@ethersproject/logger":79}],50:[function(require,module,exports){
+},{"./_version":66,"./bignumber":67,"@ethersproject/bytes":71,"@ethersproject/logger":98}],69:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports._base36To16 = exports._base16To36 = exports.parseFixed = exports.FixedNumber = exports.FixedFormat = exports.formatFixed = exports.BigNumber = void 0;
@@ -6568,13 +7264,13 @@ var bignumber_2 = require("./bignumber");
 Object.defineProperty(exports, "_base16To36", { enumerable: true, get: function () { return bignumber_2._base16To36; } });
 Object.defineProperty(exports, "_base36To16", { enumerable: true, get: function () { return bignumber_2._base36To16; } });
 
-},{"./bignumber":48,"./fixednumber":49}],51:[function(require,module,exports){
+},{"./bignumber":67,"./fixednumber":68}],70:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "bytes/5.7.0";
 
-},{}],52:[function(require,module,exports){
+},{}],71:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.joinSignature = exports.splitSignature = exports.hexZeroPad = exports.hexStripZeros = exports.hexValue = exports.hexConcat = exports.hexDataSlice = exports.hexDataLength = exports.hexlify = exports.isHexString = exports.zeroPad = exports.stripZeros = exports.concat = exports.arrayify = exports.isBytes = exports.isBytesLike = void 0;
@@ -7002,13 +7698,13 @@ function joinSignature(signature) {
 }
 exports.joinSignature = joinSignature;
 
-},{"./_version":51,"@ethersproject/logger":79}],53:[function(require,module,exports){
+},{"./_version":70,"@ethersproject/logger":98}],72:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AddressZero = void 0;
 exports.AddressZero = "0x0000000000000000000000000000000000000000";
 
-},{}],54:[function(require,module,exports){
+},{}],73:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MaxInt256 = exports.MinInt256 = exports.MaxUint256 = exports.WeiPerEther = exports.Two = exports.One = exports.Zero = exports.NegativeOne = void 0;
@@ -7030,13 +7726,13 @@ exports.MinInt256 = MinInt256;
 var MaxInt256 = ( /*#__PURE__*/bignumber_1.BigNumber.from("0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"));
 exports.MaxInt256 = MaxInt256;
 
-},{"@ethersproject/bignumber":50}],55:[function(require,module,exports){
+},{"@ethersproject/bignumber":69}],74:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.HashZero = void 0;
 exports.HashZero = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
-},{}],56:[function(require,module,exports){
+},{}],75:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EtherSymbol = exports.HashZero = exports.MaxInt256 = exports.MinInt256 = exports.MaxUint256 = exports.WeiPerEther = exports.Two = exports.One = exports.Zero = exports.NegativeOne = exports.AddressZero = void 0;
@@ -7056,20 +7752,20 @@ Object.defineProperty(exports, "HashZero", { enumerable: true, get: function () 
 var strings_1 = require("./strings");
 Object.defineProperty(exports, "EtherSymbol", { enumerable: true, get: function () { return strings_1.EtherSymbol; } });
 
-},{"./addresses":53,"./bignumbers":54,"./hashes":55,"./strings":57}],57:[function(require,module,exports){
+},{"./addresses":72,"./bignumbers":73,"./hashes":74,"./strings":76}],76:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EtherSymbol = void 0;
 // NFKC (composed)             // (decomposed)
 exports.EtherSymbol = "\u039e"; // "\uD835\uDF63";
 
-},{}],58:[function(require,module,exports){
+},{}],77:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "contracts/5.7.0";
 
-},{}],59:[function(require,module,exports){
+},{}],78:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -8273,13 +8969,13 @@ var ContractFactory = /** @class */ (function () {
 }());
 exports.ContractFactory = ContractFactory;
 
-},{"./_version":58,"@ethersproject/abi":36,"@ethersproject/abstract-provider":39,"@ethersproject/abstract-signer":41,"@ethersproject/address":43,"@ethersproject/bignumber":50,"@ethersproject/bytes":52,"@ethersproject/logger":79,"@ethersproject/properties":85,"@ethersproject/transactions":126}],60:[function(require,module,exports){
+},{"./_version":77,"@ethersproject/abi":55,"@ethersproject/abstract-provider":58,"@ethersproject/abstract-signer":60,"@ethersproject/address":62,"@ethersproject/bignumber":69,"@ethersproject/bytes":71,"@ethersproject/logger":98,"@ethersproject/properties":104,"@ethersproject/transactions":145}],79:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "hash/5.7.0";
 
-},{}],61:[function(require,module,exports){
+},{}],80:[function(require,module,exports){
 "use strict";
 /**
  * MIT License
@@ -8546,7 +9242,7 @@ function read_emoji_trie(next) {
 }
 exports.read_emoji_trie = read_emoji_trie;
 
-},{}],62:[function(require,module,exports){
+},{}],81:[function(require,module,exports){
 "use strict";
 /**
  * MIT License
@@ -8585,7 +9281,7 @@ function getData() {
 }
 exports.getData = getData;
 
-},{"./decoder.js":61,"@ethersproject/base64":45}],63:[function(require,module,exports){
+},{"./decoder.js":80,"@ethersproject/base64":64}],82:[function(require,module,exports){
 "use strict";
 /**
  * MIT License
@@ -8734,7 +9430,7 @@ function consume_emoji_reversed(cps, eaten) {
     return emoji;
 }
 
-},{"./decoder.js":61,"./include.js":62,"@ethersproject/strings":123}],64:[function(require,module,exports){
+},{"./decoder.js":80,"./include.js":81,"@ethersproject/strings":142}],83:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.id = void 0;
@@ -8745,7 +9441,7 @@ function id(text) {
 }
 exports.id = id;
 
-},{"@ethersproject/keccak256":77,"@ethersproject/strings":123}],65:[function(require,module,exports){
+},{"@ethersproject/keccak256":96,"@ethersproject/strings":142}],84:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports._TypedDataEncoder = exports.hashMessage = exports.messagePrefix = exports.ensNormalize = exports.isValidName = exports.namehash = exports.dnsEncode = exports.id = void 0;
@@ -8763,7 +9459,7 @@ Object.defineProperty(exports, "ensNormalize", { enumerable: true, get: function
 var typed_data_1 = require("./typed-data");
 Object.defineProperty(exports, "_TypedDataEncoder", { enumerable: true, get: function () { return typed_data_1.TypedDataEncoder; } });
 
-},{"./id":64,"./message":66,"./namehash":67,"./typed-data":68}],66:[function(require,module,exports){
+},{"./id":83,"./message":85,"./namehash":86,"./typed-data":87}],85:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.hashMessage = exports.messagePrefix = void 0;
@@ -8783,7 +9479,7 @@ function hashMessage(message) {
 }
 exports.hashMessage = hashMessage;
 
-},{"@ethersproject/bytes":52,"@ethersproject/keccak256":77,"@ethersproject/strings":123}],67:[function(require,module,exports){
+},{"@ethersproject/bytes":71,"@ethersproject/keccak256":96,"@ethersproject/strings":142}],86:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.dnsEncode = exports.namehash = exports.isValidName = exports.ensNormalize = void 0;
@@ -8863,7 +9559,7 @@ function dnsEncode(name) {
 }
 exports.dnsEncode = dnsEncode;
 
-},{"./_version":60,"./ens-normalize/lib":63,"@ethersproject/bytes":52,"@ethersproject/keccak256":77,"@ethersproject/logger":79,"@ethersproject/strings":123}],68:[function(require,module,exports){
+},{"./_version":79,"./ens-normalize/lib":82,"@ethersproject/bytes":71,"@ethersproject/keccak256":96,"@ethersproject/logger":98,"@ethersproject/strings":142}],87:[function(require,module,exports){
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -9365,13 +10061,13 @@ var TypedDataEncoder = /** @class */ (function () {
 }());
 exports.TypedDataEncoder = TypedDataEncoder;
 
-},{"./_version":60,"./id":64,"@ethersproject/address":43,"@ethersproject/bignumber":50,"@ethersproject/bytes":52,"@ethersproject/keccak256":77,"@ethersproject/logger":79,"@ethersproject/properties":85}],69:[function(require,module,exports){
+},{"./_version":79,"./id":83,"@ethersproject/address":62,"@ethersproject/bignumber":69,"@ethersproject/bytes":71,"@ethersproject/keccak256":96,"@ethersproject/logger":98,"@ethersproject/properties":104}],88:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "hdnode/5.7.0";
 
-},{}],70:[function(require,module,exports){
+},{}],89:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getAccountPath = exports.isValidMnemonic = exports.entropyToMnemonic = exports.mnemonicToEntropy = exports.mnemonicToSeed = exports.HDNode = exports.defaultPath = void 0;
@@ -9715,13 +10411,13 @@ function getAccountPath(index) {
 }
 exports.getAccountPath = getAccountPath;
 
-},{"./_version":69,"@ethersproject/basex":46,"@ethersproject/bignumber":50,"@ethersproject/bytes":52,"@ethersproject/logger":79,"@ethersproject/pbkdf2":83,"@ethersproject/properties":85,"@ethersproject/sha2":113,"@ethersproject/signing-key":117,"@ethersproject/strings":123,"@ethersproject/transactions":126,"@ethersproject/wordlists":135}],71:[function(require,module,exports){
+},{"./_version":88,"@ethersproject/basex":65,"@ethersproject/bignumber":69,"@ethersproject/bytes":71,"@ethersproject/logger":98,"@ethersproject/pbkdf2":102,"@ethersproject/properties":104,"@ethersproject/sha2":132,"@ethersproject/signing-key":136,"@ethersproject/strings":142,"@ethersproject/transactions":145,"@ethersproject/wordlists":154}],90:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "json-wallets/5.7.0";
 
-},{}],72:[function(require,module,exports){
+},{}],91:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -9797,7 +10493,7 @@ function decrypt(json, password) {
 }
 exports.decrypt = decrypt;
 
-},{"./_version":71,"./utils":76,"@ethersproject/address":43,"@ethersproject/bytes":52,"@ethersproject/keccak256":77,"@ethersproject/logger":79,"@ethersproject/pbkdf2":83,"@ethersproject/properties":85,"@ethersproject/strings":123,"aes-js":161}],73:[function(require,module,exports){
+},{"./_version":90,"./utils":95,"@ethersproject/address":62,"@ethersproject/bytes":71,"@ethersproject/keccak256":96,"@ethersproject/logger":98,"@ethersproject/pbkdf2":102,"@ethersproject/properties":104,"@ethersproject/strings":142,"aes-js":193}],92:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.decryptJsonWalletSync = exports.decryptJsonWallet = exports.getJsonWalletAddress = exports.isKeystoreWallet = exports.isCrowdsaleWallet = exports.encryptKeystore = exports.decryptKeystoreSync = exports.decryptKeystore = exports.decryptCrowdsale = void 0;
@@ -9839,7 +10535,7 @@ function decryptJsonWalletSync(json, password) {
 }
 exports.decryptJsonWalletSync = decryptJsonWalletSync;
 
-},{"./crowdsale":72,"./inspect":74,"./keystore":75}],74:[function(require,module,exports){
+},{"./crowdsale":91,"./inspect":93,"./keystore":94}],93:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getJsonWalletAddress = exports.isKeystoreWallet = exports.isCrowdsaleWallet = void 0;
@@ -9894,7 +10590,7 @@ function getJsonWalletAddress(json) {
 }
 exports.getJsonWalletAddress = getJsonWalletAddress;
 
-},{"@ethersproject/address":43}],75:[function(require,module,exports){
+},{"@ethersproject/address":62}],94:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -10275,7 +10971,7 @@ function encrypt(account, password, options, progressCallback) {
 }
 exports.encrypt = encrypt;
 
-},{"./_version":71,"./utils":76,"@ethersproject/address":43,"@ethersproject/bytes":52,"@ethersproject/hdnode":70,"@ethersproject/keccak256":77,"@ethersproject/logger":79,"@ethersproject/pbkdf2":83,"@ethersproject/properties":85,"@ethersproject/random":107,"@ethersproject/transactions":126,"aes-js":161,"scrypt-js":208}],76:[function(require,module,exports){
+},{"./_version":90,"./utils":95,"@ethersproject/address":62,"@ethersproject/bytes":71,"@ethersproject/hdnode":89,"@ethersproject/keccak256":96,"@ethersproject/logger":98,"@ethersproject/pbkdf2":102,"@ethersproject/properties":104,"@ethersproject/random":126,"@ethersproject/transactions":145,"aes-js":193,"scrypt-js":243}],95:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.uuidV4 = exports.searchPath = exports.getPassword = exports.zpad = exports.looseArrayify = void 0;
@@ -10346,7 +11042,7 @@ function uuidV4(randomBytes) {
 }
 exports.uuidV4 = uuidV4;
 
-},{"@ethersproject/bytes":52,"@ethersproject/strings":123}],77:[function(require,module,exports){
+},{"@ethersproject/bytes":71,"@ethersproject/strings":142}],96:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -10360,13 +11056,13 @@ function keccak256(data) {
 }
 exports.keccak256 = keccak256;
 
-},{"@ethersproject/bytes":52,"js-sha3":205}],78:[function(require,module,exports){
+},{"@ethersproject/bytes":71,"js-sha3":238}],97:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "logger/5.7.0";
 
-},{}],79:[function(require,module,exports){
+},{}],98:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Logger = exports.ErrorCode = exports.LogLevel = void 0;
@@ -10738,13 +11434,13 @@ var Logger = /** @class */ (function () {
 }());
 exports.Logger = Logger;
 
-},{"./_version":78}],80:[function(require,module,exports){
+},{"./_version":97}],99:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "networks/5.7.1";
 
-},{}],81:[function(require,module,exports){
+},{}],100:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getNetwork = void 0;
@@ -10996,7 +11692,7 @@ function getNetwork(network) {
 }
 exports.getNetwork = getNetwork;
 
-},{"./_version":80,"@ethersproject/logger":79}],82:[function(require,module,exports){
+},{"./_version":99,"@ethersproject/logger":98}],101:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.pbkdf2 = void 0;
@@ -11044,20 +11740,20 @@ function pbkdf2(password, salt, iterations, keylen, hashAlgorithm) {
 }
 exports.pbkdf2 = pbkdf2;
 
-},{"@ethersproject/bytes":52,"@ethersproject/sha2":113}],83:[function(require,module,exports){
+},{"@ethersproject/bytes":71,"@ethersproject/sha2":132}],102:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.pbkdf2 = void 0;
 var pbkdf2_1 = require("./pbkdf2");
 Object.defineProperty(exports, "pbkdf2", { enumerable: true, get: function () { return pbkdf2_1.pbkdf2; } });
 
-},{"./pbkdf2":82}],84:[function(require,module,exports){
+},{"./pbkdf2":101}],103:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "properties/5.7.0";
 
-},{}],85:[function(require,module,exports){
+},{}],104:[function(require,module,exports){
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -11229,13 +11925,13 @@ var Description = /** @class */ (function () {
 }());
 exports.Description = Description;
 
-},{"./_version":84,"@ethersproject/logger":79}],86:[function(require,module,exports){
+},{"./_version":103,"@ethersproject/logger":98}],105:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "providers/5.7.2";
 
-},{}],87:[function(require,module,exports){
+},{}],106:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -11348,7 +12044,7 @@ var AlchemyProvider = /** @class */ (function (_super) {
 }(url_json_rpc_provider_1.UrlJsonRpcProvider));
 exports.AlchemyProvider = AlchemyProvider;
 
-},{"./_version":86,"./formatter":95,"./url-json-rpc-provider":102,"./websocket-provider":104,"@ethersproject/logger":79,"@ethersproject/properties":85}],88:[function(require,module,exports){
+},{"./_version":105,"./formatter":114,"./url-json-rpc-provider":121,"./websocket-provider":123,"@ethersproject/logger":98,"@ethersproject/properties":104}],107:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -11428,7 +12124,7 @@ var AnkrProvider = /** @class */ (function (_super) {
 }(url_json_rpc_provider_1.UrlJsonRpcProvider));
 exports.AnkrProvider = AnkrProvider;
 
-},{"./_version":86,"./formatter":95,"./url-json-rpc-provider":102,"@ethersproject/logger":79}],89:[function(require,module,exports){
+},{"./_version":105,"./formatter":114,"./url-json-rpc-provider":121,"@ethersproject/logger":98}],108:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -14014,14 +14710,14 @@ var BaseProvider = /** @class */ (function (_super) {
 }(abstract_provider_1.Provider));
 exports.BaseProvider = BaseProvider;
 
-},{"./_version":86,"./formatter":95,"@ethersproject/abstract-provider":39,"@ethersproject/base64":45,"@ethersproject/basex":46,"@ethersproject/bignumber":50,"@ethersproject/bytes":52,"@ethersproject/constants":56,"@ethersproject/hash":65,"@ethersproject/logger":79,"@ethersproject/networks":81,"@ethersproject/properties":85,"@ethersproject/sha2":113,"@ethersproject/strings":123,"@ethersproject/web":133,"bech32":162}],90:[function(require,module,exports){
+},{"./_version":105,"./formatter":114,"@ethersproject/abstract-provider":58,"@ethersproject/base64":64,"@ethersproject/basex":65,"@ethersproject/bignumber":69,"@ethersproject/bytes":71,"@ethersproject/constants":75,"@ethersproject/hash":84,"@ethersproject/logger":98,"@ethersproject/networks":100,"@ethersproject/properties":104,"@ethersproject/sha2":132,"@ethersproject/strings":142,"@ethersproject/web":152,"bech32":194}],109:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.IpcProvider = void 0;
 var IpcProvider = null;
 exports.IpcProvider = IpcProvider;
 
-},{}],91:[function(require,module,exports){
+},{}],110:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WebSocket = void 0;
@@ -14044,7 +14740,7 @@ catch (error) {
     };
 }
 
-},{"./_version":86,"@ethersproject/logger":79}],92:[function(require,module,exports){
+},{"./_version":105,"@ethersproject/logger":98}],111:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -14145,7 +14841,7 @@ var CloudflareProvider = /** @class */ (function (_super) {
 }(url_json_rpc_provider_1.UrlJsonRpcProvider));
 exports.CloudflareProvider = CloudflareProvider;
 
-},{"./_version":86,"./url-json-rpc-provider":102,"@ethersproject/logger":79}],93:[function(require,module,exports){
+},{"./_version":105,"./url-json-rpc-provider":121,"@ethersproject/logger":98}],112:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -14674,7 +15370,7 @@ var EtherscanProvider = /** @class */ (function (_super) {
 }(base_provider_1.BaseProvider));
 exports.EtherscanProvider = EtherscanProvider;
 
-},{"./_version":86,"./base-provider":89,"./formatter":95,"@ethersproject/bytes":52,"@ethersproject/logger":79,"@ethersproject/properties":85,"@ethersproject/transactions":126,"@ethersproject/web":133}],94:[function(require,module,exports){
+},{"./_version":105,"./base-provider":108,"./formatter":114,"@ethersproject/bytes":71,"@ethersproject/logger":98,"@ethersproject/properties":104,"@ethersproject/transactions":145,"@ethersproject/web":152}],113:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -15374,7 +16070,7 @@ var FallbackProvider = /** @class */ (function (_super) {
 }(base_provider_1.BaseProvider));
 exports.FallbackProvider = FallbackProvider;
 
-},{"./_version":86,"./base-provider":89,"./formatter":95,"@ethersproject/abstract-provider":39,"@ethersproject/bignumber":50,"@ethersproject/bytes":52,"@ethersproject/logger":79,"@ethersproject/properties":85,"@ethersproject/random":107,"@ethersproject/web":133}],95:[function(require,module,exports){
+},{"./_version":105,"./base-provider":108,"./formatter":114,"@ethersproject/abstract-provider":58,"@ethersproject/bignumber":69,"@ethersproject/bytes":71,"@ethersproject/logger":98,"@ethersproject/properties":104,"@ethersproject/random":126,"@ethersproject/web":152}],114:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.showThrottleMessage = exports.isCommunityResource = exports.isCommunityResourcable = exports.Formatter = void 0;
@@ -15831,7 +16527,7 @@ function showThrottleMessage() {
 }
 exports.showThrottleMessage = showThrottleMessage;
 
-},{"./_version":86,"@ethersproject/address":43,"@ethersproject/bignumber":50,"@ethersproject/bytes":52,"@ethersproject/constants":56,"@ethersproject/logger":79,"@ethersproject/properties":85,"@ethersproject/transactions":126}],96:[function(require,module,exports){
+},{"./_version":105,"@ethersproject/address":62,"@ethersproject/bignumber":69,"@ethersproject/bytes":71,"@ethersproject/constants":75,"@ethersproject/logger":98,"@ethersproject/properties":104,"@ethersproject/transactions":145}],115:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Formatter = exports.showThrottleMessage = exports.isCommunityResourcable = exports.isCommunityResource = exports.getNetwork = exports.getDefaultProvider = exports.JsonRpcSigner = exports.IpcProvider = exports.WebSocketProvider = exports.Web3Provider = exports.StaticJsonRpcProvider = exports.PocketProvider = exports.NodesmithProvider = exports.JsonRpcBatchProvider = exports.JsonRpcProvider = exports.InfuraWebSocketProvider = exports.InfuraProvider = exports.EtherscanProvider = exports.CloudflareProvider = exports.AnkrProvider = exports.AlchemyWebSocketProvider = exports.AlchemyProvider = exports.FallbackProvider = exports.UrlJsonRpcProvider = exports.Resolver = exports.BaseProvider = exports.Provider = void 0;
@@ -15929,7 +16625,7 @@ function getDefaultProvider(network, options) {
 }
 exports.getDefaultProvider = getDefaultProvider;
 
-},{"./_version":86,"./alchemy-provider":87,"./ankr-provider":88,"./base-provider":89,"./cloudflare-provider":92,"./etherscan-provider":93,"./fallback-provider":94,"./formatter":95,"./infura-provider":97,"./ipc-provider":90,"./json-rpc-batch-provider":98,"./json-rpc-provider":99,"./nodesmith-provider":100,"./pocket-provider":101,"./url-json-rpc-provider":102,"./web3-provider":103,"./websocket-provider":104,"@ethersproject/abstract-provider":39,"@ethersproject/logger":79,"@ethersproject/networks":81}],97:[function(require,module,exports){
+},{"./_version":105,"./alchemy-provider":106,"./ankr-provider":107,"./base-provider":108,"./cloudflare-provider":111,"./etherscan-provider":112,"./fallback-provider":113,"./formatter":114,"./infura-provider":116,"./ipc-provider":109,"./json-rpc-batch-provider":117,"./json-rpc-provider":118,"./nodesmith-provider":119,"./pocket-provider":120,"./url-json-rpc-provider":121,"./web3-provider":122,"./websocket-provider":123,"@ethersproject/abstract-provider":58,"@ethersproject/logger":98,"@ethersproject/networks":100}],116:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -16071,7 +16767,7 @@ var InfuraProvider = /** @class */ (function (_super) {
 }(url_json_rpc_provider_1.UrlJsonRpcProvider));
 exports.InfuraProvider = InfuraProvider;
 
-},{"./_version":86,"./formatter":95,"./url-json-rpc-provider":102,"./websocket-provider":104,"@ethersproject/logger":79,"@ethersproject/properties":85}],98:[function(require,module,exports){
+},{"./_version":105,"./formatter":114,"./url-json-rpc-provider":121,"./websocket-provider":123,"@ethersproject/logger":98,"@ethersproject/properties":104}],117:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -16171,7 +16867,7 @@ var JsonRpcBatchProvider = /** @class */ (function (_super) {
 }(json_rpc_provider_1.JsonRpcProvider));
 exports.JsonRpcBatchProvider = JsonRpcBatchProvider;
 
-},{"./json-rpc-provider":99,"@ethersproject/properties":85,"@ethersproject/web":133}],99:[function(require,module,exports){
+},{"./json-rpc-provider":118,"@ethersproject/properties":104,"@ethersproject/web":152}],118:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -17027,7 +17723,7 @@ var JsonRpcProvider = /** @class */ (function (_super) {
 }(base_provider_1.BaseProvider));
 exports.JsonRpcProvider = JsonRpcProvider;
 
-},{"./_version":86,"./base-provider":89,"@ethersproject/abstract-signer":41,"@ethersproject/bignumber":50,"@ethersproject/bytes":52,"@ethersproject/hash":65,"@ethersproject/logger":79,"@ethersproject/properties":85,"@ethersproject/strings":123,"@ethersproject/transactions":126,"@ethersproject/web":133}],100:[function(require,module,exports){
+},{"./_version":105,"./base-provider":108,"@ethersproject/abstract-signer":60,"@ethersproject/bignumber":69,"@ethersproject/bytes":71,"@ethersproject/hash":84,"@ethersproject/logger":98,"@ethersproject/properties":104,"@ethersproject/strings":142,"@ethersproject/transactions":145,"@ethersproject/web":152}],119:[function(require,module,exports){
 /* istanbul ignore file */
 "use strict";
 var __extends = (this && this.__extends) || (function () {
@@ -17092,7 +17788,7 @@ var NodesmithProvider = /** @class */ (function (_super) {
 }(url_json_rpc_provider_1.UrlJsonRpcProvider));
 exports.NodesmithProvider = NodesmithProvider;
 
-},{"./_version":86,"./url-json-rpc-provider":102,"@ethersproject/logger":79}],101:[function(require,module,exports){
+},{"./_version":105,"./url-json-rpc-provider":121,"@ethersproject/logger":98}],120:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -17191,7 +17887,7 @@ var PocketProvider = /** @class */ (function (_super) {
 }(url_json_rpc_provider_1.UrlJsonRpcProvider));
 exports.PocketProvider = PocketProvider;
 
-},{"./_version":86,"./url-json-rpc-provider":102,"@ethersproject/logger":79}],102:[function(require,module,exports){
+},{"./_version":105,"./url-json-rpc-provider":121,"@ethersproject/logger":98}],121:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -17345,7 +18041,7 @@ var UrlJsonRpcProvider = /** @class */ (function (_super) {
 }(StaticJsonRpcProvider));
 exports.UrlJsonRpcProvider = UrlJsonRpcProvider;
 
-},{"./_version":86,"./json-rpc-provider":99,"@ethersproject/logger":79,"@ethersproject/properties":85}],103:[function(require,module,exports){
+},{"./_version":105,"./json-rpc-provider":118,"@ethersproject/logger":98,"@ethersproject/properties":104}],122:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -17501,7 +18197,7 @@ var Web3Provider = /** @class */ (function (_super) {
 }(json_rpc_provider_1.JsonRpcProvider));
 exports.Web3Provider = Web3Provider;
 
-},{"./_version":86,"./json-rpc-provider":99,"@ethersproject/logger":79,"@ethersproject/properties":85}],104:[function(require,module,exports){
+},{"./_version":105,"./json-rpc-provider":118,"@ethersproject/logger":98,"@ethersproject/properties":104}],123:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -17886,13 +18582,13 @@ var WebSocketProvider = /** @class */ (function (_super) {
 }(json_rpc_provider_1.JsonRpcProvider));
 exports.WebSocketProvider = WebSocketProvider;
 
-},{"./_version":86,"./json-rpc-provider":99,"./ws":91,"@ethersproject/bignumber":50,"@ethersproject/logger":79,"@ethersproject/properties":85}],105:[function(require,module,exports){
+},{"./_version":105,"./json-rpc-provider":118,"./ws":110,"@ethersproject/bignumber":69,"@ethersproject/logger":98,"@ethersproject/properties":104}],124:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "random/5.7.0";
 
-},{}],106:[function(require,module,exports){
+},{}],125:[function(require,module,exports){
 (function (global){(function (){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -17941,7 +18637,7 @@ exports.randomBytes = randomBytes;
 ;
 
 }).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./_version":105,"@ethersproject/bytes":52,"@ethersproject/logger":79}],107:[function(require,module,exports){
+},{"./_version":124,"@ethersproject/bytes":71,"@ethersproject/logger":98}],126:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.shuffled = exports.randomBytes = void 0;
@@ -17950,7 +18646,7 @@ Object.defineProperty(exports, "randomBytes", { enumerable: true, get: function 
 var shuffle_1 = require("./shuffle");
 Object.defineProperty(exports, "shuffled", { enumerable: true, get: function () { return shuffle_1.shuffled; } });
 
-},{"./random":106,"./shuffle":108}],108:[function(require,module,exports){
+},{"./random":125,"./shuffle":127}],127:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.shuffled = void 0;
@@ -17966,13 +18662,13 @@ function shuffled(array) {
 }
 exports.shuffled = shuffled;
 
-},{}],109:[function(require,module,exports){
+},{}],128:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "rlp/5.7.0";
 
-},{}],110:[function(require,module,exports){
+},{}],129:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.decode = exports.encode = void 0;
@@ -18097,13 +18793,13 @@ function decode(data) {
 }
 exports.decode = decode;
 
-},{"./_version":109,"@ethersproject/bytes":52,"@ethersproject/logger":79}],111:[function(require,module,exports){
+},{"./_version":128,"@ethersproject/bytes":71,"@ethersproject/logger":98}],130:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "sha2/5.7.0";
 
-},{}],112:[function(require,module,exports){
+},{}],131:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -18140,7 +18836,7 @@ function computeHmac(algorithm, key, data) {
 }
 exports.computeHmac = computeHmac;
 
-},{"./_version":111,"./types":114,"@ethersproject/bytes":52,"@ethersproject/logger":79,"hash.js":191}],113:[function(require,module,exports){
+},{"./_version":130,"./types":133,"@ethersproject/bytes":71,"@ethersproject/logger":98,"hash.js":224}],132:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SupportedAlgorithm = exports.sha512 = exports.sha256 = exports.ripemd160 = exports.computeHmac = void 0;
@@ -18152,7 +18848,7 @@ Object.defineProperty(exports, "sha512", { enumerable: true, get: function () { 
 var types_1 = require("./types");
 Object.defineProperty(exports, "SupportedAlgorithm", { enumerable: true, get: function () { return types_1.SupportedAlgorithm; } });
 
-},{"./sha2":112,"./types":114}],114:[function(require,module,exports){
+},{"./sha2":131,"./types":133}],133:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SupportedAlgorithm = void 0;
@@ -18163,13 +18859,13 @@ var SupportedAlgorithm;
 })(SupportedAlgorithm = exports.SupportedAlgorithm || (exports.SupportedAlgorithm = {}));
 ;
 
-},{}],115:[function(require,module,exports){
+},{}],134:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "signing-key/5.7.0";
 
-},{}],116:[function(require,module,exports){
+},{}],135:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -18180,7 +18876,7 @@ var elliptic_1 = __importDefault(require("elliptic"));
 var EC = elliptic_1.default.ec;
 exports.EC = EC;
 
-},{"elliptic":165}],117:[function(require,module,exports){
+},{"elliptic":198}],136:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.computePublicKey = exports.recoverPublicKey = exports.SigningKey = void 0;
@@ -18269,13 +18965,13 @@ function computePublicKey(key, compressed) {
 }
 exports.computePublicKey = computePublicKey;
 
-},{"./_version":115,"./elliptic":116,"@ethersproject/bytes":52,"@ethersproject/logger":79,"@ethersproject/properties":85}],118:[function(require,module,exports){
+},{"./_version":134,"./elliptic":135,"@ethersproject/bytes":71,"@ethersproject/logger":98,"@ethersproject/properties":104}],137:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "solidity/5.7.0";
 
-},{}],119:[function(require,module,exports){
+},{}],138:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sha256 = exports.keccak256 = exports.pack = void 0;
@@ -18372,13 +19068,13 @@ function sha256(types, values) {
 }
 exports.sha256 = sha256;
 
-},{"./_version":118,"@ethersproject/bignumber":50,"@ethersproject/bytes":52,"@ethersproject/keccak256":77,"@ethersproject/logger":79,"@ethersproject/sha2":113,"@ethersproject/strings":123}],120:[function(require,module,exports){
+},{"./_version":137,"@ethersproject/bignumber":69,"@ethersproject/bytes":71,"@ethersproject/keccak256":96,"@ethersproject/logger":98,"@ethersproject/sha2":132,"@ethersproject/strings":142}],139:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "strings/5.7.0";
 
-},{}],121:[function(require,module,exports){
+},{}],140:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.parseBytes32String = exports.formatBytes32String = void 0;
@@ -18415,7 +19111,7 @@ function parseBytes32String(bytes) {
 }
 exports.parseBytes32String = parseBytes32String;
 
-},{"./utf8":124,"@ethersproject/bytes":52,"@ethersproject/constants":56}],122:[function(require,module,exports){
+},{"./utf8":143,"@ethersproject/bytes":71,"@ethersproject/constants":75}],141:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.nameprep = exports._nameprepTableC = exports._nameprepTableB2 = exports._nameprepTableA1 = void 0;
@@ -18606,7 +19302,7 @@ function nameprep(value) {
 }
 exports.nameprep = nameprep;
 
-},{"./utf8":124}],123:[function(require,module,exports){
+},{"./utf8":143}],142:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.nameprep = exports.parseBytes32String = exports.formatBytes32String = exports.UnicodeNormalizationForm = exports.Utf8ErrorReason = exports.Utf8ErrorFuncs = exports.toUtf8String = exports.toUtf8CodePoints = exports.toUtf8Bytes = exports._toEscapedUtf8String = void 0;
@@ -18624,7 +19320,7 @@ Object.defineProperty(exports, "UnicodeNormalizationForm", { enumerable: true, g
 Object.defineProperty(exports, "Utf8ErrorFuncs", { enumerable: true, get: function () { return utf8_1.Utf8ErrorFuncs; } });
 Object.defineProperty(exports, "Utf8ErrorReason", { enumerable: true, get: function () { return utf8_1.Utf8ErrorReason; } });
 
-},{"./bytes32":121,"./idna":122,"./utf8":124}],124:[function(require,module,exports){
+},{"./bytes32":140,"./idna":141,"./utf8":143}],143:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.toUtf8CodePoints = exports.toUtf8String = exports._toUtf8String = exports._toEscapedUtf8String = exports.toUtf8Bytes = exports.Utf8ErrorFuncs = exports.Utf8ErrorReason = exports.UnicodeNormalizationForm = void 0;
@@ -18882,13 +19578,13 @@ function toUtf8CodePoints(str, form) {
 }
 exports.toUtf8CodePoints = toUtf8CodePoints;
 
-},{"./_version":120,"@ethersproject/bytes":52,"@ethersproject/logger":79}],125:[function(require,module,exports){
+},{"./_version":139,"@ethersproject/bytes":71,"@ethersproject/logger":98}],144:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "transactions/5.7.0";
 
-},{}],126:[function(require,module,exports){
+},{}],145:[function(require,module,exports){
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -19301,13 +19997,13 @@ function parse(rawTransaction) {
 }
 exports.parse = parse;
 
-},{"./_version":125,"@ethersproject/address":43,"@ethersproject/bignumber":50,"@ethersproject/bytes":52,"@ethersproject/constants":56,"@ethersproject/keccak256":77,"@ethersproject/logger":79,"@ethersproject/properties":85,"@ethersproject/rlp":110,"@ethersproject/signing-key":117}],127:[function(require,module,exports){
+},{"./_version":144,"@ethersproject/address":62,"@ethersproject/bignumber":69,"@ethersproject/bytes":71,"@ethersproject/constants":75,"@ethersproject/keccak256":96,"@ethersproject/logger":98,"@ethersproject/properties":104,"@ethersproject/rlp":129,"@ethersproject/signing-key":136}],146:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "units/5.7.0";
 
-},{}],128:[function(require,module,exports){
+},{}],147:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.parseEther = exports.formatEther = exports.parseUnits = exports.formatUnits = exports.commify = void 0;
@@ -19399,13 +20095,13 @@ function parseEther(ether) {
 }
 exports.parseEther = parseEther;
 
-},{"./_version":127,"@ethersproject/bignumber":50,"@ethersproject/logger":79}],129:[function(require,module,exports){
+},{"./_version":146,"@ethersproject/bignumber":69,"@ethersproject/logger":98}],148:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "wallet/5.7.0";
 
-},{}],130:[function(require,module,exports){
+},{}],149:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -19654,13 +20350,13 @@ function verifyTypedData(domain, types, value, signature) {
 }
 exports.verifyTypedData = verifyTypedData;
 
-},{"./_version":129,"@ethersproject/abstract-provider":39,"@ethersproject/abstract-signer":41,"@ethersproject/address":43,"@ethersproject/bytes":52,"@ethersproject/hash":65,"@ethersproject/hdnode":70,"@ethersproject/json-wallets":73,"@ethersproject/keccak256":77,"@ethersproject/logger":79,"@ethersproject/properties":85,"@ethersproject/random":107,"@ethersproject/signing-key":117,"@ethersproject/transactions":126}],131:[function(require,module,exports){
+},{"./_version":148,"@ethersproject/abstract-provider":58,"@ethersproject/abstract-signer":60,"@ethersproject/address":62,"@ethersproject/bytes":71,"@ethersproject/hash":84,"@ethersproject/hdnode":89,"@ethersproject/json-wallets":92,"@ethersproject/keccak256":96,"@ethersproject/logger":98,"@ethersproject/properties":104,"@ethersproject/random":126,"@ethersproject/signing-key":136,"@ethersproject/transactions":145}],150:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "web/5.7.1";
 
-},{}],132:[function(require,module,exports){
+},{}],151:[function(require,module,exports){
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -19770,7 +20466,7 @@ function getUrl(href, options) {
 }
 exports.getUrl = getUrl;
 
-},{"@ethersproject/bytes":52}],133:[function(require,module,exports){
+},{"@ethersproject/bytes":71}],152:[function(require,module,exports){
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -20234,13 +20930,13 @@ function poll(func, options) {
 }
 exports.poll = poll;
 
-},{"./_version":131,"./geturl":132,"@ethersproject/base64":45,"@ethersproject/bytes":52,"@ethersproject/logger":79,"@ethersproject/properties":85,"@ethersproject/strings":123}],134:[function(require,module,exports){
+},{"./_version":150,"./geturl":151,"@ethersproject/base64":64,"@ethersproject/bytes":71,"@ethersproject/logger":98,"@ethersproject/properties":104,"@ethersproject/strings":142}],153:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "wordlists/5.7.0";
 
-},{}],135:[function(require,module,exports){
+},{}],154:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.wordlists = exports.Wordlist = exports.logger = void 0;
@@ -20252,7 +20948,7 @@ Object.defineProperty(exports, "Wordlist", { enumerable: true, get: function () 
 var wordlists_1 = require("./wordlists");
 Object.defineProperty(exports, "wordlists", { enumerable: true, get: function () { return wordlists_1.wordlists; } });
 
-},{"./wordlist":144,"./wordlists":145}],136:[function(require,module,exports){
+},{"./wordlist":163,"./wordlists":164}],155:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -20305,7 +21001,7 @@ var langCz = new LangCz();
 exports.langCz = langCz;
 wordlist_1.Wordlist.register(langCz);
 
-},{"./wordlist":144}],137:[function(require,module,exports){
+},{"./wordlist":163}],156:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -20358,7 +21054,7 @@ var langEn = new LangEn();
 exports.langEn = langEn;
 wordlist_1.Wordlist.register(langEn);
 
-},{"./wordlist":144}],138:[function(require,module,exports){
+},{"./wordlist":163}],157:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -20442,7 +21138,7 @@ var langEs = new LangEs();
 exports.langEs = langEs;
 wordlist_1.Wordlist.register(langEs);
 
-},{"./wordlist":144,"@ethersproject/strings":123}],139:[function(require,module,exports){
+},{"./wordlist":163,"@ethersproject/strings":142}],158:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -20525,7 +21221,7 @@ var langFr = new LangFr();
 exports.langFr = langFr;
 wordlist_1.Wordlist.register(langFr);
 
-},{"./wordlist":144,"@ethersproject/strings":123}],140:[function(require,module,exports){
+},{"./wordlist":163,"@ethersproject/strings":142}],159:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -20578,7 +21274,7 @@ var langIt = new LangIt();
 exports.langIt = langIt;
 wordlist_1.Wordlist.register(langIt);
 
-},{"./wordlist":144}],141:[function(require,module,exports){
+},{"./wordlist":163}],160:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -20726,7 +21422,7 @@ var langJa = new LangJa();
 exports.langJa = langJa;
 wordlist_1.Wordlist.register(langJa);
 
-},{"./wordlist":144,"@ethersproject/bytes":52,"@ethersproject/strings":123}],142:[function(require,module,exports){
+},{"./wordlist":163,"@ethersproject/bytes":71,"@ethersproject/strings":142}],161:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -20810,7 +21506,7 @@ var langKo = new LangKo();
 exports.langKo = langKo;
 wordlist_1.Wordlist.register(langKo);
 
-},{"./wordlist":144,"@ethersproject/strings":123}],143:[function(require,module,exports){
+},{"./wordlist":163,"@ethersproject/strings":142}],162:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -20899,7 +21595,7 @@ var langZhTw = new LangZh("tw");
 exports.langZhTw = langZhTw;
 wordlist_1.Wordlist.register(langZhTw);
 
-},{"./wordlist":144,"@ethersproject/strings":123}],144:[function(require,module,exports){
+},{"./wordlist":163,"@ethersproject/strings":142}],163:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Wordlist = exports.logger = void 0;
@@ -20957,7 +21653,7 @@ var Wordlist = /** @class */ (function () {
 }());
 exports.Wordlist = Wordlist;
 
-},{"./_version":134,"@ethersproject/hash":65,"@ethersproject/logger":79,"@ethersproject/properties":85}],145:[function(require,module,exports){
+},{"./_version":153,"@ethersproject/hash":84,"@ethersproject/logger":98,"@ethersproject/properties":104}],164:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.wordlists = void 0;
@@ -20982,7 +21678,7 @@ exports.wordlists = {
     zh_tw: lang_zh_1.langZhTw
 };
 
-},{"./lang-cz":136,"./lang-en":137,"./lang-es":138,"./lang-fr":139,"./lang-it":140,"./lang-ja":141,"./lang-ko":142,"./lang-zh":143}],146:[function(require,module,exports){
+},{"./lang-cz":155,"./lang-en":156,"./lang-es":157,"./lang-fr":158,"./lang-it":159,"./lang-ja":160,"./lang-ko":161,"./lang-zh":162}],165:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createCurve = exports.getHash = void 0;
@@ -21005,7 +21701,7 @@ function createCurve(curveDef, defHash) {
 }
 exports.createCurve = createCurve;
 
-},{"./abstract/weierstrass.js":151,"@noble/hashes/hmac":157,"@noble/hashes/utils":160}],147:[function(require,module,exports){
+},{"./abstract/weierstrass.js":170,"@noble/hashes/hmac":176,"@noble/hashes/utils":179}],166:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.validateBasic = exports.wNAF = void 0;
@@ -21167,7 +21863,7 @@ function validateBasic(curve) {
 }
 exports.validateBasic = validateBasic;
 
-},{"./modular.js":149,"./utils.js":150}],148:[function(require,module,exports){
+},{"./modular.js":168,"./utils.js":169}],167:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createHasher = exports.isogenyMap = exports.hash_to_field = exports.expand_message_xof = exports.expand_message_xmd = void 0;
@@ -21343,7 +22039,7 @@ function createHasher(Point, mapToCurve, def) {
 }
 exports.createHasher = createHasher;
 
-},{"./modular.js":149,"./utils.js":150}],149:[function(require,module,exports){
+},{"./modular.js":168,"./utils.js":169}],168:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.hashToPrivateScalar = exports.FpSqrtEven = exports.FpSqrtOdd = exports.Field = exports.nLength = exports.FpIsSquare = exports.FpDiv = exports.FpInvertBatch = exports.FpPow = exports.validateField = exports.isNegativeLE = exports.FpSqrt = exports.tonelliShanks = exports.invert = exports.pow2 = exports.pow = exports.mod = void 0;
@@ -21725,7 +22421,7 @@ function hashToPrivateScalar(hash, groupOrder, isLE = false) {
 }
 exports.hashToPrivateScalar = hashToPrivateScalar;
 
-},{"./utils.js":150}],150:[function(require,module,exports){
+},{"./utils.js":169}],169:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.validateObject = exports.createHmacDrbg = exports.bitMask = exports.bitSet = exports.bitGet = exports.bitLen = exports.utf8ToBytes = exports.equalBytes = exports.concatBytes = exports.ensureBytes = exports.numberToVarBytesBE = exports.numberToBytesLE = exports.numberToBytesBE = exports.bytesToNumberLE = exports.bytesToNumberBE = exports.hexToBytes = exports.hexToNumber = exports.numberToHexUnpadded = exports.bytesToHex = void 0;
@@ -22013,7 +22709,7 @@ exports.validateObject = validateObject;
 // const z3 = validateObject(o, { test: 'boolean', z: 'bug' });
 // const z4 = validateObject(o, { a: 'boolean', z: 'bug' });
 
-},{}],151:[function(require,module,exports){
+},{}],170:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.mapToCurveSimpleSWU = exports.SWUFpSqrtRatio = exports.weierstrass = exports.weierstrassPoints = exports.DER = void 0;
@@ -23075,7 +23771,7 @@ function mapToCurveSimpleSWU(Fp, opts) {
 }
 exports.mapToCurveSimpleSWU = mapToCurveSimpleSWU;
 
-},{"./curve.js":147,"./modular.js":149,"./utils.js":150}],152:[function(require,module,exports){
+},{"./curve.js":166,"./modular.js":168,"./utils.js":169}],171:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.encodeToCurve = exports.hashToCurve = exports.schnorr = exports.secp256k1 = void 0;
@@ -23333,7 +24029,7 @@ const htf = /* @__PURE__ */ (() => (0, hash_to_curve_js_1.createHasher)(exports.
 exports.hashToCurve = (() => htf.hashToCurve)();
 exports.encodeToCurve = (() => htf.encodeToCurve)();
 
-},{"./_shortw_utils.js":146,"./abstract/hash-to-curve.js":148,"./abstract/modular.js":149,"./abstract/utils.js":150,"./abstract/weierstrass.js":151,"@noble/hashes/sha256":158,"@noble/hashes/utils":160}],153:[function(require,module,exports){
+},{"./_shortw_utils.js":165,"./abstract/hash-to-curve.js":167,"./abstract/modular.js":168,"./abstract/utils.js":169,"./abstract/weierstrass.js":170,"@noble/hashes/sha256":177,"@noble/hashes/utils":179}],172:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.output = exports.exists = exports.hash = exports.bytes = exports.bool = exports.number = void 0;
@@ -23386,7 +24082,7 @@ const assert = {
 };
 exports.default = assert;
 
-},{}],154:[function(require,module,exports){
+},{}],173:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SHA2 = void 0;
@@ -23505,7 +24201,7 @@ class SHA2 extends utils_js_1.Hash {
 }
 exports.SHA2 = SHA2;
 
-},{"./_assert.js":153,"./utils.js":160}],155:[function(require,module,exports){
+},{"./_assert.js":172,"./utils.js":179}],174:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.add = exports.toBig = exports.split = exports.fromBig = void 0;
@@ -23574,13 +24270,13 @@ const u64 = {
 };
 exports.default = u64;
 
-},{}],156:[function(require,module,exports){
+},{}],175:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.crypto = void 0;
 exports.crypto = typeof globalThis === 'object' && 'crypto' in globalThis ? globalThis.crypto : undefined;
 
-},{}],157:[function(require,module,exports){
+},{}],176:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.hmac = exports.HMAC = void 0;
@@ -23663,7 +24359,7 @@ const hmac = (hash, key, message) => new HMAC(hash, key).update(message).digest(
 exports.hmac = hmac;
 exports.hmac.create = (hash, key) => new HMAC(hash, key);
 
-},{"./_assert.js":153,"./utils.js":160}],158:[function(require,module,exports){
+},{"./_assert.js":172,"./utils.js":179}],177:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sha224 = exports.sha256 = void 0;
@@ -23791,7 +24487,7 @@ class SHA224 extends SHA256 {
 exports.sha256 = (0, utils_js_1.wrapConstructor)(() => new SHA256());
 exports.sha224 = (0, utils_js_1.wrapConstructor)(() => new SHA224());
 
-},{"./_sha2.js":154,"./utils.js":160}],159:[function(require,module,exports){
+},{"./_sha2.js":173,"./utils.js":179}],178:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.shake256 = exports.shake128 = exports.keccak_512 = exports.keccak_384 = exports.keccak_256 = exports.keccak_224 = exports.sha3_512 = exports.sha3_384 = exports.sha3_256 = exports.sha3_224 = exports.Keccak = exports.keccakP = void 0;
@@ -24003,7 +24699,7 @@ const genShake = (suffix, blockLen, outputLen) => (0, utils_js_1.wrapXOFConstruc
 exports.shake128 = genShake(0x1f, 168, 128 / 8);
 exports.shake256 = genShake(0x1f, 136, 256 / 8);
 
-},{"./_assert.js":153,"./_u64.js":155,"./utils.js":160}],160:[function(require,module,exports){
+},{"./_assert.js":172,"./_u64.js":174,"./utils.js":179}],179:[function(require,module,exports){
 "use strict";
 /*! noble-hashes - MIT License (c) 2022 Paul Miller (paulmillr.com) */
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -24179,7 +24875,13519 @@ function randomBytes(bytesLength = 32) {
 }
 exports.randomBytes = randomBytes;
 
-},{"@noble/hashes/crypto":156}],161:[function(require,module,exports){
+},{"@noble/hashes/crypto":175}],180:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var utilActor = require('@onflow/util-actor');
+var logger = require('@onflow/util-logger');
+var utilInvariant = require('@onflow/util-invariant');
+
+function _interopNamespace(e) {
+  if (e && e.__esModule) return e;
+  var n = Object.create(null);
+  if (e) {
+    Object.keys(e).forEach(function (k) {
+      if (k !== 'default') {
+        var d = Object.getOwnPropertyDescriptor(e, k);
+        Object.defineProperty(n, k, d.get ? d : {
+          enumerable: true,
+          get: function () { return e[k]; }
+        });
+      }
+    });
+  }
+  n["default"] = e;
+  return Object.freeze(n);
+}
+
+var logger__namespace = /*#__PURE__*/_interopNamespace(logger);
+
+const pipe = function () {
+  for (var _len = arguments.length, funcs = new Array(_len), _key = 0; _key < _len; _key++) {
+    funcs[_key] = arguments[_key];
+  }
+  return v => {
+    return funcs.reduce((res, func) => {
+      return func(res);
+    }, v);
+  };
+};
+
+/***
+ * Merge multiple functions returning objects into one object.
+ * @param {...function(*): object} funcs - Functions to merge
+ * @return {object} - Merged object
+ */
+const mergePipe = function () {
+  for (var _len2 = arguments.length, funcs = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+    funcs[_key2] = arguments[_key2];
+  }
+  return v => {
+    return funcs.reduce((res, func) => {
+      return {
+        ...res,
+        ...func(v)
+      };
+    }, {});
+  };
+};
+
+/**
+ * @description Object check
+ * @param {*} value - Value to check
+ * @returns {boolean} - Is object status
+ */
+const isObject = value => value && typeof value === "object" && !Array.isArray(value);
+
+/**
+ * @description Deep merge multiple objects.
+ * @param {object} target - Target object
+ * @param {...object[]} sources - Source objects
+ * @returns {object} - Merged object
+ */
+const mergeDeep = function (target) {
+  for (var _len3 = arguments.length, sources = new Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+    sources[_key3 - 1] = arguments[_key3];
+  }
+  if (!sources.length) return target;
+  const source = sources.shift();
+  if (isObject(target) && isObject(source)) {
+    for (const key in source) {
+      if (isObject(source[key])) {
+        if (!target[key]) Object.assign(target, {
+          [key]: {}
+        });
+        mergeDeep(target[key], source[key]);
+      } else {
+        Object.assign(target, {
+          [key]: source[key]
+        });
+      }
+    }
+  }
+  return mergeDeep(target, ...sources);
+};
+
+/**
+ * @description Deep merge multiple Flow JSON.
+ * @param {object|object[]} value - Flow JSON or array of Flow JSONs
+ * @returns {object} - Merged Flow JSON
+ */
+const mergeFlowJSONs = value => Array.isArray(value) ? mergeDeep({}, ...value) : value;
+
+/**
+ * @description Filter out contracts section of flow.json.
+ * @param {object|object[]} obj - Flow JSON or array of Flow JSONs
+ * @returns {object} - Contracts section of Flow JSON
+ */
+const filterContracts = obj => obj.contracts ? obj.contracts : {};
+
+/**
+ * @description Gathers contract addresses by network
+ * @param {string} network - Network to gather addresses for
+ * @returns {object} - Contract names by addresses mapping e.g { "HelloWorld": "0x123" }
+ */
+const mapContractAliasesToNetworkAddress = network => contracts => {
+  return Object.entries(contracts).reduce((c, _ref) => {
+    let [key, value] = _ref;
+    const networkContractAlias = value?.aliases?.[network];
+    if (networkContractAlias) {
+      c[key] = networkContractAlias;
+    }
+    return c;
+  }, {});
+};
+const mapDeploymentsToNetworkAddress = network => _ref2 => {
+  let {
+    deployments = {},
+    accounts = {}
+  } = _ref2;
+  const networkDeployment = deployments?.[network];
+  if (!networkDeployment) return {};
+  return Object.entries(networkDeployment).reduce((c, _ref3) => {
+    let [key, value] = _ref3;
+    // Resolve account address
+    const accountAddress = accounts[key]?.address;
+    if (!accountAddress) return c;
+
+    // Create an object assigning the address to the contract name.
+    return value.reduce((c, contract) => {
+      return {
+        ...c,
+        [contract]: accountAddress
+      };
+    }, {});
+  }, {});
+};
+
+/**
+ * @description Take in flow.json files and return contract to address mapping by network
+ * @param {object|object[]} jsons - Flow JSON or array of Flow JSONs
+ * @param {string} network - Network to gather addresses for
+ * @returns {object} - Contract names by addresses mapping e.g { "HelloWorld": "0x123" }
+ */
+const getContracts = (jsons, network) => {
+  return pipe(mergeFlowJSONs, mergePipe(mapDeploymentsToNetworkAddress(network), pipe(filterContracts, mapContractAliasesToNetworkAddress(network))))(jsons);
+};
+
+/**
+ * @description Checks if string is hexidecimal
+ * @param {string} str - String to check
+ * @returns {boolean} - Is hexidecimal status
+ */
+const isHexidecimal = str => {
+  // Check that it is a string
+  if (typeof str !== "string") return false;
+  return /^[0-9A-Fa-f]+$/.test(str);
+};
+
+/**
+ * @description Checks flow.json file for private keys
+ * @param {object} flowJSON - Flow JSON
+ * @returns {boolean} - Has private keys status
+ */
+const hasPrivateKeys = flowJSON => {
+  return Object.entries(flowJSON?.accounts).reduce((hasPrivateKey, _ref4) => {
+    let [key, value] = _ref4;
+    if (hasPrivateKey) return true;
+    return value?.hasOwnProperty("key") && isHexidecimal(value?.key);
+  }, false);
+};
+
+/**
+ * @description Take in flow.json or array of flow.json files and checks for private keys
+ * @param {object|object[]} value - Flow JSON or array of Flow JSONs
+ * @returns {boolean} - Has private keys status
+ */
+const anyHasPrivateKeys = value => {
+  if (isObject(value)) return hasPrivateKeys(value);
+  return value.some(hasPrivateKeys);
+};
+
+/**
+ * @description Format network to always be 'emulator', 'testnet', or 'mainnet'
+ * @param {string} network - Network to format
+ * @returns {string} - Formatted network name (either 'emulator', 'testnet', or 'mainnet')
+ */
+const cleanNetwork = network => network?.toLowerCase() === "local" ? "emulator" : network?.toLowerCase();
+
+// Inject config into logger to break circular dependency
+logger__namespace.setConfig(config);
+const NAME = "config";
+const PUT = "PUT_CONFIG";
+const GET = "GET_CONFIG";
+const GET_ALL = "GET_ALL_CONFIG";
+const UPDATE = "UPDATE_CONFIG";
+const DELETE = "DELETE_CONFIG";
+const CLEAR = "CLEAR_CONFIG";
+const WHERE = "WHERE_CONFIG";
+const UPDATED = "CONFIG/UPDATED";
+const identity = v => v;
+const HANDLERS = {
+  [PUT]: (ctx, _letter, _ref) => {
+    let {
+      key,
+      value
+    } = _ref;
+    if (key == null) throw new Error("Missing 'key' for config/put.");
+    ctx.put(key, value);
+    ctx.broadcast(UPDATED, {
+      ...ctx.all()
+    });
+  },
+  [GET]: (ctx, letter, _ref2) => {
+    let {
+      key,
+      fallback
+    } = _ref2;
+    if (key == null) throw new Error("Missing 'key' for config/get");
+    letter.reply(ctx.get(key, fallback));
+  },
+  [GET_ALL]: (ctx, letter) => {
+    letter.reply({
+      ...ctx.all()
+    });
+  },
+  [UPDATE]: (ctx, letter, _ref3) => {
+    let {
+      key,
+      fn
+    } = _ref3;
+    if (key == null) throw new Error("Missing 'key' for config/update");
+    ctx.update(key, fn || identity);
+    ctx.broadcast(UPDATED, {
+      ...ctx.all()
+    });
+  },
+  [DELETE]: (ctx, letter, _ref4) => {
+    let {
+      key
+    } = _ref4;
+    if (key == null) throw new Error("Missing 'key' for config/delete");
+    ctx.delete(key);
+    ctx.broadcast(UPDATED, {
+      ...ctx.all()
+    });
+  },
+  [CLEAR]: (ctx, letter) => {
+    let keys = Object.keys(ctx.all());
+    for (let key of keys) ctx.delete(key);
+    ctx.broadcast(UPDATED, {
+      ...ctx.all()
+    });
+  },
+  [WHERE]: (ctx, letter, _ref5) => {
+    let {
+      pattern
+    } = _ref5;
+    if (pattern == null) throw new Error("Missing 'pattern' for config/where");
+    letter.reply(ctx.where(pattern));
+  },
+  [utilActor.SUBSCRIBE]: (ctx, letter) => {
+    ctx.subscribe(letter.from);
+    ctx.send(letter.from, UPDATED, {
+      ...ctx.all()
+    });
+  },
+  [utilActor.UNSUBSCRIBE]: (ctx, letter) => {
+    ctx.unsubscribe(letter.from);
+  }
+};
+utilActor.spawn(HANDLERS, NAME);
+
+/**
+ * @description Adds a key-value pair to the config
+ * @param {string} key - The key to add
+ * @param {*} value - The value to add
+ * @returns {Promise<object>} - The current config
+ */
+function put(key, value) {
+  utilActor.send(NAME, PUT, {
+    key,
+    value
+  });
+  return config();
+}
+
+/**
+ * @description Gets a key-value pair with a fallback from the config
+ * @param {string} key - The key to add
+ * @param {*} [fallback] - The fallback value to return if key is not found
+ * @returns {Promise<*>} - The value found at key or fallback
+ */
+function get(key, fallback) {
+  return utilActor.send(NAME, GET, {
+    key,
+    fallback
+  }, {
+    expectReply: true,
+    timeout: 10
+  });
+}
+
+/**
+ * @description Returns the first non null config value or the fallback
+ * @param {string[]} wants - The keys to search for
+ * @param {*} fallback - The fallback value to return if key is not found
+ * @returns {Promise<*>} - The value found at key or fallback
+ */
+async function first() {
+  let wants = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+  let fallback = arguments.length > 1 ? arguments[1] : undefined;
+  if (!wants.length) return fallback;
+  const [head, ...rest] = wants;
+  const ret = await get(head);
+  if (ret == null) return first(rest, fallback);
+  return ret;
+}
+
+/**
+ * @description Returns the current config
+ * @returns {Promise<object>} - The current config
+ */
+function all() {
+  return utilActor.send(NAME, GET_ALL, null, {
+    expectReply: true,
+    timeout: 10
+  });
+}
+
+/**
+ * @description Updates a key-value pair in the config
+ * @param {string} key - The key to update
+ * @param {Function} fn - The function to update the value with
+ * @returns {Promise<object>} - The current config
+ */
+function update(key) {
+  let fn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : identity;
+  utilActor.send(NAME, UPDATE, {
+    key,
+    fn
+  });
+  return config();
+}
+
+/**
+ * @description Deletes a key-value pair from the config
+ * @param {string} key - The key to delete
+ * @returns {Promise<object>} - The current config
+ */
+function _delete(key) {
+  utilActor.send(NAME, DELETE, {
+    key
+  });
+  return config();
+}
+
+/**
+ * @description Returns a subset of the config based on a pattern
+ * @param {string} pattern - The pattern to match keys against
+ * @returns {Promise<object>} - The subset of the config
+ */
+function where(pattern) {
+  return utilActor.send(NAME, WHERE, {
+    pattern
+  }, {
+    expectReply: true,
+    timeout: 10
+  });
+}
+
+/**
+ * @description Subscribes to config updates
+ * @param {Function} callback - The callback to call when config is updated
+ * @returns {Function} - The unsubscribe function
+ */
+function subscribe(callback) {
+  return utilActor.subscriber(NAME, () => utilActor.spawn(HANDLERS, NAME), callback);
+}
+
+/**
+ * @description Clears the config
+ * @returns {void}
+ */
+function clearConfig() {
+  return utilActor.send(NAME, CLEAR);
+}
+
+/**
+ * @description Resets the config to a previous state
+ * @param {object} oldConfig - The previous config state
+ * @returns {Promise<object>} - The current config
+ */
+function resetConfig(oldConfig) {
+  return clearConfig().then(config(oldConfig));
+}
+
+/**
+ * @description Takes in flow.json or array of flow.json files and creates contract placeholders
+ * @param {object|object[]} data - The flow.json or array of flow.json files
+ * @returns {void}
+ */
+async function load(data) {
+  const network = await get("flow.network");
+  const cleanedNetwork = cleanNetwork(network);
+  const {
+    flowJSON
+  } = data;
+  utilInvariant.invariant(Boolean(flowJSON), "config.load -- 'flowJSON' must be defined");
+  utilInvariant.invariant(cleanedNetwork, `Flow Network Required -- In order for FCL to load your contracts please define "flow.network" to "emulator", "local", "testnet", or "mainnet" in your config. See more here: https://developers.flow.com/tools/fcl-js/reference/configure-fcl`);
+  if (anyHasPrivateKeys(flowJSON)) {
+    const isEmulator = cleanedNetwork === "emulator";
+    logger__namespace.log({
+      title: "Private Keys Detected",
+      message: `Private keys should be stored in a separate flow.json file for security. See more here: https://developers.flow.com/tools/flow-cli/security`,
+      level: isEmulator ? logger__namespace.LEVELS.warn : logger__namespace.LEVELS.error
+    });
+    utilInvariant.invariant(isEmulator, `Private keys should be stored in a separate flow.json file for security. See more here: https://developers.flow.com/tools/flow-cli/security`);
+  }
+  for (const [key, value] of Object.entries(getContracts(flowJSON, cleanedNetwork))) {
+    const contractConfigKey = `0x${key}`;
+    const existingContractConfigKey = await get(contractConfigKey);
+    if (existingContractConfigKey && existingContractConfigKey !== value) {
+      logger__namespace.log({
+        title: "Contract Placeholder Conflict Detected",
+        message: `A generated contract placeholder from config.load conflicts with a placeholder you've set manually in config have the same name.`,
+        level: logger__namespace.LEVELS.warn
+      });
+    } else {
+      put(contractConfigKey, value);
+    }
+    const systemContractConfigKey = `system.contracts.${key}`;
+    const systemExistingContractConfigKeyValue = await get(systemContractConfigKey);
+    if (systemExistingContractConfigKeyValue && systemExistingContractConfigKeyValue !== value) {
+      logger__namespace.log({
+        title: "Contract Placeholder Conflict Detected",
+        message: `A generated contract placeholder from config.load conflicts with a placeholder you've set manually in config have the same name.`,
+        level: logger__namespace.LEVELS.warn
+      });
+    } else {
+      put(systemContractConfigKey, value);
+    }
+  }
+}
+
+// eslint-disable-next-line jsdoc/require-returns
+/**
+ * @description Sets the config
+ * @param {object} [values] - The values to set
+ */
+function config(values) {
+  if (values != null && typeof values === "object") {
+    Object.keys(values).map(d => put(d, values[d]));
+  }
+  return {
+    put,
+    get,
+    all,
+    first,
+    update,
+    delete: _delete,
+    where,
+    subscribe,
+    overload,
+    load
+  };
+}
+config.put = put;
+config.get = get;
+config.all = all;
+config.first = first;
+config.update = update;
+config.delete = _delete;
+config.where = where;
+config.subscribe = subscribe;
+config.overload = overload;
+config.load = load;
+const noop = v => v;
+function overload() {
+  let opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  let callback = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : noop;
+  return new Promise(async (resolve, reject) => {
+    const oldConfig = await all();
+    try {
+      config(opts);
+      var result = await callback(await all());
+      await resetConfig(oldConfig);
+      resolve(result);
+    } catch (error) {
+      await resetConfig(oldConfig);
+      reject(error);
+    }
+  });
+}
+
+exports.clearConfig = clearConfig;
+exports.config = config;
+
+
+},{"@onflow/util-actor":186,"@onflow/util-invariant":188,"@onflow/util-logger":189}],181:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var _slicedToArray = require('@babel/runtime/helpers/slicedToArray');
+var _asyncToGenerator = require('@babel/runtime/helpers/asyncToGenerator');
+var _regeneratorRuntime = require('@babel/runtime/regenerator');
+var config = require('@onflow/config');
+var utilInvariant = require('@onflow/util-invariant');
+var sdk = require('@onflow/sdk');
+var _typeof = require('@babel/runtime/helpers/typeof');
+var t$1 = require('@onflow/types');
+var fetchTransport = require('node-fetch');
+var utilAddress = require('@onflow/util-address');
+var _createForOfIteratorHelper = require('@babel/runtime/helpers/createForOfIteratorHelper');
+var _defineProperty = require('@babel/runtime/helpers/defineProperty');
+var _objectSpread = require('@babel/runtime/helpers/objectSpread2');
+var utilActor = require('@onflow/util-actor');
+var rlp = require('@onflow/rlp');
+var _toConsumableArray = require('@babel/runtime/helpers/toConsumableArray');
+var utilLogger = require('@onflow/util-logger');
+var utilUid = require('@onflow/util-uid');
+var require$$0 = require('buffer');
+var utilTemplate = require('@onflow/util-template');
+
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+
+function _interopNamespace(e) {
+  if (e && e.__esModule) return e;
+  var n = Object.create(null);
+  if (e) {
+    Object.keys(e).forEach(function (k) {
+      if (k !== 'default') {
+        var d = Object.getOwnPropertyDescriptor(e, k);
+        Object.defineProperty(n, k, d.get ? d : {
+          enumerable: true,
+          get: function () { return e[k]; }
+        });
+      }
+    });
+  }
+  n["default"] = e;
+  return Object.freeze(n);
+}
+
+var _slicedToArray__default = /*#__PURE__*/_interopDefaultLegacy(_slicedToArray);
+var _asyncToGenerator__default = /*#__PURE__*/_interopDefaultLegacy(_asyncToGenerator);
+var _regeneratorRuntime__default = /*#__PURE__*/_interopDefaultLegacy(_regeneratorRuntime);
+var sdk__namespace = /*#__PURE__*/_interopNamespace(sdk);
+var _typeof__default = /*#__PURE__*/_interopDefaultLegacy(_typeof);
+var t__namespace = /*#__PURE__*/_interopNamespace(t$1);
+var fetchTransport__default = /*#__PURE__*/_interopDefaultLegacy(fetchTransport);
+var _createForOfIteratorHelper__default = /*#__PURE__*/_interopDefaultLegacy(_createForOfIteratorHelper);
+var _defineProperty__default = /*#__PURE__*/_interopDefaultLegacy(_defineProperty);
+var _objectSpread__default = /*#__PURE__*/_interopDefaultLegacy(_objectSpread);
+var rlp__namespace = /*#__PURE__*/_interopNamespace(rlp);
+var _toConsumableArray__default = /*#__PURE__*/_interopDefaultLegacy(_toConsumableArray);
+var require$$0__default = /*#__PURE__*/_interopDefaultLegacy(require$$0);
+
+var isServerSide = function isServerSide() {
+  return typeof window === "undefined";
+};
+
+var SESSION_STORAGE = {
+  can: !isServerSide(),
+  get: function () {
+    var _get = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(key) {
+      return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
+        while (1) {
+          switch (_context.prev = _context.next) {
+            case 0:
+              return _context.abrupt("return", JSON.parse(sessionStorage.getItem(key)));
+
+            case 1:
+            case "end":
+              return _context.stop();
+          }
+        }
+      }, _callee);
+    }));
+
+    function get(_x) {
+      return _get.apply(this, arguments);
+    }
+
+    return get;
+  }(),
+  put: function () {
+    var _put = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee2(key, value) {
+      return _regeneratorRuntime__default["default"].wrap(function _callee2$(_context2) {
+        while (1) {
+          switch (_context2.prev = _context2.next) {
+            case 0:
+              return _context2.abrupt("return", sessionStorage.setItem(key, JSON.stringify(value)));
+
+            case 1:
+            case "end":
+              return _context2.stop();
+          }
+        }
+      }, _callee2);
+    }));
+
+    function put(_x2, _x3) {
+      return _put.apply(this, arguments);
+    }
+
+    return put;
+  }()
+};
+config.config({
+  "discovery.wallet.method.default": "IFRAME/RPC",
+  "fcl.storage.default": SESSION_STORAGE
+});
+function configLens(_x4) {
+  return _configLens.apply(this, arguments);
+}
+
+function _configLens() {
+  _configLens = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee3(regex) {
+    return _regeneratorRuntime__default["default"].wrap(function _callee3$(_context3) {
+      while (1) {
+        switch (_context3.prev = _context3.next) {
+          case 0:
+            _context3.t0 = Object;
+            _context3.t1 = Object;
+            _context3.next = 4;
+            return config.config().where(regex);
+
+          case 4:
+            _context3.t2 = _context3.sent;
+            _context3.t3 = _context3.t1.entries.call(_context3.t1, _context3.t2).map(function (_ref) {
+              var _ref2 = _slicedToArray__default["default"](_ref, 2),
+                  key = _ref2[0],
+                  value = _ref2[1];
+
+              return [key.replace(regex, ""), value];
+            });
+            return _context3.abrupt("return", _context3.t0.fromEntries.call(_context3.t0, _context3.t3));
+
+          case 7:
+          case "end":
+            return _context3.stop();
+        }
+      }
+    }, _callee3);
+  }));
+  return _configLens.apply(this, arguments);
+}
+
+var VERSION = "1.3.2" ;
+
+var is = function is(type) {
+  return function (d) {
+    return _typeof__default["default"](d) === type;
+  };
+};
+
+var isRequired = function isRequired(d) {
+  return d != null;
+};
+var isObject = is("object");
+var isString = is("string");
+var isFunc = is("function");
+var isNumber = is("number");
+
+function normalizeArgs(ax) {
+  if (isFunc(ax)) return ax(sdk__namespace.arg, t__namespace);
+  return [];
+}
+
+function httpDocumentResolver(_x) {
+  return _httpDocumentResolver.apply(this, arguments);
+}
+
+function _httpDocumentResolver() {
+  _httpDocumentResolver = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(_ref) {
+    var url, res, document;
+    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            url = _ref.url;
+            utilInvariant.invariant(typeof url !== "undefined", "retrieve({ url }) -- url must be defined");
+            _context.prev = 2;
+            _context.next = 5;
+            return fetchTransport__default["default"](url);
+
+          case 5:
+            res = _context.sent;
+            _context.next = 11;
+            break;
+
+          case 8:
+            _context.prev = 8;
+            _context.t0 = _context["catch"](2);
+            throw new Error("httpDocumentResolver Error: Failed to retrieve document.");
+
+          case 11:
+            if (!res.ok) {
+              _context.next = 17;
+              break;
+            }
+
+            _context.next = 14;
+            return res.json();
+
+          case 14:
+            _context.t1 = _context.sent;
+            _context.next = 18;
+            break;
+
+          case 17:
+            _context.t1 = null;
+
+          case 18:
+            document = _context.t1;
+            return _context.abrupt("return", document);
+
+          case 20:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee, null, [[2, 8]]);
+  }));
+  return _httpDocumentResolver.apply(this, arguments);
+}
+
+var DOCUMENT_RESOLVERS = new Map([["http", httpDocumentResolver], ["https", httpDocumentResolver]]);
+function retrieve(_x2) {
+  return _retrieve.apply(this, arguments);
+}
+
+function _retrieve() {
+  _retrieve = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee2(_ref2) {
+    var url, documentResolversFromConfig, urlParts, protocol, resolver, document;
+    return _regeneratorRuntime__default["default"].wrap(function _callee2$(_context2) {
+      while (1) {
+        switch (_context2.prev = _context2.next) {
+          case 0:
+            url = _ref2.url;
+            utilInvariant.invariant(typeof url !== "undefined", "retrieve({ url }) -- url must be defined");
+            utilInvariant.invariant(typeof url === "string", "retrieve({ url }) -- url must be a string");
+            _context2.next = 5;
+            return config.config().where(/^document\.resolver\./);
+
+          case 5:
+            documentResolversFromConfig = _context2.sent;
+            Object.keys(documentResolversFromConfig).map(function (key) {
+              var resolverFromConfig = documentResolversFromConfig[key];
+              var resolverProtocol = key.replace(/^document\.resolver\./, "");
+              DOCUMENT_RESOLVERS.set(resolverProtocol, resolverFromConfig);
+            });
+            urlParts = /^(.*):\/\/([A-Za-z0-9\-\.]+)(:[0-9]+)?(.*)$/.exec(url);
+            utilInvariant.invariant(urlParts, "Failed to parse URL");
+            protocol = urlParts[1];
+            utilInvariant.invariant(urlParts, "Failed to parse URL protocol");
+            resolver = DOCUMENT_RESOLVERS.get(protocol);
+            utilInvariant.invariant(resolver, "No resolver found for protcol=".concat(protocol));
+            _context2.next = 15;
+            return resolver({
+              url: url
+            });
+
+          case 15:
+            document = _context2.sent;
+            return _context2.abrupt("return", document);
+
+          case 17:
+          case "end":
+            return _context2.stop();
+        }
+      }
+    }, _callee2);
+  }));
+  return _retrieve.apply(this, arguments);
+}
+
+function normalizeInteractionTemplate(template) {
+  if (template == null) return null;
+
+  switch (template["f_version"]) {
+    case "1.0.0":
+      return template;
+
+    default:
+      throw new Error("normalizeInteractionTemplate Error: Invalid InteractionTemplate");
+  }
+}
+
+function deriveCadenceByNetwork(_ref) {
+  var _template, _template$data;
+
+  var network = _ref.network,
+      template = _ref.template;
+  sdk.invariant(network != undefined, "deriveCadenceByNetwork({ network }) -- network must be defined");
+  sdk.invariant(typeof network === "string", "deriveCadenceByNetwork({ network }) -- network must be a string");
+  sdk.invariant(template != undefined, "generateDependencyPin({ template }) -- template must be defined");
+  sdk.invariant(_typeof__default["default"](template) === "object", "generateDependencyPin({ template }) -- template must be an object");
+  sdk.invariant(template.f_type === "InteractionTemplate", "generateDependencyPin({ template }) -- template must be an InteractionTemplate");
+  template = normalizeInteractionTemplate(template);
+
+  switch (template.f_version) {
+    case "1.0.0":
+      var networkDependencies = Object.keys((_template = template) === null || _template === void 0 ? void 0 : (_template$data = _template.data) === null || _template$data === void 0 ? void 0 : _template$data.dependencies).map(function (dependencyPlaceholder) {
+        var _template2, _template2$data, _template2$data$depen;
+
+        var dependencyNetworkContracts = Object.values((_template2 = template) === null || _template2 === void 0 ? void 0 : (_template2$data = _template2.data) === null || _template2$data === void 0 ? void 0 : (_template2$data$depen = _template2$data.dependencies) === null || _template2$data$depen === void 0 ? void 0 : _template2$data$depen[dependencyPlaceholder]);
+        sdk.invariant(dependencyNetworkContracts, "deriveCadenceByNetwork -- Could not find contracts for dependency placeholder: ".concat(dependencyPlaceholder));
+        sdk.invariant(dependencyNetworkContracts.length === 0, "deriveCadenceByNetwork -- Could not find contracts for dependency placeholder: ".concat(dependencyPlaceholder));
+        var dependencyContract = dependencyNetworkContracts[0];
+        var dependencyContractForNetwork = dependencyContract === null || dependencyContract === void 0 ? void 0 : dependencyContract[network];
+        sdk.invariant(dependencyContractForNetwork, "deriveCadenceByNetwork -- Could not find ".concat(network, " network information for dependency: ").concat(dependencyPlaceholder));
+        return [dependencyPlaceholder, dependencyContractForNetwork.address];
+      });
+      return networkDependencies.reduce(function (cadence, _ref2) {
+        var _ref3 = _slicedToArray__default["default"](_ref2, 2),
+            placeholder = _ref3[0],
+            address = _ref3[1];
+
+        var regex = new RegExp("(\\b" + placeholder + "\\b)", "g");
+        return cadence.replace(regex, address);
+      }, template.data.cadence);
+
+    default:
+      throw new Error("deriveCadenceByNetwork Error: Unsupported template version");
+  }
+}
+
+function deriveDependencies(_x) {
+  return _deriveDependencies.apply(this, arguments);
+}
+
+function _deriveDependencies() {
+  _deriveDependencies = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(_ref) {
+    var _template$data;
+
+    var template, network, derivedDependencies, dependencyPlaceholderKeys, _i, _dependencyPlaceholde, _template$data2, dependencyPlaceholderKey, dependencyPlaceholder, dependencyPlaceholderContractsKeys, dependencyPlaceholderContract, dependency;
+
+    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            template = _ref.template;
+            _context.next = 3;
+            return config.config.get("flow.network");
+
+          case 3:
+            network = _context.sent;
+            utilInvariant.invariant(network, "FCL configureDependencies Error: Missing configuration value for 'flow.network'");
+            derivedDependencies = {};
+            _context.t0 = template["f_version"];
+            _context.next = _context.t0 === "1.0.0" ? 9 : 12;
+            break;
+
+          case 9:
+            dependencyPlaceholderKeys = Object.keys(template === null || template === void 0 ? void 0 : (_template$data = template.data) === null || _template$data === void 0 ? void 0 : _template$data.dependencies);
+
+            for (_i = 0, _dependencyPlaceholde = dependencyPlaceholderKeys; _i < _dependencyPlaceholde.length; _i++) {
+              dependencyPlaceholderKey = _dependencyPlaceholde[_i];
+              dependencyPlaceholder = template === null || template === void 0 ? void 0 : (_template$data2 = template.data) === null || _template$data2 === void 0 ? void 0 : _template$data2.dependencies[dependencyPlaceholderKey];
+              dependencyPlaceholderContractsKeys = Object.keys(dependencyPlaceholder);
+              utilInvariant.invariant(dependencyPlaceholderContractsKeys.length > 0, "FCL configureDependencies Error: No contracts found in template for placeholder=".concat(dependencyPlaceholderKey));
+              dependencyPlaceholderContract = dependencyPlaceholder[dependencyPlaceholderContractsKeys[0]];
+              dependency = dependencyPlaceholderContract[network];
+              utilInvariant.invariant(dependency, "FCL configureDependencies Error: No dependency information for placeholder=".concat(dependencyPlaceholderKey, " contract=").concat(dependencyPlaceholderContractsKeys[0], " network=").concat(network));
+              utilInvariant.invariant(dependency === null || dependency === void 0 ? void 0 : dependency.address, "FCL configureDependencies Error: No address information for placeholder=".concat(dependencyPlaceholderKey, " contract=").concat(dependencyPlaceholderContractsKeys[0], " network=").concat(network));
+              derivedDependencies[dependencyPlaceholderKey] = utilAddress.withPrefix(dependency === null || dependency === void 0 ? void 0 : dependency.address);
+            }
+
+            return _context.abrupt("return", derivedDependencies);
+
+          case 12:
+            throw new Error("FCL configureDependencies Error: Unsupported template version");
+
+          case 13:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee);
+  }));
+  return _deriveDependencies.apply(this, arguments);
+}
+
+function prepTemplateOpts(_x) {
+  return _prepTemplateOpts.apply(this, arguments);
+}
+
+function _prepTemplateOpts() {
+  _prepTemplateOpts = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(opts) {
+    var dependencies, cadence;
+    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            if (!isString(opts === null || opts === void 0 ? void 0 : opts.template)) {
+              _context.next = 4;
+              break;
+            }
+
+            _context.next = 3;
+            return retrieve({
+              url: opts === null || opts === void 0 ? void 0 : opts.template
+            });
+
+          case 3:
+            opts.template = _context.sent;
+
+          case 4:
+            dependencies = {};
+
+            if (!(opts !== null && opts !== void 0 && opts.template)) {
+              _context.next = 10;
+              break;
+            }
+
+            opts.template = normalizeInteractionTemplate(opts === null || opts === void 0 ? void 0 : opts.template);
+            _context.next = 9;
+            return deriveDependencies({
+              template: opts.template
+            });
+
+          case 9:
+            dependencies = _context.sent;
+
+          case 10:
+            _context.t0 = opts.cadence;
+
+            if (_context.t0) {
+              _context.next = 19;
+              break;
+            }
+
+            _context.t1 = deriveCadenceByNetwork;
+            _context.t2 = opts.template;
+            _context.next = 16;
+            return sdk__namespace.config().get("flow.network");
+
+          case 16:
+            _context.t3 = _context.sent;
+            _context.t4 = {
+              template: _context.t2,
+              network: _context.t3
+            };
+            _context.t0 = (0, _context.t1)(_context.t4);
+
+          case 19:
+            cadence = _context.t0;
+            opts.cadence = cadence;
+            opts.dependencies = dependencies;
+            return _context.abrupt("return", opts);
+
+          case 23:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee);
+  }));
+  return _prepTemplateOpts.apply(this, arguments);
+}
+
+function pre(_x, _x2) {
+  return _pre.apply(this, arguments);
+}
+
+function _pre() {
+  _pre = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(type, opts) {
+    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            // prettier-ignore
+            utilInvariant.invariant(isRequired(opts), "".concat(type, "(opts) -- opts is required")); // prettier-ignore
+
+            utilInvariant.invariant(isObject(opts), "".concat(type, "(opts) -- opts must be an object")); // prettier-ignore
+
+            utilInvariant.invariant(!(opts.cadence && opts.template), "".concat(type, "({ template, cadence }) -- cannot pass both cadence and template")); // prettier-ignore
+
+            utilInvariant.invariant(isRequired(opts.cadence || (opts === null || opts === void 0 ? void 0 : opts.template)), "".concat(type, "({ cadence }) -- cadence is required")); // // prettier-ignore
+
+            utilInvariant.invariant(isString(opts.cadence) || (opts === null || opts === void 0 ? void 0 : opts.template), "".concat(type, "({ cadence }) -- cadence must be a string")); // prettier-ignore
+
+            _context.t0 = utilInvariant.invariant;
+            _context.t1 = opts.cadence;
+
+            if (_context.t1) {
+              _context.next = 11;
+              break;
+            }
+
+            _context.next = 10;
+            return sdk__namespace.config().get("flow.network");
+
+          case 10:
+            _context.t1 = _context.sent;
+
+          case 11:
+            _context.t2 = _context.t1;
+            _context.t3 = "".concat(type, "(opts) -- Required value for \"flow.network\" not defined in config. See: ", "https://github.com/onflow/flow-js-sdk/blob/master/packages/fcl/src/exec/query.md#configuration");
+            (0, _context.t0)(_context.t2, _context.t3);
+            _context.t4 = utilInvariant.invariant;
+            _context.next = 17;
+            return sdk__namespace.config().get("accessNode.api");
+
+          case 17:
+            _context.t5 = _context.sent;
+            _context.t6 = "".concat(type, "(opts) -- Required value for \"accessNode.api\" not defined in config. See: ", "https://github.com/onflow/flow-js-sdk/blob/master/packages/fcl/src/exec/query.md#configuration");
+            (0, _context.t4)(_context.t5, _context.t6);
+
+          case 20:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee);
+  }));
+  return _pre.apply(this, arguments);
+}
+
+function preMutate(_x3) {
+  return _preMutate.apply(this, arguments);
+}
+
+function _preMutate() {
+  _preMutate = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee2(opts) {
+    return _regeneratorRuntime__default["default"].wrap(function _callee2$(_context2) {
+      while (1) {
+        switch (_context2.prev = _context2.next) {
+          case 0:
+            return _context2.abrupt("return", pre("mutate", opts));
+
+          case 1:
+          case "end":
+            return _context2.stop();
+        }
+      }
+    }, _callee2);
+  }));
+  return _preMutate.apply(this, arguments);
+}
+
+function preQuery(_x4) {
+  return _preQuery.apply(this, arguments);
+}
+
+function _preQuery() {
+  _preQuery = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee3(opts) {
+    return _regeneratorRuntime__default["default"].wrap(function _callee3$(_context3) {
+      while (1) {
+        switch (_context3.prev = _context3.next) {
+          case 0:
+            return _context3.abrupt("return", pre("query", opts));
+
+          case 1:
+          case "end":
+            return _context3.stop();
+        }
+      }
+    }, _callee3);
+  }));
+  return _preQuery.apply(this, arguments);
+}
+
+/** Query the Flow Blockchain
+ *
+ *  @arg {Object} opts         - Query Options and configuration
+ *  @arg {string} opts.cadence - Cadence Script used to query Flow
+ *  @arg {ArgsFn} opts.args    - Arguments passed to cadence script
+ *  @arg {Object} opts.template - Interaction Template for a script
+ *  @arg {number} opts.limit   - Compute Limit for Query
+ *  @returns {Promise<Response>}
+ *
+ *  Where:
+ *    @callback ArgsFn
+ *    @arg {ArgFn}  arg - Argument function to define a single argument
+ *    @arg {Object} t   - Cadence Types object used to define the type
+ *    @returns {args[]}
+ *
+ *    @callback ArgFn
+ *    @arg {Any}  value - the value of the argument
+ *    @arg {Type} type  - the cadence type of the value
+ *    @returns {arg}
+ *
+ *  Example:
+ *    const cadence = `
+ *      cadence: `
+ *        pub fun main(a: Int, b: Int, c: Address): Int {
+ *          log(c)
+ *          return a + b
+ *        }
+ *    `.trim()
+ *
+ *    const args = (arg, t) => [
+ *      arg(5, t.Int),
+ *      arg(7, t.Int),
+ *      arg("0xb2db43ad6bc345fec9", t.Address),
+ *    ]
+ *
+ *    await query({ cadence, args })
+ */
+
+function query() {
+  return _query.apply(this, arguments);
+}
+
+function _query() {
+  _query = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee2() {
+    var opts,
+        _args2 = arguments;
+    return _regeneratorRuntime__default["default"].wrap(function _callee2$(_context2) {
+      while (1) {
+        switch (_context2.prev = _context2.next) {
+          case 0:
+            opts = _args2.length > 0 && _args2[0] !== undefined ? _args2[0] : {};
+            _context2.next = 3;
+            return preQuery(opts);
+
+          case 3:
+            _context2.next = 5;
+            return prepTemplateOpts(opts);
+
+          case 5:
+            opts = _context2.sent;
+            return _context2.abrupt("return", sdk__namespace.config().overload(opts.dependencies || {}, /*#__PURE__*/_asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee() {
+              return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
+                while (1) {
+                  switch (_context.prev = _context.next) {
+                    case 0:
+                      return _context.abrupt("return", // prettier-ignore
+                      sdk__namespace.send([sdk__namespace.script(opts.cadence), sdk__namespace.args(normalizeArgs(opts.args || [])), opts.limit && typeof opts.limit === "number" && sdk__namespace.limit(opts.limit)]).then(sdk__namespace.decode));
+
+                    case 1:
+                    case "end":
+                      return _context.stop();
+                  }
+                }
+              }, _callee);
+            }))));
+
+          case 7:
+          case "end":
+            return _context2.stop();
+        }
+      }
+    }, _callee2);
+  }));
+  return _query.apply(this, arguments);
+}
+
+function fetchServices(_x, _x2) {
+  return _fetchServices.apply(this, arguments);
+}
+
+function _fetchServices() {
+  _fetchServices = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(servicesURL, code) {
+    var url, resp, services, _iterator, _step, service;
+
+    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            if (!(servicesURL == null || code == null)) {
+              _context.next = 2;
+              break;
+            }
+
+            return _context.abrupt("return", []);
+
+          case 2:
+            url = new URL(servicesURL);
+            url.searchParams.append("code", code);
+            _context.next = 6;
+            return fetch(url, {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json"
+              }
+            }).then(function (d) {
+              return d.json();
+            });
+
+          case 6:
+            resp = _context.sent;
+
+            if (!Array.isArray(resp)) {
+              _context.next = 9;
+              break;
+            }
+
+            return _context.abrupt("return", resp);
+
+          case 9:
+            // Backwards compatibility for First-Gen Wallet Providers
+            services = []; // Convert authorizations into authz services
+
+            if (Array.isArray(resp.authorizations)) {
+              _iterator = _createForOfIteratorHelper__default["default"](resp.authorizations);
+
+              try {
+                for (_iterator.s(); !(_step = _iterator.n()).done;) {
+                  service = _step.value;
+                  services.push(_objectSpread__default["default"]({
+                    type: "authz",
+                    keyId: resp.keyId
+                  }, service));
+                }
+              } catch (err) {
+                _iterator.e(err);
+              } finally {
+                _iterator.f();
+              }
+            } // Convert Provider info into an authn service
+
+
+            if (resp.provider != null) {
+              services.push(_objectSpread__default["default"]({
+                type: "authn",
+                id: "wallet-provider#authn"
+              }, resp.provider));
+            }
+
+            return _context.abrupt("return", services);
+
+          case 13:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee);
+  }));
+  return _fetchServices.apply(this, arguments);
+}
+
+function mergeServices() {
+  var sx1 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+  var sx2 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+  // TODO: Make this smarter
+  return [].concat(_toConsumableArray__default["default"](sx1), _toConsumableArray__default["default"](sx2));
+}
+
+var SERVICE_PRAGMA = {
+  f_type: "Service",
+  f_vsn: "1.0.0"
+};
+var IDENTITY_PRAGMA = {
+  f_type: "Identity",
+  f_vsn: "1.0.0"
+};
+var USER_PRAGMA = {
+  f_type: "USER",
+  f_vsn: "1.0.0"
+};
+var POLLING_RESPONSE_PRAGMA = {
+  f_type: "PollingResponse",
+  f_vsn: "1.0.0"
+};
+var COMPOSITE_SIGNATURE_PRAGMA = {
+  f_type: "CompositeSignature",
+  f_vsn: "1.0.0"
+};
+
+//   "f_type": "Service",
+//   "f_vsn": "1.0.0",
+//   "type": "authn",
+//   "uid": "uniqueDedupeKey",
+//   "endpoint": "https://rawr",
+//   "id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", // wallets internal id for the user
+//   "identity": {
+//     "address": "0x____"
+//   },
+//   "provider": {
+//     "address": "0x____",
+//     "name": "Best Wallet",
+//     "description": "The Best Wallet"
+//     "icon": "https://",
+//   }
+// }
+
+function normalizeAuthn(service) {
+  if (service == null) return null;
+
+  switch (service["f_vsn"]) {
+    case "1.0.0":
+      return service;
+
+    default:
+      return _objectSpread__default["default"](_objectSpread__default["default"]({}, SERVICE_PRAGMA), {}, {
+        type: service.type,
+        uid: service.id,
+        endpoint: service.authn,
+        id: service.pid,
+        provider: {
+          address: utilAddress.withPrefix(service.addr),
+          name: service.name,
+          icon: service.icon
+        }
+      });
+  }
+}
+
+//   "f_type": "service",
+//   "f_vsn": "1.0.0",
+//   "type": "authz",
+//   "uid": "uniqueDedupeKey",
+//   "endpoint": "https://rawr",
+//   "method": "HTTP/POST", // HTTP/POST | IFRAME/RPC | HTTP/RPC
+//   "identity": {
+//      "address": "0x______",
+//      "keyId": 0,
+//   },
+//   "data": {}, // included in body of authz request
+//   "params": {}, // included as query params on endpoint url
+// }
+
+function normalizeAuthz(service) {
+  if (service == null) return null;
+
+  switch (service["f_vsn"]) {
+    case "1.0.0":
+      return service;
+
+    default:
+      return _objectSpread__default["default"](_objectSpread__default["default"]({}, SERVICE_PRAGMA), {}, {
+        type: service.type,
+        uid: service.id,
+        endpoint: service.endpoint,
+        method: service.method,
+        identity: _objectSpread__default["default"](_objectSpread__default["default"]({}, IDENTITY_PRAGMA), {}, {
+          address: utilAddress.withPrefix(service.addr),
+          keyId: service.keyId
+        }),
+        params: service.params,
+        data: service.data
+      });
+  }
+}
+
+//   "f_type": "service",
+//   "f_vsn": "1.0.0",
+//   "type": "pre-authz",
+//   "uid": "uniqueDedupeKey",
+//   "endpoint": "https://rawr",
+//   "method": "HTTP/POST", // HTTP/POST | IFRAME/RPC | HTTP/RPC
+//   "identity": {
+//      "address": "0x______",
+//      "keyId": 0,
+//   },
+//   "data": {}, // included in body of pre-authz request
+//   "params": {}, // included as query params on endpoint url
+// }
+
+function normalizePreAuthz(service) {
+  if (service == null) return null;
+
+  switch (service["f_vsn"]) {
+    case "1.0.0":
+      return service;
+
+    default:
+      return _objectSpread__default["default"](_objectSpread__default["default"]({}, SERVICE_PRAGMA), {}, {
+        type: service.type,
+        uid: service.id,
+        endpoint: service.endpoint,
+        method: service.method,
+        identity: _objectSpread__default["default"](_objectSpread__default["default"]({}, IDENTITY_PRAGMA), {}, {
+          address: utilAddress.withPrefix(service.addr),
+          keyId: service.keyId
+        }),
+        params: service.params,
+        data: service.data
+      });
+  }
+}
+
+//    "f_type": "Service",
+//    "f_vsn": "1.0.0",
+//    "type": "frame",
+//    "endpoint": "https://rawr",
+//    "data": {},   // Sent to frame when ready
+//    "params": {}, // include in query params on frame
+// }
+
+function normalizeFrame(service) {
+  if (service == null) return null;
+
+  switch (service["f_vsn"]) {
+    case "1.0.0":
+      return service;
+
+    default:
+      return _objectSpread__default["default"](_objectSpread__default["default"]({
+        old: service
+      }, SERVICE_PRAGMA), {}, {
+        type: "frame",
+        endpoint: service.endpoint,
+        params: service.params || {},
+        data: service.data || {}
+      });
+  }
+}
+
+//    "f_type": "Service",
+//    "f_vsn": "1.0.0",
+//    "type": "back-channel-rpc",
+//    "endpoint": "https://rawr",
+//    "method": "HTTP/GET", // HTTP/GET | HTTP/POST
+//    "data": {},           // included in body of rpc
+//    "params": {},         // included as query params on endpoint url
+// }
+
+function normalizeBackChannelRpc(service) {
+  if (service == null) return null;
+
+  switch (service["f_vsn"]) {
+    case "1.0.0":
+      return service;
+
+    default:
+      return _objectSpread__default["default"](_objectSpread__default["default"]({}, SERVICE_PRAGMA), {}, {
+        type: "back-channel-rpc",
+        endpoint: service.endpoint,
+        method: service.method,
+        params: service.params || {},
+        data: service.data || {}
+      });
+  }
+}
+
+//   "f_type": "Service",
+//   "f_vsn": "1.0.0",
+//   "type": "open-id",
+//   "uid": "uniqueDedupeKey",
+//   "method: "data",
+//   "data": {
+//      "profile": {
+//        "name": "Bob",
+//        "family_name": "Builder",
+//        "given_name": "Robert",
+//        "middle_name": "the",
+//        "nickname": "Bob the Builder",
+//        "perferred_username": "bob",
+//        "profile": "https://www.bobthebuilder.com/",
+//        "picture": "https://avatars.onflow.org/avatar/bob",
+//        "gender": "...",
+//        "birthday": "2001-01-18",
+//        "zoneinfo": "America/Vancouver",
+//        "locale": "en-us",
+//        "updated_at": "1614970797388"
+//      },
+//      "email": {
+//        "email": "bob@bob.bob",
+//        "email_verified": true
+//      },
+//      "address": {
+//        "address": "One Apple Park Way, Cupertino, CA 95014, USA"
+//      },
+//      "phone": {
+//        "phone_number": "+1 (xxx) yyy-zzzz",
+//        "phone_number_verified": true
+//      },
+//      "social": {
+//        "twitter": "@_qvvg",
+//        "twitter_verified": true
+//      },
+//   }
+// }
+
+function normalizeOpenId(service) {
+  if (service == null) return null;
+
+  switch (service["f_vsn"]) {
+    case "1.0.0":
+      return service;
+
+    default:
+      return null;
+  }
+}
+
+// {
+//   "f_type": "Service",
+//   "f_vsn": "1.0.0",
+//   "type": "user-signature",
+//   "uid": "uniqueDedupeKey",
+//   "endpoint": "https://rawr",
+//   "method": "IFRAME/RPC", // HTTP/POST | IFRAME/RPC | HTTP/RPC
+//   "id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", // wallets internal id for the user
+//   "data": {}, // included in body of user-signature request
+//   "params": {}, // included as query params on endpoint url
+// }
+function normalizeUserSignature(service) {
+  if (service == null) return null;
+
+  switch (service["f_vsn"]) {
+    case "1.0.0":
+      return service;
+
+    default:
+      throw new Error("Invalid user-signature service");
+  }
+}
+
+//    "f_type": "Service",
+//    "f_vsn": "1.0.0",
+//    type: "local-view",
+//    method: "VIEW/IFRAME",
+//    endpoint: "https://woot.org/authz/local",
+//    data: {},
+//    params: {},
+// }
+
+function normalizeLocalView(resp) {
+  if (resp == null) return null;
+
+  if (resp.method == null) {
+    resp = _objectSpread__default["default"](_objectSpread__default["default"]({}, resp), {}, {
+      type: "local-view",
+      method: "VIEW/IFRAME"
+    });
+  }
+
+  switch (resp["f_vsn"]) {
+    case "1.0.0":
+      return resp;
+
+    default:
+      return _objectSpread__default["default"](_objectSpread__default["default"]({}, SERVICE_PRAGMA), {}, {
+        type: resp.type || "local-view",
+        method: resp.method,
+        endpoint: resp.endpoint,
+        data: resp.data || {},
+        params: resp.params || {}
+      });
+  }
+}
+
+// {
+//   "f_type": "Service",                    // Its a service!
+//   "f_vsn": "1.0.0",                       // Follows the v1.0.0 spec for the service
+//   "type": "account-proof",                // the type of service it is
+//   "method": "DATA",                       // Its data!
+//   "uid": "awesome-wallet#account-proof",  // A unique identifier for the service
+//   "data": {
+//     "f_type": "account-proof",
+//     "f_vsn": "1.0.0",
+//     "nonce": "0A1BC2FF",                  // Nonce signed by the current account-proof (minimum 32 bytes in total, i.e 64 hex characters)
+//     "address": "0xUSER",                  // The user's address (8 bytes, i.e 16 hex characters)
+//     "signature": CompositeSignature,      // address (sans-prefix), keyId, signature (hex)
+// }
+function normalizeAccountProof(service) {
+  if (service == null) return null;
+
+  switch (service["f_vsn"]) {
+    case "1.0.0":
+      return service;
+
+    default:
+      throw new Error("FCL Normalizer Error: Invalid account-proof service");
+  }
+}
+
+// {
+//   "f_type": "Service",
+//   "f_vsn": "1.0.0",
+//   "type": "authn-refresh",
+//   "uid": "uniqueDedupeKey",
+//   "endpoint": "https://rawr",
+//   "method": "HTTP/POST",  // "HTTP/POST", // HTTP/POST | IFRAME/RPC | HTTP/RPC
+//   "id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", // wallets internal id for the user
+//   "data": {}, // included in body of request
+//   "params": {}, // included as query params on endpoint url
+// }
+function normalizeAuthnRefresh(service) {
+  if (service == null) return null;
+
+  switch (service["f_vsn"]) {
+    case "1.0.0":
+      return service;
+
+    default:
+      throw new Error("Invalid authn-refresh service");
+  }
+}
+
+var serviceNormalizers = {
+  "back-channel-rpc": normalizeBackChannelRpc,
+  "pre-authz": normalizePreAuthz,
+  authz: normalizeAuthz,
+  authn: normalizeAuthn,
+  frame: normalizeFrame,
+  "open-id": normalizeOpenId,
+  "user-signature": normalizeUserSignature,
+  "local-view": normalizeLocalView,
+  "account-proof": normalizeAccountProof,
+  "authn-refresh": normalizeAuthnRefresh
+};
+function normalizeService(service, data) {
+  try {
+    var normalized = serviceNormalizers[service.type](service, data);
+    return normalized;
+  } catch (error) {
+    console.error("Unrecognized FCL Service Type [".concat(service.type, "]"), service, error);
+    return service;
+  }
+}
+
+function deriveCompositeId(authn) {
+  return rlp__namespace.encode([authn.provider.address || authn.provider.name || "UNSPECIFIED", authn.id]).toString("hex");
+}
+
+function normalizeData(data) {
+  data.addr = data.addr ? utilAddress.withPrefix(data.addr) : null;
+  data.paddr = data.paddr ? utilAddress.withPrefix(data.paddr) : null;
+  return data;
+}
+
+function findService(type, services) {
+  return services.find(function (d) {
+    return d.type === type;
+  });
+}
+
+function buildUser(_x) {
+  return _buildUser.apply(this, arguments);
+}
+
+function _buildUser() {
+  _buildUser = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(data) {
+    var services, authn;
+    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            data = normalizeData(data);
+            _context.t0 = mergeServices;
+            _context.t1 = data.services || [];
+            _context.next = 5;
+            return fetchServices(data.hks, data.code);
+
+          case 5:
+            _context.t2 = _context.sent;
+            services = (0, _context.t0)(_context.t1, _context.t2).map(function (service) {
+              return normalizeService(service, data);
+            });
+            authn = findService("authn", services);
+            return _context.abrupt("return", _objectSpread__default["default"](_objectSpread__default["default"]({}, USER_PRAGMA), {}, {
+              addr: utilAddress.withPrefix(data.addr),
+              cid: deriveCompositeId(authn),
+              loggedIn: true,
+              services: services,
+              expiresAt: data.expires
+            }));
+
+          case 9:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee);
+  }));
+  return _buildUser.apply(this, arguments);
+}
+
+function serviceOfType() {
+  var services = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+  var type = arguments.length > 1 ? arguments[1] : undefined;
+  return services.find(function (service) {
+    return service.type === type;
+  });
+}
+
+function serviceEndpoint(service) {
+  var url = new URL(service.endpoint);
+  url.searchParams.append("l6n", window.location.origin);
+
+  if (service.params != null) {
+    for (var _i = 0, _Object$entries = Object.entries(service.params || {}); _i < _Object$entries.length; _i++) {
+      var _Object$entries$_i = _slicedToArray__default["default"](_Object$entries[_i], 2),
+          key = _Object$entries$_i[0],
+          value = _Object$entries$_i[1];
+
+      url.searchParams.append(key, value);
+    }
+  }
+
+  return url;
+}
+
+function fetchService(service) {
+  var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  var method = opts.method || "POST";
+  var body = method === "GET" ? undefined : JSON.stringify(opts.data || service.data || {});
+  return fetch(serviceEndpoint(service), {
+    method: method,
+    headers: _objectSpread__default["default"](_objectSpread__default["default"](_objectSpread__default["default"]({}, service.headers || {}), opts.headers || {}), {}, {
+      "Content-Type": "application/json"
+    }),
+    body: body
+  }).then(function (d) {
+    return d.json();
+  });
+}
+
+//    "f_type": "PollingResponse",
+//    "f_vsn": "1.0.0",
+//    "status": "PENDING", // PENDING | APPROVED | DECLINED | REDIRECT
+//    "reason": null,      // Reason for Declining Transaction
+//    "data": null,        // Return value for APPROVED
+//    "updates": BackChannelRpc,
+//    "local": Frame,
+// }
+
+function normalizePollingResponse(resp) {
+  var _resp$status, _resp$reason;
+
+  if (resp == null) return null;
+
+  switch (resp["f_vsn"]) {
+    case "1.0.0":
+      return resp;
+
+    default:
+      return _objectSpread__default["default"](_objectSpread__default["default"]({}, POLLING_RESPONSE_PRAGMA), {}, {
+        status: (_resp$status = resp.status) !== null && _resp$status !== void 0 ? _resp$status : "APPROVED",
+        reason: (_resp$reason = resp.reason) !== null && _resp$reason !== void 0 ? _resp$reason : null,
+        data: resp.compositeSignature || resp.data || _objectSpread__default["default"]({}, resp) || {},
+        updates: normalizeBackChannelRpc(resp.authorizationUpdates),
+        local: normalizeFrame((resp.local || [])[0])
+      });
+  }
+}
+
+var OPTIONS = {
+  "HTTP/GET": "GET",
+  "HTTP/POST": "POST"
+};
+
+var serviceMethod = function serviceMethod(service) {
+  utilInvariant.invariant(OPTIONS[service.method], "Invalid Service Method for type back-channel-rpc", {
+    service: service
+  });
+  return OPTIONS[service.method];
+};
+
+function poll(_x) {
+  return _poll.apply(this, arguments);
+}
+
+function _poll() {
+  _poll = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(service) {
+    var canContinue,
+        resp,
+        _args = arguments;
+    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            canContinue = _args.length > 1 && _args[1] !== undefined ? _args[1] : function () {
+              return true;
+            };
+            utilInvariant.invariant(service, "Missing Polling Service", {
+              service: service
+            });
+
+            if (canContinue()) {
+              _context.next = 4;
+              break;
+            }
+
+            throw new Error("Externally Halted");
+
+          case 4:
+            _context.next = 6;
+            return fetchService(service, {
+              method: serviceMethod(service)
+            }).then(normalizePollingResponse);
+
+          case 6:
+            resp = _context.sent;
+            _context.t0 = resp.status;
+            _context.next = _context.t0 === "APPROVED" ? 10 : _context.t0 === "DECLINED" ? 11 : 12;
+            break;
+
+          case 10:
+            return _context.abrupt("return", resp.data);
+
+          case 11:
+            throw new Error("Declined: ".concat(resp.reason || "No reason supplied."));
+
+          case 12:
+            _context.next = 14;
+            return new Promise(function (r) {
+              return setTimeout(r, 500);
+            });
+
+          case 14:
+            return _context.abrupt("return", poll(resp.updates, canContinue));
+
+          case 15:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee);
+  }));
+  return _poll.apply(this, arguments);
+}
+
+var FRAME = "FCL_IFRAME";
+var FRAME_STYLES = "\n  position:fixed;\n  top: 0px;\n  right: 0px;\n  bottom: 0px;\n  left: 0px;\n  height: 100%;\n  width: 100vw;\n  display:block;\n  background:rgba(0,0,0,0.25);\n  z-index: 2147483647;\n  box-sizing: border-box;\n  color-scheme: light;\n";
+function renderFrame(src) {
+  utilInvariant.invariant(!document.getElementById(FRAME), "Attempt at triggering multiple Frames", {
+    src: src
+  });
+  var $frame = document.createElement("iframe");
+  $frame.src = src;
+  $frame.id = FRAME;
+  $frame.allow = "usb *; hid *";
+  $frame.frameBorder = "0";
+  $frame.style.cssText = FRAME_STYLES;
+  document.body.append($frame);
+
+  var unmount = function unmount() {
+    if (document.getElementById(FRAME)) {
+      document.getElementById(FRAME).remove();
+    }
+  };
+
+  return [$frame.contentWindow, unmount];
+}
+
+var POP = "FCL_POP";
+var popup = null;
+var previousUrl$1 = null;
+
+function popupWindow(url, windowName, win, w, h) {
+  var y = win.top.outerHeight / 2 + win.top.screenY - h / 2;
+  var x = win.top.outerWidth / 2 + win.top.screenX - w / 2;
+  var popup = win.open(url, windowName, "toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=".concat(w, ", height=").concat(h, ", top=").concat(y, ", left=").concat(x));
+  if (!popup) throw new Error("Popup failed to open (was it blocked by a popup blocker?)");
+  return popup;
+}
+
+function renderPop(src) {
+  var _popup;
+
+  if (popup == null || (_popup = popup) !== null && _popup !== void 0 && _popup.closed) {
+    popup = popupWindow(src, POP, window, 640, 770);
+  } else if (previousUrl$1 !== src) {
+    popup.location.replace(src);
+    popup.focus();
+  } else {
+    popup.focus();
+  }
+
+  previousUrl$1 = src;
+
+  var unmount = function unmount() {
+    if (popup && !popup.closed) {
+      popup.close();
+    }
+
+    popup = null;
+  };
+
+  return [popup, unmount];
+}
+
+var tab$1 = null;
+var previousUrl = null;
+function renderTab(src) {
+  var _tab;
+
+  if (tab$1 == null || (_tab = tab$1) !== null && _tab !== void 0 && _tab.closed) {
+    tab$1 = window.open(src, "_blank");
+    if (!tab$1) throw new Error("Tab failed to open (was it blocked by the browser?)");
+  } else if (previousUrl !== src) {
+    tab$1.location.replace(src);
+    tab$1.focus();
+  } else {
+    tab$1.focus();
+  }
+
+  previousUrl = src;
+
+  var unmount = function unmount() {
+    if (tab$1 && !tab$1.closed) {
+      tab$1.close();
+    }
+
+    tab$1 = null;
+  };
+
+  return [tab$1, unmount];
+}
+
+var VIEWS = {
+  "VIEW/IFRAME": renderFrame,
+  "VIEW/POP": renderPop,
+  "VIEW/TAB": renderTab
+};
+function execLocal(_x) {
+  return _execLocal.apply(this, arguments);
+}
+
+function _execLocal() {
+  _execLocal = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(service) {
+    var opts,
+        _args = arguments;
+    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            opts = _args.length > 1 && _args[1] !== undefined ? _args[1] : {};
+            _context.prev = 1;
+            return _context.abrupt("return", VIEWS[service.method](serviceEndpoint(service), opts));
+
+          case 5:
+            _context.prev = 5;
+            _context.t0 = _context["catch"](1);
+            console.error("execLocal({service, opts = {}})", _context.t0, {
+              service: service,
+              opts: opts
+            });
+            throw _context.t0;
+
+          case 9:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee, null, [[1, 5]]);
+  }));
+  return _execLocal.apply(this, arguments);
+}
+
+function execHttpPost(_x) {
+  return _execHttpPost.apply(this, arguments);
+}
+
+function _execHttpPost() {
+  _execHttpPost = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(_ref) {
+    var service, body, config, resp, canContinue, _yield$execLocal, _yield$execLocal2, unmount, close;
+
+    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            service = _ref.service, body = _ref.body, config = _ref.config, _ref.opts;
+            _context.next = 3;
+            return fetchService(service, {
+              data: _objectSpread__default["default"]({
+                fclVersion: VERSION,
+                service: {
+                  params: service.params,
+                  data: service.data,
+                  type: service.type
+                },
+                config: config
+              }, body)
+            }).then(normalizePollingResponse);
+
+          case 3:
+            resp = _context.sent;
+
+            if (!(resp.status === "APPROVED")) {
+              _context.next = 8;
+              break;
+            }
+
+            return _context.abrupt("return", resp.data);
+
+          case 8:
+            if (!(resp.status === "DECLINED")) {
+              _context.next = 12;
+              break;
+            }
+
+            throw new Error("Declined: ".concat(resp.reason || "No reason supplied."));
+
+          case 12:
+            if (!(resp.status === "REDIRECT")) {
+              _context.next = 16;
+              break;
+            }
+
+            return _context.abrupt("return", resp);
+
+          case 16:
+            if (!(resp.status === "PENDING")) {
+              _context.next = 28;
+              break;
+            }
+
+            canContinue = true;
+            _context.next = 20;
+            return execLocal(normalizeLocalView(resp.local));
+
+          case 20:
+            _yield$execLocal = _context.sent;
+            _yield$execLocal2 = _slicedToArray__default["default"](_yield$execLocal, 2);
+            _yield$execLocal2[0];
+            unmount = _yield$execLocal2[1];
+
+            close = function close() {
+              try {
+                unmount();
+                canContinue = false;
+              } catch (error) {
+                console.error("Frame Close Error", error);
+              }
+            };
+
+            return _context.abrupt("return", poll(resp.updates, function () {
+              return canContinue;
+            }).then(function (serviceResponse) {
+              close();
+              return serviceResponse;
+            })["catch"](function (error) {
+              console.error(error);
+              close();
+              throw error;
+            }));
+
+          case 28:
+            console.error("Auto Decline: Invalid Response", {
+              service: service,
+              resp: resp
+            });
+            throw new Error("Auto Decline: Invalid Response");
+
+          case 30:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee);
+  }));
+  return _execHttpPost.apply(this, arguments);
+}
+
+var CLOSE_EVENT = "FCL:VIEW:CLOSE";
+var READY_EVENT = "FCL:VIEW:READY";
+var RESPONSE_EVENT = "FCL:VIEW:RESPONSE";
+
+var _ = function _(e) {
+  return typeof e === "string" && e.toLowerCase();
+};
+
+var IGNORE = new Set(["monetizationstart", "monetizationpending", "monetizationprogress", "monetizationstop"]);
+
+var deprecate = function deprecate(was, want) {
+  return console.warn("DEPRECATION NOTICE", "Received ".concat(was, ", please use ").concat(want, " for this and future versions of FCL"));
+};
+
+var buildMessageHandler = function buildMessageHandler(_ref) {
+  var close = _ref.close,
+      send = _ref.send,
+      onReady = _ref.onReady,
+      onResponse = _ref.onResponse,
+      onMessage = _ref.onMessage;
+  return function (e) {
+    try {
+      if (_typeof__default["default"](e.data) !== "object") return;
+      if (IGNORE.has(e.data.type)) return;
+      if (_(e.data.type) === _(CLOSE_EVENT)) close();
+      if (_(e.data.type) === _(READY_EVENT)) onReady(e, {
+        send: send,
+        close: close
+      });
+      if (_(e.data.type) === _(RESPONSE_EVENT)) onResponse(e, {
+        send: send,
+        close: close
+      });
+      onMessage(e, {
+        send: send,
+        close: close
+      }); // Backwards Compatible
+
+      if (_(e.data.type) === _("FCL:FRAME:READY")) {
+        deprecate(e.data.type, READY_EVENT);
+        onReady(e, {
+          send: send,
+          close: close
+        });
+      }
+
+      if (_(e.data.type) === _("FCL:FRAME:RESPONSE")) {
+        deprecate(e.data.type, RESPONSE_EVENT);
+        onResponse(e, {
+          send: send,
+          close: close
+        });
+      }
+
+      if (_(e.data.type) === _("FCL:FRAME:CLOSE")) {
+        deprecate(e.data.type, CLOSE_EVENT);
+        close();
+      } //
+
+
+      if (_(e.data.type) === _("FCL::CHALLENGE::RESPONSE")) {
+        deprecate(e.data.type, RESPONSE_EVENT);
+        onResponse(e, {
+          send: send,
+          close: close
+        });
+      }
+
+      if (_(e.data.type) === _("FCL::AUTHZ_READY")) {
+        deprecate(e.data.type, READY_EVENT);
+        onReady(e, {
+          send: send,
+          close: close
+        });
+      }
+
+      if (_(e.data.type) === _("FCL::CHALLENGE::CANCEL")) {
+        deprecate(e.data.type, CLOSE_EVENT);
+        close();
+      }
+
+      if (_(e.data.type) === _("FCL::CANCEL")) {
+        deprecate(e.data.type, CLOSE_EVENT);
+        close();
+      }
+    } catch (error) {
+      console.error("Frame Callback Error", error);
+      close();
+    }
+  };
+};
+
+var noop$3 = function noop() {};
+
+function frame(service) {
+  var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  if (service == null) return {
+    send: noop$3,
+    close: noop$3
+  };
+  var onClose = opts.onClose || noop$3;
+  var onMessage = opts.onMessage || noop$3;
+  var onReady = opts.onReady || noop$3;
+  var onResponse = opts.onResponse || noop$3;
+  var handler = buildMessageHandler({
+    close: close,
+    send: send,
+    onReady: onReady,
+    onResponse: onResponse,
+    onMessage: onMessage
+  });
+  window.addEventListener("message", handler);
+
+  var _renderFrame = renderFrame(serviceEndpoint(service)),
+      _renderFrame2 = _slicedToArray__default["default"](_renderFrame, 2),
+      $frame = _renderFrame2[0],
+      unmount = _renderFrame2[1];
+
+  return {
+    send: send,
+    close: close
+  };
+
+  function close() {
+    try {
+      window.removeEventListener("message", handler);
+      unmount();
+      onClose();
+    } catch (error) {
+      console.error("Frame Close Error", error);
+    }
+  }
+
+  function send(msg) {
+    try {
+      $frame.postMessage(JSON.parse(JSON.stringify(msg || {})), "*");
+    } catch (error) {
+      console.error("Frame Send Error", msg, error);
+    }
+  }
+}
+
+function execIframeRPC(_ref) {
+  var service = _ref.service,
+      body = _ref.body,
+      config = _ref.config,
+      opts = _ref.opts;
+  return new Promise(function (resolve, reject) {
+    var id = utilUid.uid();
+    var includeOlderJsonRpcCall = opts.includeOlderJsonRpcCall;
+    frame(service, {
+      onReady: function onReady(_, _ref2) {
+        return _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee() {
+          var send;
+          return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
+            while (1) {
+              switch (_context.prev = _context.next) {
+                case 0:
+                  send = _ref2.send;
+                  _context.prev = 1;
+                  send({
+                    type: "FCL:VIEW:READY:RESPONSE",
+                    fclVersion: VERSION,
+                    body: body,
+                    service: {
+                      params: service.params,
+                      data: service.data,
+                      type: service.type
+                    },
+                    config: config
+                  });
+                  send({
+                    fclVersion: VERSION,
+                    type: "FCL:FRAME:READY:RESPONSE",
+                    body: body,
+                    service: {
+                      params: service.params,
+                      data: service.data,
+                      type: service.type
+                    },
+                    config: config,
+                    deprecated: {
+                      message: "FCL:FRAME:READY:RESPONSE is deprecated and replaced with type: FCL:VIEW:READY:RESPONSE"
+                    }
+                  });
+
+                  if (includeOlderJsonRpcCall) {
+                    send({
+                      jsonrpc: "2.0",
+                      id: id,
+                      method: "fcl:sign",
+                      params: [body, service.params],
+                      deprecated: {
+                        message: "jsonrpc is deprecated and replaced with type: FCL:VIEW:READY:RESPONSE"
+                      }
+                    });
+                  }
+
+                  _context.next = 10;
+                  break;
+
+                case 7:
+                  _context.prev = 7;
+                  _context.t0 = _context["catch"](1);
+                  throw _context.t0;
+
+                case 10:
+                case "end":
+                  return _context.stop();
+              }
+            }
+          }, _callee, null, [[1, 7]]);
+        }))();
+      },
+      onResponse: function onResponse(e, _ref3) {
+        var close = _ref3.close;
+
+        try {
+          if (_typeof__default["default"](e.data) !== "object") return;
+          var resp = normalizePollingResponse(e.data);
+
+          switch (resp.status) {
+            case "APPROVED":
+              resolve(resp.data);
+              close();
+              break;
+
+            case "DECLINED":
+              reject("Declined: ".concat(resp.reason || "No reason supplied"));
+              close();
+              break;
+
+            case "REDIRECT":
+              resolve(resp);
+              close();
+              break;
+
+            default:
+              reject("Declined: No reason supplied");
+              close();
+              break;
+          }
+        } catch (error) {
+          console.error("execIframeRPC onResponse error", error);
+          throw error;
+        }
+      },
+      onMessage: function onMessage(e, _ref4) {
+        var close = _ref4.close;
+
+        try {
+          if (_typeof__default["default"](e.data) !== "object") return;
+          if (e.data.jsonrpc !== "2.0") return;
+          if (e.data.id !== id) return;
+          var resp = normalizePollingResponse(e.data.result);
+
+          switch (resp.status) {
+            case "APPROVED":
+              resolve(resp.data);
+              close();
+              break;
+
+            case "DECLINED":
+              reject("Declined: ".concat(resp.reason || "No reason supplied"));
+              close();
+              break;
+
+            case "REDIRECT":
+              resolve(resp);
+              close();
+              break;
+
+            default:
+              reject("Declined: No reason supplied");
+              close();
+              break;
+          }
+        } catch (error) {
+          console.error("execIframeRPC onMessage error", error);
+          throw error;
+        }
+      },
+      onClose: function onClose() {
+        reject("Declined: Externally Halted");
+      }
+    });
+  });
+}
+
+var noop$2 = function noop() {};
+
+function pop(service) {
+  var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  if (service == null) return {
+    send: noop$2,
+    close: noop$2
+  };
+  var onClose = opts.onClose || noop$2;
+  var onMessage = opts.onMessage || noop$2;
+  var onReady = opts.onReady || noop$2;
+  var onResponse = opts.onResponse || noop$2;
+  var handler = buildMessageHandler({
+    close: close,
+    send: send,
+    onReady: onReady,
+    onResponse: onResponse,
+    onMessage: onMessage
+  });
+  window.addEventListener("message", handler);
+
+  var _renderPop = renderPop(serviceEndpoint(service)),
+      _renderPop2 = _slicedToArray__default["default"](_renderPop, 2),
+      $pop = _renderPop2[0],
+      unmount = _renderPop2[1];
+
+  var timer = setInterval(function () {
+    if ($pop && $pop.closed) {
+      close();
+    }
+  }, 500);
+  return {
+    send: send,
+    close: close
+  };
+
+  function close() {
+    try {
+      window.removeEventListener("message", handler);
+      clearInterval(timer);
+      unmount();
+      onClose();
+    } catch (error) {
+      console.error("Popup Close Error", error);
+    }
+  }
+
+  function send(msg) {
+    try {
+      $pop.postMessage(JSON.parse(JSON.stringify(msg || {})), "*");
+    } catch (error) {
+      console.error("Popup Send Error", msg, error);
+    }
+  }
+}
+
+function execPopRPC(_ref) {
+  var service = _ref.service,
+      body = _ref.body,
+      config = _ref.config,
+      opts = _ref.opts;
+  return new Promise(function (resolve, reject) {
+    var id = utilUid.uid();
+    var redir = opts.redir,
+        includeOlderJsonRpcCall = opts.includeOlderJsonRpcCall;
+    pop(service, {
+      onReady: function onReady(_, _ref2) {
+        return _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee() {
+          var send;
+          return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
+            while (1) {
+              switch (_context.prev = _context.next) {
+                case 0:
+                  send = _ref2.send;
+                  _context.prev = 1;
+                  send({
+                    fclVersion: VERSION,
+                    type: "FCL:VIEW:READY:RESPONSE",
+                    body: body,
+                    service: {
+                      params: service.params,
+                      data: service.data,
+                      type: service.type
+                    },
+                    config: config
+                  });
+                  send({
+                    fclVersion: VERSION,
+                    type: "FCL:FRAME:READY:RESPONSE",
+                    body: body,
+                    service: {
+                      params: service.params,
+                      data: service.data,
+                      type: service.type
+                    },
+                    config: config,
+                    deprecated: {
+                      message: "FCL:FRAME:READY:RESPONSE is deprecated and replaced with type: FCL:VIEW:READY:RESPONSE"
+                    }
+                  });
+
+                  if (includeOlderJsonRpcCall) {
+                    send({
+                      jsonrpc: "2.0",
+                      id: id,
+                      method: "fcl:sign",
+                      params: [body, service.params]
+                    });
+                  }
+
+                  _context.next = 10;
+                  break;
+
+                case 7:
+                  _context.prev = 7;
+                  _context.t0 = _context["catch"](1);
+                  throw _context.t0;
+
+                case 10:
+                case "end":
+                  return _context.stop();
+              }
+            }
+          }, _callee, null, [[1, 7]]);
+        }))();
+      },
+      onResponse: function onResponse(e, _ref3) {
+        var close = _ref3.close;
+
+        try {
+          if (_typeof__default["default"](e.data) !== "object") return;
+          var resp = normalizePollingResponse(e.data);
+
+          switch (resp.status) {
+            case "APPROVED":
+              resolve(resp.data);
+              !redir && close();
+              break;
+
+            case "DECLINED":
+              reject("Declined: ".concat(resp.reason || "No reason supplied"));
+              close();
+              break;
+
+            case "REDIRECT":
+              resolve(resp);
+              close();
+              break;
+
+            default:
+              reject("Declined: No reason supplied");
+              close();
+              break;
+          }
+        } catch (error) {
+          console.error("execPopRPC onResponse error", error);
+          throw error;
+        }
+      },
+      onMessage: function onMessage(e, _ref4) {
+        var close = _ref4.close;
+
+        try {
+          if (_typeof__default["default"](e.data) !== "object") return;
+          if (e.data.jsonrpc !== "2.0") return;
+          if (e.data.id !== id) return;
+          var resp = normalizePollingResponse(e.data.result);
+
+          switch (resp.status) {
+            case "APPROVED":
+              resolve(resp.data);
+              !redir && close();
+              break;
+
+            case "DECLINED":
+              reject("Declined: ".concat(resp.reason || "No reason supplied"));
+              close();
+              break;
+
+            case "REDIRECT":
+              resolve(resp);
+              close();
+              break;
+
+            default:
+              reject("Declined: No reason supplied");
+              close();
+              break;
+          }
+        } catch (error) {
+          console.error("execPopRPC onMessage error", error);
+          throw error;
+        }
+      },
+      onClose: function onClose() {
+        reject("Declined: Externally Halted");
+      }
+    });
+  });
+}
+
+var noop$1 = function noop() {};
+
+function tab(service) {
+  var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  if (service == null) return {
+    send: noop$1,
+    close: noop$1
+  };
+  var onClose = opts.onClose || noop$1;
+  var onMessage = opts.onMessage || noop$1;
+  var onReady = opts.onReady || noop$1;
+  var onResponse = opts.onResponse || noop$1;
+  var handler = buildMessageHandler({
+    close: close,
+    send: send,
+    onReady: onReady,
+    onResponse: onResponse,
+    onMessage: onMessage
+  });
+  window.addEventListener("message", handler);
+
+  var _renderTab = renderTab(serviceEndpoint(service)),
+      _renderTab2 = _slicedToArray__default["default"](_renderTab, 2),
+      $tab = _renderTab2[0],
+      unmount = _renderTab2[1];
+
+  var timer = setInterval(function () {
+    if ($tab && $tab.closed) {
+      close();
+    }
+  }, 500);
+  return {
+    send: send,
+    close: close
+  };
+
+  function close() {
+    try {
+      window.removeEventListener("message", handler);
+      clearInterval(timer);
+      unmount();
+      onClose();
+    } catch (error) {
+      console.error("Tab Close Error", error);
+    }
+  }
+
+  function send(msg) {
+    try {
+      $tab.postMessage(JSON.parse(JSON.stringify(msg || {})), "*");
+    } catch (error) {
+      console.error("Tab Send Error", msg, error);
+    }
+  }
+}
+
+function execTabRPC(_ref) {
+  var service = _ref.service,
+      body = _ref.body,
+      config = _ref.config,
+      opts = _ref.opts;
+  return new Promise(function (resolve, reject) {
+    var id = utilUid.uid();
+    var redir = opts.redir,
+        includeOlderJsonRpcCall = opts.includeOlderJsonRpcCall;
+    tab(service, {
+      onReady: function onReady(_, _ref2) {
+        return _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee() {
+          var send;
+          return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
+            while (1) {
+              switch (_context.prev = _context.next) {
+                case 0:
+                  send = _ref2.send;
+                  _context.prev = 1;
+                  send({
+                    fclVersion: VERSION,
+                    type: "FCL:VIEW:READY:RESPONSE",
+                    body: body,
+                    service: {
+                      params: service.params,
+                      data: service.data,
+                      type: service.type
+                    },
+                    config: config
+                  });
+                  send({
+                    fclVersion: VERSION,
+                    type: "FCL:FRAME:READY:RESPONSE",
+                    body: body,
+                    service: {
+                      params: service.params,
+                      data: service.data,
+                      type: service.type
+                    },
+                    config: config,
+                    deprecated: {
+                      message: "FCL:FRAME:READY:RESPONSE is deprecated and replaced with type: FCL:VIEW:READY:RESPONSE"
+                    }
+                  });
+
+                  if (includeOlderJsonRpcCall) {
+                    send({
+                      jsonrpc: "2.0",
+                      id: id,
+                      method: "fcl:sign",
+                      params: [body, service.params]
+                    });
+                  }
+
+                  _context.next = 10;
+                  break;
+
+                case 7:
+                  _context.prev = 7;
+                  _context.t0 = _context["catch"](1);
+                  throw _context.t0;
+
+                case 10:
+                case "end":
+                  return _context.stop();
+              }
+            }
+          }, _callee, null, [[1, 7]]);
+        }))();
+      },
+      onResponse: function onResponse(e, _ref3) {
+        var close = _ref3.close;
+
+        try {
+          if (_typeof__default["default"](e.data) !== "object") return;
+          var resp = normalizePollingResponse(e.data);
+
+          switch (resp.status) {
+            case "APPROVED":
+              resolve(resp.data);
+              !redir && close();
+              break;
+
+            case "DECLINED":
+              reject("Declined: ".concat(resp.reason || "No reason supplied"));
+              close();
+              break;
+
+            case "REDIRECT":
+              resolve(resp);
+              close();
+              break;
+
+            default:
+              reject("Declined: No reason supplied");
+              close();
+              break;
+          }
+        } catch (error) {
+          console.error("execPopRPC onResponse error", error);
+          throw error;
+        }
+      },
+      onMessage: function onMessage(e, _ref4) {
+        var close = _ref4.close;
+
+        try {
+          if (_typeof__default["default"](e.data) !== "object") return;
+          if (e.data.jsonrpc !== "2.0") return;
+          if (e.data.id !== id) return;
+          var resp = normalizePollingResponse(e.data.result);
+
+          switch (resp.status) {
+            case "APPROVED":
+              resolve(resp.data);
+              !redir && close();
+              break;
+
+            case "DECLINED":
+              reject("Declined: ".concat(resp.reason || "No reason supplied"));
+              close();
+              break;
+
+            case "REDIRECT":
+              resolve(resp);
+              close();
+              break;
+
+            default:
+              reject("Declined: No reason supplied");
+              close();
+              break;
+          }
+        } catch (error) {
+          console.error("execPopRPC onMessage error", error);
+          throw error;
+        }
+      },
+      onClose: function onClose() {
+        reject("Declined: Externally Halted");
+      }
+    });
+  });
+}
+
+var noop = function noop() {};
+
+function extension(service) {
+  var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  if (service == null) return {
+    send: noop,
+    close: noop
+  };
+  var onClose = opts.onClose || noop;
+  var onMessage = opts.onMessage || noop;
+  var onReady = opts.onReady || noop;
+  var onResponse = opts.onResponse || noop;
+  var handler = buildMessageHandler({
+    close: close,
+    send: send,
+    onReady: onReady,
+    onResponse: onResponse,
+    onMessage: onMessage
+  });
+  window.addEventListener("message", handler);
+  send({
+    service: service
+  });
+  return {
+    send: send,
+    close: close
+  };
+
+  function close() {
+    try {
+      window.removeEventListener("message", handler);
+      onClose();
+    } catch (error) {
+      console.error("Ext Close Error", error);
+    }
+  }
+
+  function send(msg) {
+    try {
+      window && window.postMessage(JSON.parse(JSON.stringify(msg || {})), "*");
+    } catch (error) {
+      console.error("Ext Send Error", msg, error);
+    }
+  }
+}
+
+function execExtRPC(_ref) {
+  var service = _ref.service,
+      body = _ref.body,
+      config = _ref.config;
+      _ref.opts;
+  return new Promise(function (resolve, reject) {
+    extension(service, {
+      onReady: function onReady(_, _ref2) {
+        return _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee() {
+          var send;
+          return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
+            while (1) {
+              switch (_context.prev = _context.next) {
+                case 0:
+                  send = _ref2.send;
+                  _context.prev = 1;
+                  send({
+                    fclVersion: VERSION,
+                    type: "FCL:VIEW:READY:RESPONSE",
+                    body: body,
+                    service: {
+                      params: service.params,
+                      data: service.data,
+                      type: service.type
+                    },
+                    config: config
+                  });
+                  _context.next = 8;
+                  break;
+
+                case 5:
+                  _context.prev = 5;
+                  _context.t0 = _context["catch"](1);
+                  throw _context.t0;
+
+                case 8:
+                case "end":
+                  return _context.stop();
+              }
+            }
+          }, _callee, null, [[1, 5]]);
+        }))();
+      },
+      onResponse: function onResponse(e, _ref3) {
+        var close = _ref3.close;
+
+        try {
+          if (_typeof__default["default"](e.data) !== "object") return;
+          var resp = normalizePollingResponse(e.data);
+
+          switch (resp.status) {
+            case "APPROVED":
+              resolve(resp.data);
+              close();
+              break;
+
+            case "DECLINED":
+              reject("Declined: ".concat(resp.reason || "No reason supplied"));
+              close();
+              break;
+
+            case "REDIRECT":
+              resolve(resp);
+              close();
+              break;
+
+            default:
+              reject("Declined: No reason supplied");
+              close();
+              break;
+          }
+        } catch (error) {
+          console.error("execExtRPC onResponse error", error);
+          throw error;
+        }
+      },
+      onClose: function onClose() {
+        reject("Declined: Externally Halted");
+      }
+    });
+  });
+}
+
+var CORE_STRATEGIES = {
+  "HTTP/RPC": execHttpPost,
+  "HTTP/POST": execHttpPost,
+  "IFRAME/RPC": execIframeRPC,
+  "POP/RPC": execPopRPC,
+  "TAB/RPC": execTabRPC,
+  "EXT/RPC": execExtRPC
+};
+var supportedPlugins = ["ServicePlugin"];
+var supportedServicePlugins = ["discovery-service"];
+
+var validateDiscoveryPlugin = function validateDiscoveryPlugin(servicePlugin) {
+  var services = servicePlugin.services,
+      serviceStrategy = servicePlugin.serviceStrategy;
+  utilInvariant.invariant(Array.isArray(services) && services.length, "Array of Discovery Services is required");
+
+  var _iterator = _createForOfIteratorHelper__default["default"](services),
+      _step;
+
+  try {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+      var ds = _step.value;
+      utilInvariant.invariant(isRequired(ds.f_type) && ds.f_type === "Service", "Service is required");
+      utilInvariant.invariant(isRequired(ds.type) && ds.type === "authn", "Service must be type authn. Received ".concat(ds.type));
+      utilInvariant.invariant(ds.method in CORE_STRATEGIES || serviceStrategy.method === ds.method, "Service method ".concat(ds.method, " is not supported"));
+    }
+  } catch (err) {
+    _iterator.e(err);
+  } finally {
+    _iterator.f();
+  }
+
+  utilInvariant.invariant(isRequired(serviceStrategy), "Service strategy is required");
+  utilInvariant.invariant(isRequired(serviceStrategy.method) && isString(serviceStrategy.method), "Service strategy method is required");
+  utilInvariant.invariant(isRequired(serviceStrategy.exec) && isFunc(serviceStrategy.exec), "Service strategy exec function is required");
+  return {
+    discoveryServices: services,
+    serviceStrategy: serviceStrategy
+  };
+};
+
+var ServiceRegistry = function ServiceRegistry() {
+  var services = new Set();
+  var strategies = new Map(Object.entries(CORE_STRATEGIES));
+
+  var add = function add(servicePlugin) {
+    utilInvariant.invariant(supportedServicePlugins.includes(servicePlugin.type), "Service Plugin type ".concat(servicePlugin.type, " is not supported"));
+
+    if (servicePlugin.type === "discovery-service") {
+      var _validateDiscoveryPlu = validateDiscoveryPlugin(servicePlugin),
+          discoveryServices = _validateDiscoveryPlu.discoveryServices,
+          serviceStrategy = _validateDiscoveryPlu.serviceStrategy;
+
+      setServices(discoveryServices);
+
+      if (!strategies.has(serviceStrategy.method)) {
+        strategies.set(serviceStrategy.method, serviceStrategy.exec);
+      } else {
+        utilLogger.log({
+          title: "Add Service Plugin",
+          message: "Service strategy for ".concat(serviceStrategy.method, " already exists"),
+          level: utilLogger.LEVELS.warn
+        });
+      }
+    }
+  };
+
+  var setServices = function setServices(discoveryServices) {
+    return services = new Set(_toConsumableArray__default["default"](discoveryServices));
+  };
+
+  var getServices = function getServices() {
+    return _toConsumableArray__default["default"](services);
+  };
+
+  var getStrategy = function getStrategy(method) {
+    return strategies.get(method);
+  };
+
+  var getStrategies = function getStrategies() {
+    return _toConsumableArray__default["default"](strategies.keys());
+  };
+
+  return Object.freeze({
+    add: add,
+    getServices: getServices,
+    getStrategy: getStrategy,
+    getStrategies: getStrategies
+  });
+};
+
+var validatePlugins = function validatePlugins(plugins) {
+  var pluginsArray;
+  utilInvariant.invariant(plugins, "No plugins supplied");
+
+  if (!Array.isArray(plugins)) {
+    pluginsArray = [plugins];
+  } else {
+    pluginsArray = _toConsumableArray__default["default"](plugins);
+  }
+
+  var _iterator2 = _createForOfIteratorHelper__default["default"](pluginsArray),
+      _step2;
+
+  try {
+    for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+      var p = _step2.value;
+      utilInvariant.invariant(isRequired(p.name), "Plugin name is required");
+      utilInvariant.invariant(isRequired(p.f_type), "Plugin f_type is required");
+      utilInvariant.invariant(supportedPlugins.includes(p.f_type), "Plugin type ".concat(p.f_type, " is not supported"));
+    }
+  } catch (err) {
+    _iterator2.e(err);
+  } finally {
+    _iterator2.f();
+  }
+
+  return pluginsArray;
+};
+
+var PluginRegistry = function PluginRegistry() {
+  var pluginsMap = new Map();
+
+  var getPlugins = function getPlugins() {
+    return pluginsMap;
+  };
+
+  var add = function add(plugins) {
+    var pluginsArray = validatePlugins(plugins);
+
+    var _iterator3 = _createForOfIteratorHelper__default["default"](pluginsArray),
+        _step3;
+
+    try {
+      for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+        var p = _step3.value;
+        pluginsMap.set(p.name, p);
+
+        if (p.f_type === "ServicePlugin") {
+          serviceRegistry.add(p);
+        }
+      }
+    } catch (err) {
+      _iterator3.e(err);
+    } finally {
+      _iterator3.f();
+    }
+  };
+
+  return Object.freeze({
+    add: add,
+    getPlugins: getPlugins
+  });
+};
+
+var serviceRegistry = ServiceRegistry();
+var pluginRegistry = PluginRegistry();
+
+var execStrategy = /*#__PURE__*/function () {
+  var _ref2 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(_ref) {
+    var service, body, config, opts, strategy;
+    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            service = _ref.service, body = _ref.body, config = _ref.config, opts = _ref.opts;
+            strategy = serviceRegistry.getStrategy(service.method);
+            return _context.abrupt("return", strategy({
+              service: service,
+              body: body,
+              config: config,
+              opts: opts
+            }));
+
+          case 3:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee);
+  }));
+
+  return function execStrategy(_x) {
+    return _ref2.apply(this, arguments);
+  };
+}();
+
+function execService(_x2) {
+  return _execService.apply(this, arguments);
+}
+
+function _execService() {
+  _execService = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee2(_ref3) {
+    var _window$location$host, _window, _window$location;
+
+    var service, _ref3$msg, msg, _ref3$config, config, _ref3$opts, opts, execConfig, res;
+
+    return _regeneratorRuntime__default["default"].wrap(function _callee2$(_context2) {
+      while (1) {
+        switch (_context2.prev = _context2.next) {
+          case 0:
+            service = _ref3.service, _ref3$msg = _ref3.msg, msg = _ref3$msg === void 0 ? {} : _ref3$msg, _ref3$config = _ref3.config, config = _ref3$config === void 0 ? {} : _ref3$config, _ref3$opts = _ref3.opts, opts = _ref3$opts === void 0 ? {} : _ref3$opts;
+            msg.data = service.data;
+            _context2.next = 4;
+            return configLens(/^service\./);
+
+          case 4:
+            _context2.t0 = _context2.sent;
+            _context2.next = 7;
+            return configLens(/^app\.detail\./);
+
+          case 7:
+            _context2.t1 = _context2.sent;
+            _context2.t2 = _objectSpread__default["default"](_objectSpread__default["default"]({}, config.client), {}, {
+              fclVersion: VERSION,
+              fclLibrary: "https://github.com/onflow/fcl-js",
+              hostname: (_window$location$host = (_window = window) === null || _window === void 0 ? void 0 : (_window$location = _window.location) === null || _window$location === void 0 ? void 0 : _window$location.hostname) !== null && _window$location$host !== void 0 ? _window$location$host : null
+            });
+            execConfig = {
+              services: _context2.t0,
+              app: _context2.t1,
+              client: _context2.t2
+            };
+            _context2.prev = 10;
+            _context2.next = 13;
+            return execStrategy({
+              service: service,
+              body: msg,
+              config: execConfig,
+              opts: opts
+            });
+
+          case 13:
+            res = _context2.sent;
+
+            if (!(res.status === "REDIRECT")) {
+              _context2.next = 21;
+              break;
+            }
+
+            utilInvariant.invariant(service.type === res.data.type, "Cannot shift recursive service type in execService");
+            _context2.next = 18;
+            return execService({
+              service: res.data,
+              msg: msg,
+              config: execConfig,
+              opts: opts
+            });
+
+          case 18:
+            return _context2.abrupt("return", _context2.sent);
+
+          case 21:
+            return _context2.abrupt("return", res);
+
+          case 22:
+            _context2.next = 28;
+            break;
+
+          case 24:
+            _context2.prev = 24;
+            _context2.t3 = _context2["catch"](10);
+            utilLogger.log({
+              title: "Error on execService ".concat(service === null || service === void 0 ? void 0 : service.type),
+              message: _context2.t3,
+              level: utilLogger.LEVELS.error
+            });
+            throw _context2.t3;
+
+          case 28:
+          case "end":
+            return _context2.stop();
+        }
+      }
+    }, _callee2, null, [[10, 24]]);
+  }));
+  return _execService.apply(this, arguments);
+}
+
+//    "f_type": "CompositeSignature",
+//    "f_vsn": "1.0.0",
+//    "addr": "_____",         // sans-prefix
+//    "signature": "adfe1234", // hex
+//    "keyId": 3,
+// }
+
+function normalizeCompositeSignature(resp) {
+  if (resp == null) return null;
+
+  switch (resp["f_vsn"]) {
+    case "1.0.0":
+      return resp;
+
+    default:
+      return _objectSpread__default["default"](_objectSpread__default["default"]({}, COMPOSITE_SIGNATURE_PRAGMA), {}, {
+        addr: utilAddress.sansPrefix(resp.addr || resp.address),
+        signature: resp.signature || resp.sig,
+        keyId: resp.keyId
+      });
+  }
+}
+
+var makeDiscoveryServices = /*#__PURE__*/function () {
+  var _ref = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee() {
+    var _window;
+
+    var extensionServices;
+    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            extensionServices = ((_window = window) === null || _window === void 0 ? void 0 : _window.fcl_extensions) || [];
+            return _context.abrupt("return", [].concat(_toConsumableArray__default["default"](extensionServices), _toConsumableArray__default["default"](serviceRegistry.getServices())));
+
+          case 2:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee);
+  }));
+
+  return function makeDiscoveryServices() {
+    return _ref.apply(this, arguments);
+  };
+}();
+function getDiscoveryService(_x) {
+  return _getDiscoveryService.apply(this, arguments);
+}
+
+function _getDiscoveryService() {
+  _getDiscoveryService = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee2(service) {
+    var _service$endpoint;
+
+    var discoveryAuthnInclude, discoveryWalletMethod, method, endpoint;
+    return _regeneratorRuntime__default["default"].wrap(function _callee2$(_context2) {
+      while (1) {
+        switch (_context2.prev = _context2.next) {
+          case 0:
+            _context2.next = 2;
+            return config.config.get("discovery.authn.include", []);
+
+          case 2:
+            discoveryAuthnInclude = _context2.sent;
+            _context2.next = 5;
+            return config.config.first(["discovery.wallet.method", "discovery.wallet.method.default"]);
+
+          case 5:
+            discoveryWalletMethod = _context2.sent;
+            method = service !== null && service !== void 0 && service.method ? service.method : discoveryWalletMethod;
+
+            if (!((_service$endpoint = service === null || service === void 0 ? void 0 : service.endpoint) !== null && _service$endpoint !== void 0)) {
+              _context2.next = 11;
+              break;
+            }
+
+            _context2.t0 = _service$endpoint;
+            _context2.next = 14;
+            break;
+
+          case 11:
+            _context2.next = 13;
+            return config.config.first(["discovery.wallet", "challenge.handshake"]);
+
+          case 13:
+            _context2.t0 = _context2.sent;
+
+          case 14:
+            endpoint = _context2.t0;
+            utilInvariant.invariant(endpoint, "\n    If no service is passed to \"authenticate,\" then \"discovery.wallet\" must be defined in fcl config.\n    See: \"https://docs.onflow.org/fcl/reference/api/#setting-configuration-values\"\n    ");
+            return _context2.abrupt("return", _objectSpread__default["default"](_objectSpread__default["default"]({}, service), {}, {
+              type: "authn",
+              endpoint: endpoint,
+              method: method,
+              discoveryAuthnInclude: discoveryAuthnInclude
+            }));
+
+          case 17:
+          case "end":
+            return _context2.stop();
+        }
+      }
+    }, _callee2);
+  }));
+  return _getDiscoveryService.apply(this, arguments);
+}
+
+function getServices(_x) {
+  return _getServices.apply(this, arguments);
+}
+
+function _getServices() {
+  _getServices = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(_ref) {
+    var _window, _window$navigator;
+
+    var types, endpoint, include, url;
+    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            types = _ref.types;
+            _context.next = 3;
+            return config.config.get("discovery.authn.endpoint");
+
+          case 3:
+            endpoint = _context.sent;
+            utilInvariant.invariant(Boolean(endpoint), "\"discovery.authn.endpoint\" in config must be defined.");
+            _context.next = 7;
+            return config.config.get("discovery.authn.include", []);
+
+          case 7:
+            include = _context.sent;
+            url = new URL(endpoint);
+            _context.t0 = fetch;
+            _context.t1 = url;
+            _context.t2 = {
+              "Content-Type": "application/json"
+            };
+            _context.t3 = JSON;
+            _context.t4 = types;
+            _context.t5 = VERSION;
+            _context.t6 = include;
+            _context.next = 18;
+            return makeDiscoveryServices();
+
+          case 18:
+            _context.t7 = _context.sent;
+            _context.t8 = serviceRegistry.getStrategies();
+            _context.t9 = (_window = window) === null || _window === void 0 ? void 0 : (_window$navigator = _window.navigator) === null || _window$navigator === void 0 ? void 0 : _window$navigator.userAgent;
+            _context.t10 = {
+              type: _context.t4,
+              fclVersion: _context.t5,
+              include: _context.t6,
+              clientServices: _context.t7,
+              supportedStrategies: _context.t8,
+              userAgent: _context.t9
+            };
+            _context.t11 = _context.t3.stringify.call(_context.t3, _context.t10);
+            _context.t12 = {
+              method: "POST",
+              headers: _context.t2,
+              body: _context.t11
+            };
+            return _context.abrupt("return", (0, _context.t0)(_context.t1, _context.t12).then(function (d) {
+              return d.json();
+            }));
+
+          case 25:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee);
+  }));
+  return _getServices.apply(this, arguments);
+}
+
+var _HANDLERS$3;
+var SERVICE_ACTOR_KEYS = {
+  AUTHN: "authn",
+  RESULTS: "results",
+  SNAPSHOT: "SNAPSHOT",
+  UPDATED: "UPDATED",
+  UPDATE_RESULTS: "UPDATE_RESULTS"
+};
+
+var warn = function warn(fact, msg) {
+  if (fact) {
+    console.warn("\n      %cFCL Warning\n      ============================\n      ".concat(msg, "\n      For more info, please see the docs: https://docs.onflow.org/fcl/\n      ============================\n      "), "font-weight:bold;font-family:monospace;");
+  }
+};
+
+var fetchServicesFromDiscovery = /*#__PURE__*/function () {
+  var _ref = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee() {
+    var services;
+    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            _context.prev = 0;
+            _context.next = 3;
+            return getServices({
+              types: [SERVICE_ACTOR_KEYS.AUTHN]
+            });
+
+          case 3:
+            services = _context.sent;
+            utilActor.send(SERVICE_ACTOR_KEYS.AUTHN, SERVICE_ACTOR_KEYS.UPDATE_RESULTS, {
+              results: services
+            });
+            _context.next = 10;
+            break;
+
+          case 7:
+            _context.prev = 7;
+            _context.t0 = _context["catch"](0);
+            utilLogger.log({
+              title: "".concat(_context.t0.name, " Error fetching Discovery API services."),
+              message: _context.t0.message,
+              level: utilLogger.LEVELS.error
+            });
+
+          case 10:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee, null, [[0, 7]]);
+  }));
+
+  return function fetchServicesFromDiscovery() {
+    return _ref.apply(this, arguments);
+  };
+}();
+
+var HANDLERS$3 = (_HANDLERS$3 = {}, _defineProperty__default["default"](_HANDLERS$3, utilActor.INIT, function () {
+  var _ref2 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee3(ctx) {
+    return _regeneratorRuntime__default["default"].wrap(function _callee3$(_context3) {
+      while (1) {
+        switch (_context3.prev = _context3.next) {
+          case 0:
+            warn(typeof window === "undefined", '"fcl.discovery" is only available in the browser.'); // If you call this before the window is loaded extensions will not be set yet
+
+            if (document.readyState === 'complete') {
+              fetchServicesFromDiscovery();
+            } else {
+              window.onload = /*#__PURE__*/_asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee2() {
+                return _regeneratorRuntime__default["default"].wrap(function _callee2$(_context2) {
+                  while (1) {
+                    switch (_context2.prev = _context2.next) {
+                      case 0:
+                        fetchServicesFromDiscovery();
+
+                      case 1:
+                      case "end":
+                        return _context2.stop();
+                    }
+                  }
+                }, _callee2);
+              }));
+            }
+
+          case 2:
+          case "end":
+            return _context3.stop();
+        }
+      }
+    }, _callee3);
+  }));
+
+  return function (_x) {
+    return _ref2.apply(this, arguments);
+  };
+}()), _defineProperty__default["default"](_HANDLERS$3, SERVICE_ACTOR_KEYS.UPDATE_RESULTS, function (ctx, _letter, data) {
+  ctx.merge(data);
+  ctx.broadcast(SERVICE_ACTOR_KEYS.UPDATED, _objectSpread__default["default"]({}, ctx.all()));
+}), _defineProperty__default["default"](_HANDLERS$3, utilActor.SUBSCRIBE, function (ctx, letter) {
+  ctx.subscribe(letter.from);
+  ctx.send(letter.from, SERVICE_ACTOR_KEYS.UPDATED, _objectSpread__default["default"]({}, ctx.all()));
+}), _defineProperty__default["default"](_HANDLERS$3, utilActor.UNSUBSCRIBE, function (ctx, letter) {
+  return ctx.unsubscribe(letter.from);
+}), _defineProperty__default["default"](_HANDLERS$3, SERVICE_ACTOR_KEYS.SNAPSHOT, function () {
+  var _ref4 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee4(ctx, letter) {
+    return _regeneratorRuntime__default["default"].wrap(function _callee4$(_context4) {
+      while (1) {
+        switch (_context4.prev = _context4.next) {
+          case 0:
+            return _context4.abrupt("return", letter.reply(_objectSpread__default["default"]({}, ctx.all())));
+
+          case 1:
+          case "end":
+            return _context4.stop();
+        }
+      }
+    }, _callee4);
+  }));
+
+  return function (_x2, _x3) {
+    return _ref4.apply(this, arguments);
+  };
+}()), _HANDLERS$3);
+
+var spawnProviders = function spawnProviders() {
+  return utilActor.spawn(HANDLERS$3, SERVICE_ACTOR_KEYS.AUTHN);
+};
+
+var authn = {
+  subscribe: function subscribe(cb) {
+    return utilActor.subscriber(SERVICE_ACTOR_KEYS.AUTHN, spawnProviders, cb);
+  },
+  snapshot: function snapshot() {
+    return utilActor.snapshoter(SERVICE_ACTOR_KEYS.AUTHN, spawnProviders);
+  },
+  update: function update() {
+    return fetchServicesFromDiscovery();
+  }
+};
+
+var discovery = {
+  authn: authn
+};
+
+function isAndroid() {
+  return typeof navigator !== "undefined" && /android/i.test(navigator.userAgent);
+}
+function isSmallIOS() {
+  return typeof navigator !== "undefined" && /iPhone|iPod/.test(navigator.userAgent);
+}
+function isLargeIOS() {
+  return typeof navigator !== "undefined" && /iPad/.test(navigator.userAgent);
+}
+function isIOS() {
+  return isSmallIOS() || isLargeIOS();
+}
+function isMobile() {
+  return isAndroid() || isIOS();
+}
+
+var _HANDLERS$2;
+var isFn = function isFn(d) {
+  return typeof d === "function";
+};
+var NAME = "CURRENT_USER";
+var UPDATED$1 = "CURRENT_USER/UPDATED";
+var SNAPSHOT = "SNAPSHOT";
+var SET_CURRENT_USER = "SET_CURRENT_USER";
+var DEL_CURRENT_USER = "DEL_CURRENT_USER";
+var DATA = "{\n  \"f_type\": \"User\",\n  \"f_vsn\": \"1.0.0\",\n  \"addr\":null,\n  \"cid\":null,\n  \"loggedIn\":null,\n  \"expiresAt\":null,\n  \"services\":[]\n}";
+
+var getStoredUser = /*#__PURE__*/function () {
+  var _ref = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(storage) {
+    var fallback, stored;
+    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            fallback = JSON.parse(DATA);
+            _context.next = 3;
+            return storage.get(NAME);
+
+          case 3:
+            stored = _context.sent;
+
+            if (!(stored != null && fallback["f_vsn"] !== stored["f_vsn"])) {
+              _context.next = 7;
+              break;
+            }
+
+            storage.removeItem(NAME);
+            return _context.abrupt("return", fallback);
+
+          case 7:
+            return _context.abrupt("return", stored || fallback);
+
+          case 8:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee);
+  }));
+
+  return function getStoredUser(_x) {
+    return _ref.apply(this, arguments);
+  };
+}();
+
+var HANDLERS$2 = (_HANDLERS$2 = {}, _defineProperty__default["default"](_HANDLERS$2, utilActor.INIT, function () {
+  var _ref2 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee2(ctx) {
+    var storage, user;
+    return _regeneratorRuntime__default["default"].wrap(function _callee2$(_context2) {
+      while (1) {
+        switch (_context2.prev = _context2.next) {
+          case 0:
+            if (typeof window === "undefined") {
+              console.warn("\n        %cFCL Warning\n        ============================\n        \"currentUser\" is only available in the browser.\n        For more info, please see the docs: https://docs.onflow.org/fcl/\n        ============================\n        ", "font-weight:bold;font-family:monospace;");
+            }
+
+            ctx.merge(JSON.parse(DATA));
+            _context2.next = 4;
+            return config.config.first(["fcl.storage", "fcl.storage.default"]);
+
+          case 4:
+            storage = _context2.sent;
+
+            if (!storage.can) {
+              _context2.next = 10;
+              break;
+            }
+
+            _context2.next = 8;
+            return getStoredUser(storage);
+
+          case 8:
+            user = _context2.sent;
+            if (notExpired(user)) ctx.merge(user);
+
+          case 10:
+          case "end":
+            return _context2.stop();
+        }
+      }
+    }, _callee2);
+  }));
+
+  return function (_x2) {
+    return _ref2.apply(this, arguments);
+  };
+}()), _defineProperty__default["default"](_HANDLERS$2, utilActor.SUBSCRIBE, function (ctx, letter) {
+  ctx.subscribe(letter.from);
+  ctx.send(letter.from, UPDATED$1, _objectSpread__default["default"]({}, ctx.all()));
+}), _defineProperty__default["default"](_HANDLERS$2, utilActor.UNSUBSCRIBE, function (ctx, letter) {
+  ctx.unsubscribe(letter.from);
+}), _defineProperty__default["default"](_HANDLERS$2, SNAPSHOT, function () {
+  var _ref3 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee3(ctx, letter) {
+    return _regeneratorRuntime__default["default"].wrap(function _callee3$(_context3) {
+      while (1) {
+        switch (_context3.prev = _context3.next) {
+          case 0:
+            letter.reply(_objectSpread__default["default"]({}, ctx.all()));
+
+          case 1:
+          case "end":
+            return _context3.stop();
+        }
+      }
+    }, _callee3);
+  }));
+
+  return function (_x3, _x4) {
+    return _ref3.apply(this, arguments);
+  };
+}()), _defineProperty__default["default"](_HANDLERS$2, SET_CURRENT_USER, function () {
+  var _ref4 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee4(ctx, letter, data) {
+    var storage;
+    return _regeneratorRuntime__default["default"].wrap(function _callee4$(_context4) {
+      while (1) {
+        switch (_context4.prev = _context4.next) {
+          case 0:
+            ctx.merge(data);
+            _context4.next = 3;
+            return config.config.first(["fcl.storage", "fcl.storage.default"]);
+
+          case 3:
+            storage = _context4.sent;
+            if (storage.can) storage.put(NAME, ctx.all());
+            ctx.broadcast(UPDATED$1, _objectSpread__default["default"]({}, ctx.all()));
+
+          case 6:
+          case "end":
+            return _context4.stop();
+        }
+      }
+    }, _callee4);
+  }));
+
+  return function (_x5, _x6, _x7) {
+    return _ref4.apply(this, arguments);
+  };
+}()), _defineProperty__default["default"](_HANDLERS$2, DEL_CURRENT_USER, function () {
+  var _ref5 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee5(ctx, letter) {
+    var storage;
+    return _regeneratorRuntime__default["default"].wrap(function _callee5$(_context5) {
+      while (1) {
+        switch (_context5.prev = _context5.next) {
+          case 0:
+            ctx.merge(JSON.parse(DATA));
+            _context5.next = 3;
+            return config.config.first(["fcl.storage", "fcl.storage.default"]);
+
+          case 3:
+            storage = _context5.sent;
+            if (storage.can) storage.put(NAME, ctx.all());
+            ctx.broadcast(UPDATED$1, _objectSpread__default["default"]({}, ctx.all()));
+
+          case 6:
+          case "end":
+            return _context5.stop();
+        }
+      }
+    }, _callee5);
+  }));
+
+  return function (_x8, _x9) {
+    return _ref5.apply(this, arguments);
+  };
+}()), _HANDLERS$2);
+
+var spawnCurrentUser = function spawnCurrentUser() {
+  return utilActor.spawn(HANDLERS$2, NAME);
+};
+
+function notExpired(user) {
+  return user.expiresAt == null || user.expiresAt === 0 || user.expiresAt > Date.now();
+}
+
+function getAccountProofData() {
+  return _getAccountProofData.apply(this, arguments);
+}
+
+function _getAccountProofData() {
+  _getAccountProofData = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee8() {
+    var accountProofDataResolver, accountProofData;
+    return _regeneratorRuntime__default["default"].wrap(function _callee8$(_context8) {
+      while (1) {
+        switch (_context8.prev = _context8.next) {
+          case 0:
+            _context8.next = 2;
+            return config.config.get("fcl.accountProof.resolver");
+
+          case 2:
+            accountProofDataResolver = _context8.sent;
+
+            if (isFn(accountProofDataResolver)) {
+              _context8.next = 5;
+              break;
+            }
+
+            return _context8.abrupt("return");
+
+          case 5:
+            _context8.next = 7;
+            return accountProofDataResolver();
+
+          case 7:
+            accountProofData = _context8.sent;
+
+            if (!(accountProofData == null)) {
+              _context8.next = 10;
+              break;
+            }
+
+            return _context8.abrupt("return");
+
+          case 10:
+            utilInvariant.invariant(typeof accountProofData.appIdentifier === "string", "appIdentifier must be a string");
+            utilInvariant.invariant(/^[0-9a-f]+$/i.test(accountProofData.nonce), "Nonce must be a hex string");
+            return _context8.abrupt("return", accountProofData);
+
+          case 13:
+          case "end":
+            return _context8.stop();
+        }
+      }
+    }, _callee8);
+  }));
+  return _getAccountProofData.apply(this, arguments);
+}
+
+var makeConfig = /*#__PURE__*/function () {
+  var _ref7 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee6(_ref6) {
+    var discoveryAuthnInclude;
+    return _regeneratorRuntime__default["default"].wrap(function _callee6$(_context6) {
+      while (1) {
+        switch (_context6.prev = _context6.next) {
+          case 0:
+            discoveryAuthnInclude = _ref6.discoveryAuthnInclude;
+            _context6.t0 = discoveryAuthnInclude;
+            _context6.next = 4;
+            return makeDiscoveryServices();
+
+          case 4:
+            _context6.t1 = _context6.sent;
+            _context6.t2 = serviceRegistry.getStrategies();
+            _context6.t3 = {
+              discoveryAuthnInclude: _context6.t0,
+              clientServices: _context6.t1,
+              supportedStrategies: _context6.t2
+            };
+            return _context6.abrupt("return", {
+              client: _context6.t3
+            });
+
+          case 8:
+          case "end":
+            return _context6.stop();
+        }
+      }
+    }, _callee6);
+  }));
+
+  return function makeConfig(_x10) {
+    return _ref7.apply(this, arguments);
+  };
+}();
+
+function authenticate$1() {
+  return _authenticate.apply(this, arguments);
+}
+
+function _authenticate() {
+  _authenticate = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee10() {
+    var _service$provider, _service$provider2;
+
+    var _ref11,
+        service,
+        _ref11$redir,
+        redir,
+        _service$provider3,
+        _args10 = arguments;
+
+    return _regeneratorRuntime__default["default"].wrap(function _callee10$(_context10) {
+      while (1) {
+        switch (_context10.prev = _context10.next) {
+          case 0:
+            _ref11 = _args10.length > 0 && _args10[0] !== undefined ? _args10[0] : {}, service = _ref11.service, _ref11$redir = _ref11.redir, redir = _ref11$redir === void 0 ? false : _ref11$redir;
+
+            if (!(service && !(service !== null && service !== void 0 && (_service$provider = service.provider) !== null && _service$provider !== void 0 && _service$provider.is_installed) && service !== null && service !== void 0 && (_service$provider2 = service.provider) !== null && _service$provider2 !== void 0 && _service$provider2.requires_install)) {
+              _context10.next = 4;
+              break;
+            }
+
+            window.location.href = service === null || service === void 0 ? void 0 : (_service$provider3 = service.provider) === null || _service$provider3 === void 0 ? void 0 : _service$provider3.install_link;
+            return _context10.abrupt("return");
+
+          case 4:
+            return _context10.abrupt("return", new Promise( /*#__PURE__*/function () {
+              var _ref12 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee9(resolve, reject) {
+                var opts, user, discoveryService, refreshService, accountProofData, response, _response;
+
+                return _regeneratorRuntime__default["default"].wrap(function _callee9$(_context9) {
+                  while (1) {
+                    switch (_context9.prev = _context9.next) {
+                      case 0:
+                        spawnCurrentUser();
+                        opts = {
+                          redir: redir
+                        };
+                        _context9.next = 4;
+                        return snapshot();
+
+                      case 4:
+                        user = _context9.sent;
+                        _context9.next = 7;
+                        return getDiscoveryService(service);
+
+                      case 7:
+                        discoveryService = _context9.sent;
+                        refreshService = serviceOfType(user.services, "authn-refresh");
+                        _context9.prev = 9;
+                        _context9.next = 12;
+                        return getAccountProofData();
+
+                      case 12:
+                        accountProofData = _context9.sent;
+                        _context9.next = 19;
+                        break;
+
+                      case 15:
+                        _context9.prev = 15;
+                        _context9.t0 = _context9["catch"](9);
+                        console.error("Error During Authentication: Could not resolve account proof data.\n        ".concat(_context9.t0));
+                        return _context9.abrupt("return", reject(_context9.t0));
+
+                      case 19:
+                        if (!user.loggedIn) {
+                          _context9.next = 47;
+                          break;
+                        }
+
+                        if (!refreshService) {
+                          _context9.next = 46;
+                          break;
+                        }
+
+                        _context9.prev = 21;
+                        _context9.next = 24;
+                        return execService({
+                          service: refreshService,
+                          msg: accountProofData,
+                          opts: opts
+                        });
+
+                      case 24:
+                        response = _context9.sent;
+                        _context9.t1 = utilActor.send;
+                        _context9.t2 = NAME;
+                        _context9.t3 = SET_CURRENT_USER;
+                        _context9.next = 30;
+                        return buildUser(response);
+
+                      case 30:
+                        _context9.t4 = _context9.sent;
+                        (0, _context9.t1)(_context9.t2, _context9.t3, _context9.t4);
+                        _context9.next = 37;
+                        break;
+
+                      case 34:
+                        _context9.prev = 34;
+                        _context9.t5 = _context9["catch"](21);
+                        console.error("Error: Could not refresh authentication.", _context9.t5);
+
+                      case 37:
+                        _context9.prev = 37;
+                        _context9.t6 = resolve;
+                        _context9.next = 41;
+                        return snapshot();
+
+                      case 41:
+                        _context9.t7 = _context9.sent;
+                        return _context9.abrupt("return", (0, _context9.t6)(_context9.t7));
+
+                      case 44:
+                        _context9.next = 47;
+                        break;
+
+                      case 46:
+                        return _context9.abrupt("return", resolve(user));
+
+                      case 47:
+                        _context9.prev = 47;
+                        _context9.t8 = execService;
+                        _context9.t9 = discoveryService;
+                        _context9.t10 = accountProofData;
+                        _context9.next = 53;
+                        return makeConfig(discoveryService);
+
+                      case 53:
+                        _context9.t11 = _context9.sent;
+                        _context9.t12 = opts;
+                        _context9.t13 = {
+                          service: _context9.t9,
+                          msg: _context9.t10,
+                          config: _context9.t11,
+                          opts: _context9.t12
+                        };
+                        _context9.next = 58;
+                        return (0, _context9.t8)(_context9.t13);
+
+                      case 58:
+                        _response = _context9.sent;
+                        _context9.t14 = utilActor.send;
+                        _context9.t15 = NAME;
+                        _context9.t16 = SET_CURRENT_USER;
+                        _context9.next = 64;
+                        return buildUser(_response);
+
+                      case 64:
+                        _context9.t17 = _context9.sent;
+                        (0, _context9.t14)(_context9.t15, _context9.t16, _context9.t17);
+                        _context9.next = 71;
+                        break;
+
+                      case 68:
+                        _context9.prev = 68;
+                        _context9.t18 = _context9["catch"](47);
+                        console.error("Error while authenticating", _context9.t18);
+
+                      case 71:
+                        _context9.prev = 71;
+                        _context9.t19 = resolve;
+                        _context9.next = 75;
+                        return snapshot();
+
+                      case 75:
+                        _context9.t20 = _context9.sent;
+                        (0, _context9.t19)(_context9.t20);
+                        return _context9.finish(71);
+
+                      case 78:
+                      case "end":
+                        return _context9.stop();
+                    }
+                  }
+                }, _callee9, null, [[9, 15], [21, 34, 37, 44], [47, 68, 71, 78]]);
+              }));
+
+              return function (_x14, _x15) {
+                return _ref12.apply(this, arguments);
+              };
+            }()));
+
+          case 5:
+          case "end":
+            return _context10.stop();
+        }
+      }
+    }, _callee10);
+  }));
+  return _authenticate.apply(this, arguments);
+}
+
+function unauthenticate$1() {
+  spawnCurrentUser();
+  utilActor.send(NAME, DEL_CURRENT_USER);
+}
+
+var normalizePreAuthzResponse = function normalizePreAuthzResponse(authz) {
+  return {
+    f_type: "PreAuthzResponse",
+    f_vsn: "1.0.0",
+    proposer: (authz || {}).proposer,
+    payer: (authz || {}).payer || [],
+    authorization: (authz || {}).authorization || []
+  };
+};
+
+function resolvePreAuthz(authz) {
+  var resp = normalizePreAuthzResponse(authz);
+  var axs = [];
+  if (resp.proposer != null) axs.push(["PROPOSER", resp.proposer]);
+
+  var _iterator = _createForOfIteratorHelper__default["default"](resp.payer || []),
+      _step;
+
+  try {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+      var az = _step.value;
+      axs.push(["PAYER", az]);
+    }
+  } catch (err) {
+    _iterator.e(err);
+  } finally {
+    _iterator.f();
+  }
+
+  var _iterator2 = _createForOfIteratorHelper__default["default"](resp.authorization || []),
+      _step2;
+
+  try {
+    for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+      var _az = _step2.value;
+      axs.push(["AUTHORIZER", _az]);
+    }
+  } catch (err) {
+    _iterator2.e(err);
+  } finally {
+    _iterator2.f();
+  }
+
+  var result = axs.map(function (_ref8) {
+    var _ref9 = _slicedToArray__default["default"](_ref8, 2),
+        role = _ref9[0],
+        az = _ref9[1];
+
+    return {
+      tempId: [az.identity.address, az.identity.keyId].join("|"),
+      addr: az.identity.address,
+      keyId: az.identity.keyId,
+      signingFunction: function signingFunction(signable) {
+        return execService({
+          service: az,
+          msg: signable
+        });
+      },
+      role: {
+        proposer: role === "PROPOSER",
+        payer: role === "PAYER",
+        authorizer: role === "AUTHORIZER"
+      }
+    };
+  });
+  return result;
+}
+
+function authorization(_x11) {
+  return _authorization.apply(this, arguments);
+}
+
+function _authorization() {
+  _authorization = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee13(account) {
+    return _regeneratorRuntime__default["default"].wrap(function _callee13$(_context13) {
+      while (1) {
+        switch (_context13.prev = _context13.next) {
+          case 0:
+            spawnCurrentUser();
+            return _context13.abrupt("return", _objectSpread__default["default"](_objectSpread__default["default"]({}, account), {}, {
+              tempId: "CURRENT_USER",
+              resolve: function resolve(account, preSignable) {
+                return _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee12() {
+                  var user, authz, preAuthz, windowRef;
+                  return _regeneratorRuntime__default["default"].wrap(function _callee12$(_context12) {
+                    while (1) {
+                      switch (_context12.prev = _context12.next) {
+                        case 0:
+                          _context12.next = 2;
+                          return authenticate$1({
+                            redir: true
+                          });
+
+                        case 2:
+                          user = _context12.sent;
+                          authz = serviceOfType(user.services, "authz");
+                          preAuthz = serviceOfType(user.services, "pre-authz");
+
+                          if (!preAuthz) {
+                            _context12.next = 11;
+                            break;
+                          }
+
+                          _context12.t0 = resolvePreAuthz;
+                          _context12.next = 9;
+                          return execService({
+                            service: preAuthz,
+                            msg: preSignable
+                          });
+
+                        case 9:
+                          _context12.t1 = _context12.sent;
+                          return _context12.abrupt("return", (0, _context12.t0)(_context12.t1));
+
+                        case 11:
+                          if (!authz) {
+                            _context12.next = 14;
+                            break;
+                          }
+
+                          if (isMobile() && authz.method === "WC/RPC") {
+                            windowRef = window.open("", "_blank");
+                          }
+
+                          return _context12.abrupt("return", _objectSpread__default["default"](_objectSpread__default["default"]({}, account), {}, {
+                            tempId: "CURRENT_USER",
+                            resolve: null,
+                            addr: utilAddress.sansPrefix(authz.identity.address),
+                            keyId: authz.identity.keyId,
+                            sequenceNum: null,
+                            signature: null,
+                            signingFunction: function signingFunction(signable) {
+                              return _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee11() {
+                                return _regeneratorRuntime__default["default"].wrap(function _callee11$(_context11) {
+                                  while (1) {
+                                    switch (_context11.prev = _context11.next) {
+                                      case 0:
+                                        _context11.t0 = normalizeCompositeSignature;
+                                        _context11.next = 3;
+                                        return execService({
+                                          service: authz,
+                                          msg: signable,
+                                          opts: {
+                                            includeOlderJsonRpcCall: true,
+                                            windowRef: windowRef
+                                          }
+                                        });
+
+                                      case 3:
+                                        _context11.t1 = _context11.sent;
+                                        return _context11.abrupt("return", (0, _context11.t0)(_context11.t1));
+
+                                      case 5:
+                                      case "end":
+                                        return _context11.stop();
+                                    }
+                                  }
+                                }, _callee11);
+                              }))();
+                            }
+                          }));
+
+                        case 14:
+                          throw new Error("No Authz or PreAuthz Service configured for CURRENT_USER");
+
+                        case 15:
+                        case "end":
+                          return _context12.stop();
+                      }
+                    }
+                  }, _callee12);
+                }))();
+              }
+            }));
+
+          case 2:
+          case "end":
+            return _context13.stop();
+        }
+      }
+    }, _callee13);
+  }));
+  return _authorization.apply(this, arguments);
+}
+
+function subscribe(callback) {
+  spawnCurrentUser();
+  var EXIT = "@EXIT";
+  var self = utilActor.spawn( /*#__PURE__*/function () {
+    var _ref10 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee7(ctx) {
+      var letter;
+      return _regeneratorRuntime__default["default"].wrap(function _callee7$(_context7) {
+        while (1) {
+          switch (_context7.prev = _context7.next) {
+            case 0:
+              ctx.send(NAME, utilActor.SUBSCRIBE);
+
+            case 1:
+
+              _context7.next = 4;
+              return ctx.receive();
+
+            case 4:
+              letter = _context7.sent;
+
+              if (!(letter.tag === EXIT)) {
+                _context7.next = 8;
+                break;
+              }
+
+              ctx.send(NAME, utilActor.UNSUBSCRIBE);
+              return _context7.abrupt("return");
+
+            case 8:
+              callback(letter.data);
+              _context7.next = 1;
+              break;
+
+            case 11:
+            case "end":
+              return _context7.stop();
+          }
+        }
+      }, _callee7);
+    }));
+
+    return function (_x12) {
+      return _ref10.apply(this, arguments);
+    };
+  }());
+  return function () {
+    return utilActor.send(self, EXIT);
+  };
+}
+
+function snapshot() {
+  spawnCurrentUser();
+  return utilActor.send(NAME, SNAPSHOT, null, {
+    expectReply: true,
+    timeout: 0
+  });
+}
+
+function resolveArgument() {
+  return _resolveArgument.apply(this, arguments);
+}
+
+function _resolveArgument() {
+  _resolveArgument = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee15() {
+    var _yield$authenticate, addr;
+
+    return _regeneratorRuntime__default["default"].wrap(function _callee15$(_context15) {
+      while (1) {
+        switch (_context15.prev = _context15.next) {
+          case 0:
+            _context15.next = 2;
+            return authenticate$1();
+
+          case 2:
+            _yield$authenticate = _context15.sent;
+            addr = _yield$authenticate.addr;
+            return _context15.abrupt("return", sdk.arg(utilAddress.withPrefix(addr), t__namespace.Address));
+
+          case 5:
+          case "end":
+            return _context15.stop();
+        }
+      }
+    }, _callee15);
+  }));
+  return _resolveArgument.apply(this, arguments);
+}
+
+var makeSignable = function makeSignable(msg) {
+  utilInvariant.invariant(/^[0-9a-f]+$/i.test(msg), "Message must be a hex string");
+  return {
+    message: msg
+  };
+};
+
+function signUserMessage(_x13) {
+  return _signUserMessage.apply(this, arguments);
+}
+
+function _signUserMessage() {
+  _signUserMessage = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee16(msg) {
+    var user, signingService, response;
+    return _regeneratorRuntime__default["default"].wrap(function _callee16$(_context16) {
+      while (1) {
+        switch (_context16.prev = _context16.next) {
+          case 0:
+            spawnCurrentUser();
+            _context16.next = 3;
+            return authenticate$1({
+              redir: true
+            });
+
+          case 3:
+            user = _context16.sent;
+            signingService = serviceOfType(user.services, "user-signature");
+            utilInvariant.invariant(signingService, "Current user must have authorized a signing service.");
+            _context16.prev = 6;
+            _context16.next = 9;
+            return execService({
+              service: signingService,
+              msg: makeSignable(msg)
+            });
+
+          case 9:
+            response = _context16.sent;
+
+            if (!Array.isArray(response)) {
+              _context16.next = 14;
+              break;
+            }
+
+            return _context16.abrupt("return", response.map(function (compSigs) {
+              return normalizeCompositeSignature(compSigs);
+            }));
+
+          case 14:
+            return _context16.abrupt("return", [normalizeCompositeSignature(response)]);
+
+          case 15:
+            _context16.next = 20;
+            break;
+
+          case 17:
+            _context16.prev = 17;
+            _context16.t0 = _context16["catch"](6);
+            return _context16.abrupt("return", _context16.t0);
+
+          case 20:
+          case "end":
+            return _context16.stop();
+        }
+      }
+    }, _callee16, null, [[6, 17]]);
+  }));
+  return _signUserMessage.apply(this, arguments);
+}
+
+var currentUser = function currentUser() {
+  return {
+    authenticate: authenticate$1,
+    unauthenticate: unauthenticate$1,
+    authorization: authorization,
+    signUserMessage: signUserMessage,
+    subscribe: subscribe,
+    snapshot: snapshot,
+    resolveArgument: resolveArgument
+  };
+};
+
+currentUser.authenticate = authenticate$1;
+currentUser.unauthenticate = unauthenticate$1;
+currentUser.authorization = authorization;
+currentUser.signUserMessage = signUserMessage;
+currentUser.subscribe = subscribe;
+currentUser.snapshot = snapshot;
+currentUser.resolveArgument = resolveArgument;
+
+/** As the current user Mutate the Flow Blockchain
+ *
+ *  @arg {Object} opts - Mutation Options and configuration
+ *  @arg {string} opts.cadence - Cadence Transaction used to mutate Flow
+ *  @arg {ArgsFn} opts.args - Arguments passed to cadence transaction
+ *  @arg {Object} opts.template - Interaction Template for a transaction
+ *  @arg {number} opts.limit - Compute Limit for transaction
+ *  @returns {string} Transaction Id
+ *
+ *  Where:
+ *    @callback ArgsFn
+ *    @arg {ArgFn}  arg - Argument function to define a single argument
+ *    @arg {Object} t   - Cadence Types object used to define the type
+ *    @returns {args[]}
+ *
+ *    @callback ArgFn
+ *    @arg {Any}  value - the value of the argument
+ *    @arg {Type} type  - the cadence type of the value
+ *    @returns {arg}
+ *
+ *  Example:
+ *    fcl.mutate({
+ *      cadence: `
+ *        transaction(a: Int, b: Int, c: Address) {
+ *          prepare(acct: AuthAccount) {
+ *            log(acct)
+ *            log(a)
+ *            log(b)
+ *            log(c)
+ *          }
+ *        }
+ *      `,
+ *      args: (arg, t) => [
+ *        arg(6, t.Int),
+ *        arg(7, t.Int),
+ *        arg("0xba1132bc08f82fe2", t.Address),
+ *      ],
+ *    })
+ *
+ *
+ *  Options:
+ *    type Options = {
+ *      template: InteractionTemplate | String // InteractionTemplate or url to one
+ *      cadence: String!,
+ *      args: (arg, t) => Array<Arg>,
+ *      limit: Number,
+ *      authz: AuthzFn, // will overload the trinity of signatory roles
+ *      proposer: AuthzFn, // will overload the proposer signatory role
+ *      payer: AuthzFn, // will overload the payer signatory role
+ *      authorizations: [AuthzFn], // an array of authorization functions used as authorizations signatory roles
+ *    }
+ */
+
+function mutate() {
+  return _mutate.apply(this, arguments);
+}
+
+function _mutate() {
+  _mutate = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee2() {
+    var opts,
+        txid,
+        authz,
+        _args2 = arguments;
+    return _regeneratorRuntime__default["default"].wrap(function _callee2$(_context2) {
+      while (1) {
+        switch (_context2.prev = _context2.next) {
+          case 0:
+            opts = _args2.length > 0 && _args2[0] !== undefined ? _args2[0] : {};
+            _context2.prev = 1;
+            _context2.next = 4;
+            return preMutate(opts);
+
+          case 4:
+            _context2.next = 6;
+            return prepTemplateOpts(opts);
+
+          case 6:
+            opts = _context2.sent;
+            _context2.next = 9;
+            return sdk__namespace.config().get("fcl.authz", currentUser().authorization);
+
+          case 9:
+            authz = _context2.sent;
+            txid = sdk__namespace.config().overload(opts.dependencies || {}, /*#__PURE__*/_asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee() {
+              return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
+                while (1) {
+                  switch (_context.prev = _context.next) {
+                    case 0:
+                      return _context.abrupt("return", // prettier-ignore
+                      sdk__namespace.send([sdk__namespace.transaction(opts.cadence), sdk__namespace.args(normalizeArgs(opts.args || [])), opts.limit && isNumber(opts.limit) && sdk__namespace.limit(opts.limit), // opts.proposer > opts.authz > authz
+                      sdk__namespace.proposer(opts.proposer || opts.authz || authz), // opts.payer > opts.authz > authz
+                      sdk__namespace.payer(opts.payer || opts.authz || authz), // opts.authorizations > [opts.authz > authz]
+                      sdk__namespace.authorizations(opts.authorizations || [opts.authz || authz])]).then(sdk__namespace.decode));
+
+                    case 1:
+                    case "end":
+                      return _context.stop();
+                  }
+                }
+              }, _callee);
+            })));
+            return _context2.abrupt("return", txid);
+
+          case 14:
+            _context2.prev = 14;
+            _context2.t0 = _context2["catch"](1);
+            throw _context2.t0;
+
+          case 17:
+          case "end":
+            return _context2.stop();
+        }
+      }
+    }, _callee2, null, [[1, 14]]);
+  }));
+  return _mutate.apply(this, arguments);
+}
+
+var onMessageFromFCL = function onMessageFromFCL(messageType) {
+  var cb = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : function () {};
+
+  var buildData = function buildData(data) {
+    var _data$body;
+
+    if (data.deprecated) console.warn("DEPRECATION NOTICE", data.deprecated.message);
+    data === null || data === void 0 ? true : (_data$body = data.body) === null || _data$body === void 0 ? true : delete _data$body.interaction;
+    return data;
+  };
+
+  var internal = function internal(e) {
+    var data = e.data;
+    if (_typeof__default["default"](data) !== "object") return;
+    if (_typeof__default["default"](data) == null) return;
+    if (data.type !== messageType) return;
+    cb(buildData(data));
+  };
+
+  window.addEventListener("message", internal);
+  return function () {
+    return window.removeEventListener("message", internal);
+  };
+};
+
+var sendMsgToFCL = function sendMsgToFCL(type) {
+  var msg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+  if (window.location !== window.parent.location) {
+    window.parent.postMessage(_objectSpread__default["default"](_objectSpread__default["default"]({}, msg), {}, {
+      type: type
+    }), "*");
+  } else if (window.opener) {
+    window.opener.postMessage(_objectSpread__default["default"](_objectSpread__default["default"]({}, msg), {}, {
+      type: type
+    }), "*");
+  } else {
+    throw new Error("Unable to communicate with parent FCL instance");
+  }
+};
+var ready = function ready(cb) {
+  onMessageFromFCL("FCL:VIEW:READY:RESPONSE", cb);
+  sendMsgToFCL("FCL:VIEW:READY");
+};
+var close = function close() {
+  sendMsgToFCL("FCL:VIEW:CLOSE");
+};
+var approve = function approve(data) {
+  sendMsgToFCL("FCL:VIEW:RESPONSE", {
+    f_type: "PollingResponse",
+    f_vsn: "1.0.0",
+    status: "APPROVED",
+    reason: null,
+    data: data
+  });
+};
+var decline = function decline(reason) {
+  sendMsgToFCL("FCL:VIEW:RESPONSE", {
+    f_type: "PollingResponse",
+    f_vsn: "1.0.0",
+    status: "DECLINED",
+    reason: reason,
+    data: null
+  });
+};
+var redirect = function redirect(data) {
+  sendMsgToFCL("FCL:VIEW:RESPONSE", {
+    f_type: "PollingResponse",
+    f_vsn: "1.0.0",
+    status: "REDIRECT",
+    reason: null,
+    data: data
+  });
+};
+
+function CompositeSignature(addr, keyId, signature) {
+  this.f_type = COMPOSITE_SIGNATURE_PRAGMA.f_type;
+  this.f_vsn = COMPOSITE_SIGNATURE_PRAGMA.f_vsn;
+  this.addr = utilAddress.withPrefix(addr);
+  this.keyId = Number(keyId);
+  this.signature = signature;
+}
+
+var rightPaddedHexBuffer = function rightPaddedHexBuffer(value, pad) {
+  return rlp.Buffer.from(value.padEnd(pad * 2, "0"), "hex");
+};
+
+var leftPaddedHexBuffer = function leftPaddedHexBuffer(value, pad) {
+  return rlp.Buffer.from(value.padStart(pad * 2, "0"), "hex");
+};
+
+var addressBuffer = function addressBuffer(addr) {
+  return leftPaddedHexBuffer(addr, 8);
+};
+
+var nonceBuffer = function nonceBuffer(nonce) {
+  return rlp.Buffer.from(nonce, "hex");
+};
+
+var encodeAccountProof = function encodeAccountProof(_ref) {
+  var address = _ref.address,
+      nonce = _ref.nonce,
+      appIdentifier = _ref.appIdentifier;
+  var includeDomainTag = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+  utilInvariant.invariant(address, "Encode Message For Provable Authn Error: address must be defined");
+  utilInvariant.invariant(nonce, "Encode Message For Provable Authn Error: nonce must be defined");
+  utilInvariant.invariant(appIdentifier, "Encode Message For Provable Authn Error: appIdentifier must be defined");
+  utilInvariant.invariant(nonce.length >= 64, "Encode Message For Provable Authn Error: nonce must be minimum of 32 bytes");
+  var ACCOUNT_PROOF_DOMAIN_TAG = rightPaddedHexBuffer(rlp.Buffer.from("FCL-ACCOUNT-PROOF-V0.0").toString("hex"), 32);
+
+  if (includeDomainTag) {
+    return rlp.Buffer.concat([ACCOUNT_PROOF_DOMAIN_TAG, rlp.encode([appIdentifier, addressBuffer(utilAddress.sansPrefix(address)), nonceBuffer(nonce)])]).toString("hex");
+  }
+
+  return rlp.encode([appIdentifier, addressBuffer(utilAddress.sansPrefix(address)), nonceBuffer(nonce)]).toString("hex");
+};
+
+function injectExtService(service) {
+  if (service.type === "authn" && service.endpoint != null) {
+    if (!Array.isArray(window.fcl_extensions)) {
+      window.fcl_extensions = [];
+    }
+
+    window.fcl_extensions.push(service);
+  } else {
+    console.warn("Authn service is required");
+  }
+}
+
+var index$2 = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  sendMsgToFCL: sendMsgToFCL,
+  ready: ready,
+  close: close,
+  approve: approve,
+  decline: decline,
+  redirect: redirect,
+  onMessageFromFCL: onMessageFromFCL,
+  encodeMessageFromSignable: sdk.encodeMessageFromSignable,
+  CompositeSignature: CompositeSignature,
+  encodeAccountProof: encodeAccountProof,
+  injectExtService: injectExtService
+});
+
+var ACCOUNT_PROOF = "ACCOUNT_PROOF";
+var USER_SIGNATURE = "USER_SIGNATURE";
+var validateArgs = function validateArgs(args) {
+  if (args.appIdentifier) {
+    var appIdentifier = args.appIdentifier,
+        address = args.address,
+        nonce = args.nonce,
+        signatures = args.signatures;
+    utilInvariant.invariant(isString(appIdentifier), "verifyAccountProof({ appIdentifier }) -- appIdentifier must be a string");
+    utilInvariant.invariant(isString(address) && utilAddress.sansPrefix(address).length === 16, "verifyAccountProof({ address }) -- address must be a valid address");
+    utilInvariant.invariant(/^[0-9a-f]+$/i.test(nonce), "nonce must be a hex string");
+    utilInvariant.invariant(Array.isArray(signatures) && signatures.every(function (sig, i, arr) {
+      return sig.f_type === "CompositeSignature";
+    }), "Must include an Array of CompositeSignatures to verify");
+    utilInvariant.invariant(signatures.map(function (cs) {
+      return cs.addr;
+    }).every(function (addr, i, arr) {
+      return addr === arr[0];
+    }), "User signatures to be verified must be from a single account address");
+    return true;
+  } else {
+    var message = args.message,
+        _address = args.address,
+        compSigs = args.compSigs;
+    utilInvariant.invariant(/^[0-9a-f]+$/i.test(message), "Signed message must be a hex string");
+    utilInvariant.invariant(isString(_address) && utilAddress.sansPrefix(_address).length === 16, "verifyUserSignatures({ address }) -- address must be a valid address");
+    utilInvariant.invariant(Array.isArray(compSigs) && compSigs.every(function (sig, i, arr) {
+      return sig.f_type === "CompositeSignature";
+    }), "Must include an Array of CompositeSignatures to verify");
+    utilInvariant.invariant(compSigs.map(function (cs) {
+      return cs.addr;
+    }).every(function (addr, i, arr) {
+      return addr === arr[0];
+    }), "User signatures to be verified must be from a single account address");
+    return true;
+  }
+};
+
+var getVerifySignaturesScript = /*#__PURE__*/function () {
+  var _ref = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(sig, opts) {
+    var verifyFunction, network, fclCryptoContract;
+    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            verifyFunction = sig === "ACCOUNT_PROOF" ? "verifyAccountProofSignatures" : "verifyUserSignatures";
+            _context.next = 3;
+            return config.config.get("flow.network");
+
+          case 3:
+            network = _context.sent;
+
+            if (network) {
+              _context.next = 9;
+              break;
+            }
+
+            _context.next = 7;
+            return config.config.get("env");
+
+          case 7:
+            network = _context.sent;
+            if (network) utilLogger.log.deprecate({
+              pkg: "FCL",
+              subject: 'Using the "env" configuration key for specifying the flow network',
+              message: 'Please use "flow.network" instead.',
+              transition: "https://github.com/onflow/flow-js-sdk/blob/master/packages/fcl/TRANSITIONS.md#0001-deprecate-env-config-key"
+            });
+
+          case 9:
+            utilInvariant.invariant(opts.fclCryptoContract || network === "testnet" || network === "mainnet", "${verifyFunction}({ fclCryptoContract }) -- config.flow.network must be specified (testnet || mainnet) or contract address provided via opts.fclCryptoContract");
+
+            if (opts.fclCryptoContract) {
+              fclCryptoContract = opts.fclCryptoContract;
+            } else {
+              fclCryptoContract = network === "testnet" ? "0x74daa6f9c7ef24b1" : "0xb4b82a1c9d21d284";
+            }
+
+            return _context.abrupt("return", "\n      import FCLCrypto from ".concat(fclCryptoContract, "\n\n      pub fun main(\n          address: Address, \n          message: String, \n          keyIndices: [Int], \n          signatures: [String]\n      ): Bool {\n        return FCLCrypto.").concat(verifyFunction, "(address: address, message: message, keyIndices: keyIndices, signatures: signatures)\n      }\n    "));
+
+          case 12:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee);
+  }));
+
+  return function getVerifySignaturesScript(_x, _x2) {
+    return _ref.apply(this, arguments);
+  };
+}();
+/**
+ * Verify a valid account proof signature or signatures for an account on Flow.
+ *
+ * @param {string} appIdentifier - A message string in hexadecimal format
+ * @param {Object} accountProofData - An object consisting of address, nonce, and signatures
+ * @param {string} accountProofData.address - A Flow account address
+ * @param {string} accountProofData.nonce - A random string in hexadecimal format (minimum 32 bytes in total, i.e 64 hex characters)
+ * @param {Object[]} accountProofData.signatures - An array of composite signatures to verify
+ * @param {Object} [opts={}] - Options object
+ * @param {string} opts.fclCryptoContract - An optional override Flow account address where the FCLCrypto contract is deployed
+ * @return {bool}
+ *
+ * @example
+ *
+ *  const accountProofData = {
+ *   address: "0x123",
+ *   nonce: "F0123"
+ *   signatures: [{f_type: "CompositeSignature", f_vsn: "1.0.0", addr: "0x123", keyId: 0, signature: "abc123"}],
+ *  }
+ *
+ *  const isValid = await fcl.AppUtils.verifyAccountProof(
+ *    "AwesomeAppId",
+ *    accountProofData,
+ *    {fclCryptoContract}
+ *  )
+ */
+
+
+function verifyAccountProof(_x3, _x4) {
+  return _verifyAccountProof.apply(this, arguments);
+}
+/**
+ * Verify a valid signature/s for an account on Flow.
+ *
+ * @param {string} msg - A message string in hexadecimal format
+ * @param {Array} compSigs - An array of Composite Signatures
+ * @param {string} compSigs[].addr - The account address
+ * @param {number} compSigs[].keyId - The account keyId
+ * @param {string} compSigs[].signature - The signature to verify
+ * @param {Object} [opts={}] - Options object
+ * @param {string} opts.fclCryptoContract - An optional override of Flow account address where the FCLCrypto contract is deployed
+ * @return {bool}
+ *
+ * @example
+ *
+ *  const isValid = await fcl.AppUtils.verifyUserSignatures(
+ *    Buffer.from('FOO').toString("hex"),
+ *    [{f_type: "CompositeSignature", f_vsn: "1.0.0", addr: "0x123", keyId: 0, signature: "abc123"}],
+ *    {fclCryptoContract}
+ *  )
+ */
+
+function _verifyAccountProof() {
+  _verifyAccountProof = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee2(appIdentifier, _ref2) {
+    var address,
+        nonce,
+        signatures,
+        opts,
+        message,
+        signaturesArr,
+        keyIndices,
+        _iterator,
+        _step,
+        el,
+        _args2 = arguments;
+
+    return _regeneratorRuntime__default["default"].wrap(function _callee2$(_context2) {
+      while (1) {
+        switch (_context2.prev = _context2.next) {
+          case 0:
+            address = _ref2.address, nonce = _ref2.nonce, signatures = _ref2.signatures;
+            opts = _args2.length > 2 && _args2[2] !== undefined ? _args2[2] : {};
+            validateArgs({
+              appIdentifier: appIdentifier,
+              address: address,
+              nonce: nonce,
+              signatures: signatures
+            });
+            message = encodeAccountProof({
+              address: address,
+              nonce: nonce,
+              appIdentifier: appIdentifier
+            }, false);
+            signaturesArr = [];
+            keyIndices = [];
+            _iterator = _createForOfIteratorHelper__default["default"](signatures);
+
+            try {
+              for (_iterator.s(); !(_step = _iterator.n()).done;) {
+                el = _step.value;
+                signaturesArr.push(el.signature);
+                keyIndices.push(el.keyId.toString());
+              }
+            } catch (err) {
+              _iterator.e(err);
+            } finally {
+              _iterator.f();
+            }
+
+            _context2.t0 = query;
+            _context2.next = 11;
+            return getVerifySignaturesScript(ACCOUNT_PROOF, opts);
+
+          case 11:
+            _context2.t1 = _context2.sent;
+
+            _context2.t2 = function args(arg, t) {
+              return [arg(utilAddress.withPrefix(address), t.Address), arg(message, t.String), arg(keyIndices, t.Array(t.Int)), arg(signaturesArr, t.Array(t.String))];
+            };
+
+            _context2.t3 = {
+              cadence: _context2.t1,
+              args: _context2.t2
+            };
+            return _context2.abrupt("return", (0, _context2.t0)(_context2.t3));
+
+          case 15:
+          case "end":
+            return _context2.stop();
+        }
+      }
+    }, _callee2);
+  }));
+  return _verifyAccountProof.apply(this, arguments);
+}
+
+function verifyUserSignatures$1(_x5, _x6) {
+  return _verifyUserSignatures.apply(this, arguments);
+}
+
+function _verifyUserSignatures() {
+  _verifyUserSignatures = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee3(message, compSigs) {
+    var opts,
+        address,
+        signaturesArr,
+        keyIndices,
+        _iterator2,
+        _step2,
+        el,
+        _args3 = arguments;
+
+    return _regeneratorRuntime__default["default"].wrap(function _callee3$(_context3) {
+      while (1) {
+        switch (_context3.prev = _context3.next) {
+          case 0:
+            opts = _args3.length > 2 && _args3[2] !== undefined ? _args3[2] : {};
+            address = utilAddress.withPrefix(compSigs[0].addr);
+            validateArgs({
+              message: message,
+              address: address,
+              compSigs: compSigs
+            });
+            signaturesArr = [];
+            keyIndices = [];
+            _iterator2 = _createForOfIteratorHelper__default["default"](compSigs);
+
+            try {
+              for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+                el = _step2.value;
+                signaturesArr.push(el.signature);
+                keyIndices.push(el.keyId.toString());
+              }
+            } catch (err) {
+              _iterator2.e(err);
+            } finally {
+              _iterator2.f();
+            }
+
+            _context3.t0 = query;
+            _context3.next = 10;
+            return getVerifySignaturesScript(USER_SIGNATURE, opts);
+
+          case 10:
+            _context3.t1 = _context3.sent;
+
+            _context3.t2 = function args(arg, t) {
+              return [arg(address, t.Address), arg(message, t.String), arg(keyIndices, t.Array(t.Int)), arg(signaturesArr, t.Array(t.String))];
+            };
+
+            _context3.t3 = {
+              cadence: _context3.t1,
+              args: _context3.t2
+            };
+            return _context3.abrupt("return", (0, _context3.t0)(_context3.t3));
+
+          case 14:
+          case "end":
+            return _context3.stop();
+        }
+      }
+    }, _callee3);
+  }));
+  return _verifyUserSignatures.apply(this, arguments);
+}
+
+var index$1 = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  verifyAccountProof: verifyAccountProof,
+  verifyUserSignatures: verifyUserSignatures$1
+});
+
+/**
+ * Verify a valid signature/s for an account on Flow.
+ *
+ * @deprecated since version '1.0.0-alpha.0', use AppUtils.verifyUserSignatures instead
+ *
+ */
+
+var verifyUserSignatures = utilLogger.log.deprecate({
+  pkg: "FCL",
+  subject: "fcl.verifyUserSignatures()",
+  message: "Please use fcl.AppUtils.verifyUserSignatures()",
+  callback: function verifyUserSignatures(message, compSigs) {
+    return verifyUserSignatures$1(message, compSigs);
+  }
+});
+
+var serialize = /*#__PURE__*/function () {
+  var _ref = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee() {
+    var args,
+        opts,
+        resolveFunction,
+        _args = arguments;
+    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            args = _args.length > 0 && _args[0] !== undefined ? _args[0] : [];
+            opts = _args.length > 1 && _args[1] !== undefined ? _args[1] : {};
+            _context.next = 4;
+            return sdk.config.first(["sdk.resolve"], opts.resolve || sdk.resolve);
+
+          case 4:
+            resolveFunction = _context.sent;
+
+            if (!Array.isArray(args)) {
+              _context.next = 9;
+              break;
+            }
+
+            _context.next = 8;
+            return sdk.pipe(sdk.interaction(), args);
+
+          case 8:
+            args = _context.sent;
+
+          case 9:
+            _context.t0 = JSON;
+            _context.t1 = sdk.createSignableVoucher;
+            _context.next = 13;
+            return resolveFunction(args);
+
+          case 13:
+            _context.t2 = _context.sent;
+            _context.t3 = (0, _context.t1)(_context.t2);
+            return _context.abrupt("return", _context.t0.stringify.call(_context.t0, _context.t3, null, 2));
+
+          case 16:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee);
+  }));
+
+  return function serialize() {
+    return _ref.apply(this, arguments);
+  };
+}();
+
+var _HANDLERS$1;
+var RATE$1 = 2500;
+var POLL = "POLL";
+
+var fetchTxStatus = /*#__PURE__*/function () {
+  var _ref = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(transactionId) {
+    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            return _context.abrupt("return", sdk.send([sdk.getTransactionStatus(transactionId)]).then(sdk.decode));
+
+          case 1:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee);
+  }));
+
+  return function fetchTxStatus(_x) {
+    return _ref.apply(this, arguments);
+  };
+}();
+
+var isExpired = function isExpired(tx) {
+  return tx.status === 5;
+};
+
+var isSealed = function isSealed(tx) {
+  return tx.status >= 4;
+};
+
+var isExecuted = function isExecuted(tx) {
+  return tx.status >= 3;
+};
+
+var isFinalized = function isFinalized(tx) {
+  return tx.status >= 2;
+};
+
+var isPending = function isPending(tx) {
+  return tx.status >= 1;
+};
+
+var isUnknown = function isUnknown(tx) {
+  return tx.status >= 0;
+};
+
+var isDiff = function isDiff(cur, next) {
+  return JSON.stringify(cur) !== JSON.stringify(next);
+};
+
+var HANDLERS$1 = (_HANDLERS$1 = {}, _defineProperty__default["default"](_HANDLERS$1, utilActor.INIT, function () {
+  var _ref2 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee2(ctx) {
+    return _regeneratorRuntime__default["default"].wrap(function _callee2$(_context2) {
+      while (1) {
+        switch (_context2.prev = _context2.next) {
+          case 0:
+            ctx.sendSelf(POLL);
+
+          case 1:
+          case "end":
+            return _context2.stop();
+        }
+      }
+    }, _callee2);
+  }));
+
+  return function (_x2) {
+    return _ref2.apply(this, arguments);
+  };
+}()), _defineProperty__default["default"](_HANDLERS$1, utilActor.SUBSCRIBE, function (ctx, letter) {
+  ctx.subscribe(letter.from);
+  ctx.send(letter.from, utilActor.UPDATED, ctx.all());
+}), _defineProperty__default["default"](_HANDLERS$1, utilActor.UNSUBSCRIBE, function (ctx, letter) {
+  ctx.unsubscribe(letter.from);
+}), _defineProperty__default["default"](_HANDLERS$1, utilActor.SNAPSHOT, function () {
+  var _ref3 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee3(ctx, letter) {
+    return _regeneratorRuntime__default["default"].wrap(function _callee3$(_context3) {
+      while (1) {
+        switch (_context3.prev = _context3.next) {
+          case 0:
+            letter.reply(ctx.all());
+
+          case 1:
+          case "end":
+            return _context3.stop();
+        }
+      }
+    }, _callee3);
+  }));
+
+  return function (_x3, _x4) {
+    return _ref3.apply(this, arguments);
+  };
+}()), _defineProperty__default["default"](_HANDLERS$1, POLL, function () {
+  var _ref4 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee4(ctx) {
+    var tx;
+    return _regeneratorRuntime__default["default"].wrap(function _callee4$(_context4) {
+      while (1) {
+        switch (_context4.prev = _context4.next) {
+          case 0:
+            _context4.prev = 0;
+            _context4.next = 3;
+            return fetchTxStatus(ctx.self());
+
+          case 3:
+            tx = _context4.sent;
+            _context4.next = 9;
+            break;
+
+          case 6:
+            _context4.prev = 6;
+            _context4.t0 = _context4["catch"](0);
+            return _context4.abrupt("return", ctx.fatalError(_context4.t0));
+
+          case 9:
+            if (!isSealed(tx)) setTimeout(function () {
+              return ctx.sendSelf(POLL);
+            }, RATE$1);
+            if (isDiff(ctx.all(), tx)) ctx.broadcast(utilActor.UPDATED, tx);
+            ctx.merge(tx);
+
+          case 12:
+          case "end":
+            return _context4.stop();
+        }
+      }
+    }, _callee4, null, [[0, 6]]);
+  }));
+
+  return function (_x5) {
+    return _ref4.apply(this, arguments);
+  };
+}()), _HANDLERS$1);
+
+var scoped = function scoped(transactionId) {
+  if (_typeof__default["default"](transactionId) === "object") transactionId = transactionId.transactionId;
+  if (transactionId == null) throw new Error("transactionId required");
+  return transactionId;
+};
+
+var spawnTransaction = function spawnTransaction(transactionId) {
+  return utilActor.spawn(HANDLERS$1, scoped(transactionId));
+};
+
+function transaction(transactionId) {
+  function snapshot() {
+    return utilActor.snapshoter(transactionId, spawnTransaction);
+  }
+
+  function subscribe(callback) {
+    return utilActor.subscriber(scoped(transactionId), spawnTransaction, callback);
+  }
+
+  function once(predicate) {
+    return function innerOnce() {
+      var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+      var suppress = opts.suppress || false;
+      return new Promise(function (resolve, reject) {
+        var unsub = subscribe(function (txStatus, error) {
+          if ((error || txStatus.statusCode) && !suppress) {
+            reject(error || txStatus.errorMessage);
+            unsub();
+          } else if (predicate(txStatus)) {
+            resolve(txStatus);
+            unsub();
+          }
+        });
+      });
+    };
+  }
+
+  return {
+    snapshot: snapshot,
+    subscribe: subscribe,
+    onceFinalized: once(isFinalized),
+    onceExecuted: once(isExecuted),
+    onceSealed: once(isSealed)
+  };
+}
+transaction.isUnknown = isUnknown;
+transaction.isPending = isPending;
+transaction.isFinalized = isFinalized;
+transaction.isExecuted = isExecuted;
+transaction.isSealed = isSealed;
+transaction.isExpired = isExpired;
+
+var _HANDLERS;
+var RATE = 10000;
+var UPDATED = "UPDATED";
+var TICK = "TICK";
+var HIGH_WATER_MARK = "hwm";
+
+var scheduleTick = /*#__PURE__*/function () {
+  var _ref = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(ctx) {
+    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            _context.t0 = setTimeout;
+
+            _context.t1 = function () {
+              return ctx.sendSelf(TICK);
+            };
+
+            _context.next = 4;
+            return sdk.config().get("fcl.eventPollRate", RATE);
+
+          case 4:
+            _context.t2 = _context.sent;
+            return _context.abrupt("return", (0, _context.t0)(_context.t1, _context.t2));
+
+          case 6:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee);
+  }));
+
+  return function scheduleTick(_x) {
+    return _ref.apply(this, arguments);
+  };
+}();
+
+var HANDLERS = (_HANDLERS = {}, _defineProperty__default["default"](_HANDLERS, TICK, function () {
+  var _ref2 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee2(ctx) {
+    var hwm, next, data, _iterator, _step, d;
+
+    return _regeneratorRuntime__default["default"].wrap(function _callee2$(_context2) {
+      while (1) {
+        switch (_context2.prev = _context2.next) {
+          case 0:
+            if (ctx.hasSubs()) {
+              _context2.next = 2;
+              break;
+            }
+
+            return _context2.abrupt("return");
+
+          case 2:
+            hwm = ctx.get(HIGH_WATER_MARK);
+
+            if (!(hwm == null)) {
+              _context2.next = 18;
+              break;
+            }
+
+            _context2.t0 = ctx;
+            _context2.t1 = HIGH_WATER_MARK;
+            _context2.next = 8;
+            return sdk.block();
+
+          case 8:
+            _context2.t2 = _context2.sent;
+
+            _context2.t0.put.call(_context2.t0, _context2.t1, _context2.t2);
+
+            _context2.t3 = ctx;
+            _context2.t4 = TICK;
+            _context2.next = 14;
+            return scheduleTick(ctx);
+
+          case 14:
+            _context2.t5 = _context2.sent;
+
+            _context2.t3.put.call(_context2.t3, _context2.t4, _context2.t5);
+
+            _context2.next = 34;
+            break;
+
+          case 18:
+            _context2.next = 20;
+            return sdk.block();
+
+          case 20:
+            next = _context2.sent;
+            ctx.put(HIGH_WATER_MARK, next);
+
+            if (!(hwm.height < next.height)) {
+              _context2.next = 28;
+              break;
+            }
+
+            _context2.next = 25;
+            return sdk.send([sdk.getEventsAtBlockHeightRange(ctx.self(), hwm.height + 1, next.height)]).then(sdk.decode);
+
+          case 25:
+            data = _context2.sent;
+            _iterator = _createForOfIteratorHelper__default["default"](data);
+
+            try {
+              for (_iterator.s(); !(_step = _iterator.n()).done;) {
+                d = _step.value;
+                ctx.broadcast(UPDATED, d.data);
+              }
+            } catch (err) {
+              _iterator.e(err);
+            } finally {
+              _iterator.f();
+            }
+
+          case 28:
+            _context2.t6 = ctx;
+            _context2.t7 = TICK;
+            _context2.next = 32;
+            return scheduleTick(ctx);
+
+          case 32:
+            _context2.t8 = _context2.sent;
+
+            _context2.t6.put.call(_context2.t6, _context2.t7, _context2.t8);
+
+          case 34:
+          case "end":
+            return _context2.stop();
+        }
+      }
+    }, _callee2);
+  }));
+
+  return function (_x2) {
+    return _ref2.apply(this, arguments);
+  };
+}()), _defineProperty__default["default"](_HANDLERS, utilActor.SUBSCRIBE, function () {
+  var _ref3 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee3(ctx, letter) {
+    return _regeneratorRuntime__default["default"].wrap(function _callee3$(_context3) {
+      while (1) {
+        switch (_context3.prev = _context3.next) {
+          case 0:
+            if (ctx.hasSubs()) {
+              _context3.next = 7;
+              break;
+            }
+
+            _context3.t0 = ctx;
+            _context3.t1 = TICK;
+            _context3.next = 5;
+            return scheduleTick(ctx);
+
+          case 5:
+            _context3.t2 = _context3.sent;
+
+            _context3.t0.put.call(_context3.t0, _context3.t1, _context3.t2);
+
+          case 7:
+            ctx.subscribe(letter.from);
+
+          case 8:
+          case "end":
+            return _context3.stop();
+        }
+      }
+    }, _callee3);
+  }));
+
+  return function (_x3, _x4) {
+    return _ref3.apply(this, arguments);
+  };
+}()), _defineProperty__default["default"](_HANDLERS, utilActor.UNSUBSCRIBE, function (ctx, letter) {
+  ctx.unsubscribe(letter.from);
+
+  if (!ctx.hasSubs()) {
+    clearTimeout(ctx.get(TICK));
+    ctx["delete"](TICK);
+    ctx["delete"](HIGH_WATER_MARK);
+  }
+}), _HANDLERS);
+
+var spawnEvents = function spawnEvents(key) {
+  return utilActor.spawn(HANDLERS, key);
+};
+
+function events(key) {
+  return {
+    subscribe: function subscribe(callback) {
+      return utilActor.subscriber(key, spawnEvents, callback);
+    }
+  };
+}
+
+var sha3 = {};
+
+var sponge = {};
+
+var permute = {};
+
+var chi = {};
+
+var copy = function copy(I, i) {
+  return function (O, o) {
+    var oi = o * 2;
+    var ii = i * 2;
+    O[oi] = I[ii];
+    O[oi + 1] = I[ii + 1];
+  };
+};
+
+var copy_1 = copy;
+
+(function (exports) {
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports["default"] = void 0;
+
+  var _copy = _interopRequireDefault(copy_1);
+
+  function _interopRequireDefault(obj) {
+    return obj && obj.__esModule ? obj : {
+      "default": obj
+    };
+  }
+
+  var chi = function chi(_ref) {
+    var A = _ref.A,
+        C = _ref.C;
+
+    for (var y = 0; y < 25; y += 5) {
+      for (var x = 0; x < 5; x++) {
+        (0, _copy["default"])(A, y + x)(C, x);
+      }
+
+      for (var _x = 0; _x < 5; _x++) {
+        var xy = (y + _x) * 2;
+        var x1 = (_x + 1) % 5 * 2;
+        var x2 = (_x + 2) % 5 * 2;
+        A[xy] ^= ~C[x1] & C[x2];
+        A[xy + 1] ^= ~C[x1 + 1] & C[x2 + 1];
+      }
+    }
+  };
+
+  var _default = chi;
+  exports["default"] = _default;
+})(chi);
+
+var iota = {};
+
+var roundConstants = {};
+
+(function (exports) {
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports["default"] = void 0;
+  var ROUND_CONSTANTS = new Uint32Array([0, 1, 0, 32898, 2147483648, 32906, 2147483648, 2147516416, 0, 32907, 0, 2147483649, 2147483648, 2147516545, 2147483648, 32777, 0, 138, 0, 136, 0, 2147516425, 0, 2147483658, 0, 2147516555, 2147483648, 139, 2147483648, 32905, 2147483648, 32771, 2147483648, 32770, 2147483648, 128, 0, 32778, 2147483648, 2147483658, 2147483648, 2147516545, 2147483648, 32896, 0, 2147483649, 2147483648, 2147516424]);
+  var _default = ROUND_CONSTANTS;
+  exports["default"] = _default;
+})(roundConstants);
+
+(function (exports) {
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports["default"] = void 0;
+
+  var _roundConstants = _interopRequireDefault(roundConstants);
+
+  function _interopRequireDefault(obj) {
+    return obj && obj.__esModule ? obj : {
+      "default": obj
+    };
+  }
+
+  var iota = function iota(_ref) {
+    var A = _ref.A,
+        roundIndex = _ref.roundIndex;
+    var i = roundIndex * 2;
+    A[0] ^= _roundConstants["default"][i];
+    A[1] ^= _roundConstants["default"][i + 1];
+  };
+
+  var _default = iota;
+  exports["default"] = _default;
+})(iota);
+
+var rhoPi = {};
+
+var piShuffles = {};
+
+(function (exports) {
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports["default"] = void 0;
+  var PI_SHUFFLES = [10, 7, 11, 17, 18, 3, 5, 16, 8, 21, 24, 4, 15, 23, 19, 13, 12, 2, 20, 14, 22, 9, 6, 1];
+  var _default = PI_SHUFFLES;
+  exports["default"] = _default;
+})(piShuffles);
+
+var rhoOffsets = {};
+
+(function (exports) {
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports["default"] = void 0;
+  var RHO_OFFSETS = [1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 2, 14, 27, 41, 56, 8, 25, 43, 62, 18, 39, 61, 20, 44];
+  var _default = RHO_OFFSETS;
+  exports["default"] = _default;
+})(rhoOffsets);
+
+(function (exports) {
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports["default"] = void 0;
+
+  var _piShuffles = _interopRequireDefault(piShuffles);
+
+  var _rhoOffsets = _interopRequireDefault(rhoOffsets);
+
+  var _copy = _interopRequireDefault(copy_1);
+
+  function _interopRequireDefault(obj) {
+    return obj && obj.__esModule ? obj : {
+      "default": obj
+    };
+  }
+
+  var rhoPi = function rhoPi(_ref) {
+    var A = _ref.A,
+        C = _ref.C,
+        W = _ref.W;
+    (0, _copy["default"])(A, 1)(W, 0);
+    var H = 0;
+    var L = 0;
+    var Wi = 0;
+    var ri = 32;
+
+    for (var i = 0; i < 24; i++) {
+      var j = _piShuffles["default"][i];
+      var r = _rhoOffsets["default"][i];
+      (0, _copy["default"])(A, j)(C, 0);
+      H = W[0];
+      L = W[1];
+      ri = 32 - r;
+      Wi = r < 32 ? 0 : 1;
+      W[Wi] = H << r | L >>> ri;
+      W[(Wi + 1) % 2] = L << r | H >>> ri;
+      (0, _copy["default"])(W, 0)(A, j);
+      (0, _copy["default"])(C, 0)(W, 0);
+    }
+  };
+
+  var _default = rhoPi;
+  exports["default"] = _default;
+})(rhoPi);
+
+var theta = {};
+
+(function (exports) {
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports["default"] = void 0;
+
+  var _copy = _interopRequireDefault(copy_1);
+
+  function _interopRequireDefault(obj) {
+    return obj && obj.__esModule ? obj : {
+      "default": obj
+    };
+  }
+
+  var theta = function theta(_ref) {
+    var A = _ref.A,
+        C = _ref.C,
+        D = _ref.D,
+        W = _ref.W;
+    var H = 0;
+    var L = 0;
+
+    for (var x = 0; x < 5; x++) {
+      var x20 = x * 2;
+      var x21 = (x + 5) * 2;
+      var x22 = (x + 10) * 2;
+      var x23 = (x + 15) * 2;
+      var x24 = (x + 20) * 2;
+      C[x20] = A[x20] ^ A[x21] ^ A[x22] ^ A[x23] ^ A[x24];
+      C[x20 + 1] = A[x20 + 1] ^ A[x21 + 1] ^ A[x22 + 1] ^ A[x23 + 1] ^ A[x24 + 1];
+    }
+
+    for (var _x = 0; _x < 5; _x++) {
+      (0, _copy["default"])(C, (_x + 1) % 5)(W, 0);
+      H = W[0];
+      L = W[1];
+      W[0] = H << 1 | L >>> 31;
+      W[1] = L << 1 | H >>> 31;
+      D[_x * 2] = C[(_x + 4) % 5 * 2] ^ W[0];
+      D[_x * 2 + 1] = C[(_x + 4) % 5 * 2 + 1] ^ W[1];
+
+      for (var y = 0; y < 25; y += 5) {
+        A[(y + _x) * 2] ^= D[_x * 2];
+        A[(y + _x) * 2 + 1] ^= D[_x * 2 + 1];
+      }
+    }
+  };
+
+  var _default = theta;
+  exports["default"] = _default;
+})(theta);
+
+(function (exports) {
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports["default"] = void 0;
+
+  var _chi = _interopRequireDefault(chi);
+
+  var _iota = _interopRequireDefault(iota);
+
+  var _rhoPi = _interopRequireDefault(rhoPi);
+
+  var _theta = _interopRequireDefault(theta);
+
+  function _interopRequireDefault(obj) {
+    return obj && obj.__esModule ? obj : {
+      "default": obj
+    };
+  }
+
+  var permute = function permute() {
+    var C = new Uint32Array(10);
+    var D = new Uint32Array(10);
+    var W = new Uint32Array(2);
+    return function (A) {
+      for (var roundIndex = 0; roundIndex < 24; roundIndex++) {
+        (0, _theta["default"])({
+          A: A,
+          C: C,
+          D: D,
+          W: W
+        });
+        (0, _rhoPi["default"])({
+          A: A,
+          C: C,
+          W: W
+        });
+        (0, _chi["default"])({
+          A: A,
+          C: C
+        });
+        (0, _iota["default"])({
+          A: A,
+          roundIndex: roundIndex
+        });
+      }
+
+      C.fill(0);
+      D.fill(0);
+      W.fill(0);
+    };
+  };
+
+  var _default = permute;
+  exports["default"] = _default;
+})(permute);
+
+(function (exports) {
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports["default"] = void 0;
+  var _buffer = require$$0__default["default"];
+
+  var _permute = _interopRequireDefault(permute);
+
+  function _interopRequireDefault(obj) {
+    return obj && obj.__esModule ? obj : {
+      "default": obj
+    };
+  }
+
+  var xorWords = function xorWords(I, O) {
+    for (var i = 0; i < I.length; i += 8) {
+      var o = i / 4;
+      O[o] ^= I[i + 7] << 24 | I[i + 6] << 16 | I[i + 5] << 8 | I[i + 4];
+      O[o + 1] ^= I[i + 3] << 24 | I[i + 2] << 16 | I[i + 1] << 8 | I[i];
+    }
+
+    return O;
+  };
+
+  var readWords = function readWords(I, O) {
+    for (var o = 0; o < O.length; o += 8) {
+      var i = o / 4;
+      O[o] = I[i + 1];
+      O[o + 1] = I[i + 1] >>> 8;
+      O[o + 2] = I[i + 1] >>> 16;
+      O[o + 3] = I[i + 1] >>> 24;
+      O[o + 4] = I[i];
+      O[o + 5] = I[i] >>> 8;
+      O[o + 6] = I[i] >>> 16;
+      O[o + 7] = I[i] >>> 24;
+    }
+
+    return O;
+  };
+
+  var Sponge = function Sponge(_ref) {
+    var _this = this;
+
+    var capacity = _ref.capacity,
+        padding = _ref.padding;
+    var keccak = (0, _permute["default"])();
+    var stateSize = 200;
+    var blockSize = capacity / 8;
+    var queueSize = stateSize - capacity / 4;
+    var queueOffset = 0;
+    var state = new Uint32Array(stateSize / 4);
+
+    var queue = _buffer.Buffer.allocUnsafe(queueSize);
+
+    this.absorb = function (buffer) {
+      for (var i = 0; i < buffer.length; i++) {
+        queue[queueOffset] = buffer[i];
+        queueOffset += 1;
+
+        if (queueOffset >= queueSize) {
+          xorWords(queue, state);
+          keccak(state);
+          queueOffset = 0;
+        }
+      }
+
+      return _this;
+    };
+
+    this.squeeze = function () {
+      var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+      var output = {
+        buffer: options.buffer || _buffer.Buffer.allocUnsafe(blockSize),
+        padding: options.padding || padding,
+        queue: _buffer.Buffer.allocUnsafe(queue.length),
+        state: new Uint32Array(state.length)
+      };
+      queue.copy(output.queue);
+
+      for (var i = 0; i < state.length; i++) {
+        output.state[i] = state[i];
+      }
+
+      output.queue.fill(0, queueOffset);
+      output.queue[queueOffset] |= output.padding;
+      output.queue[queueSize - 1] |= 128;
+      xorWords(output.queue, output.state);
+
+      for (var offset = 0; offset < output.buffer.length; offset += queueSize) {
+        keccak(output.state);
+        readWords(output.state, output.buffer.slice(offset, offset + queueSize));
+      }
+
+      return output.buffer;
+    };
+
+    this.reset = function () {
+      queue.fill(0);
+      state.fill(0);
+      queueOffset = 0;
+      return _this;
+    };
+
+    return this;
+  };
+
+  var _default = Sponge;
+  exports["default"] = _default;
+})(sponge);
+
+(function (exports) {
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports["default"] = exports.SHAKE = exports.SHA3Hash = exports.SHA3 = exports.Keccak = void 0;
+  var _buffer = require$$0__default["default"];
+
+  var _sponge = _interopRequireDefault(sponge);
+
+  function _interopRequireDefault(obj) {
+    return obj && obj.__esModule ? obj : {
+      "default": obj
+    };
+  }
+
+  var createHash = function createHash(_ref) {
+    var allowedSizes = _ref.allowedSizes,
+        defaultSize = _ref.defaultSize,
+        padding = _ref.padding;
+    return function Hash() {
+      var _this = this;
+
+      var size = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : defaultSize;
+
+      if (!this || this.constructor !== Hash) {
+        return new Hash(size);
+      }
+
+      if (allowedSizes && !allowedSizes.includes(size)) {
+        throw new Error("Unsupported hash length");
+      }
+
+      var sponge = new _sponge["default"]({
+        capacity: size
+      });
+
+      this.update = function (input) {
+        var encoding = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "utf8";
+
+        if (_buffer.Buffer.isBuffer(input)) {
+          sponge.absorb(input);
+          return _this;
+        }
+
+        if (typeof input === "string") {
+          return _this.update(_buffer.Buffer.from(input, encoding));
+        }
+
+        throw new TypeError("Not a string or buffer");
+      };
+
+      this.digest = function () {
+        var formatOrOptions = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "binary";
+        var options = typeof formatOrOptions === "string" ? {
+          format: formatOrOptions
+        } : formatOrOptions;
+        var buffer = sponge.squeeze({
+          buffer: options.buffer,
+          padding: options.padding || padding
+        });
+
+        if (options.format && options.format !== "binary") {
+          return buffer.toString(options.format);
+        }
+
+        return buffer;
+      };
+
+      this.reset = function () {
+        sponge.reset();
+        return _this;
+      };
+
+      return this;
+    };
+  };
+
+  var Keccak = createHash({
+    allowedSizes: [224, 256, 384, 512],
+    defaultSize: 512,
+    padding: 1
+  });
+  exports.Keccak = Keccak;
+  var SHA3 = createHash({
+    allowedSizes: [224, 256, 384, 512],
+    defaultSize: 512,
+    padding: 6
+  });
+  exports.SHA3 = SHA3;
+  var SHAKE = createHash({
+    allowedSizes: [128, 256],
+    defaultSize: 256,
+    padding: 31
+  });
+  exports.SHAKE = SHAKE;
+  var SHA3Hash = Keccak;
+  exports.SHA3Hash = SHA3Hash;
+  SHA3.SHA3Hash = SHA3Hash;
+  var _default = SHA3;
+  exports["default"] = _default;
+})(sha3);
+
+function genHash(_x) {
+  return _genHash.apply(this, arguments);
+}
+
+function _genHash() {
+  _genHash = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(utf8String) {
+    var sha;
+    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            sha = new sha3.SHA3(256);
+            sha.update(rlp.Buffer.from(utf8String, "utf8"));
+            return _context.abrupt("return", sha.digest("hex"));
+
+          case 3:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee);
+  }));
+  return _genHash.apply(this, arguments);
+}
+
+function generateTemplateId(_x) {
+  return _generateTemplateId.apply(this, arguments);
+}
+
+function _generateTemplateId() {
+  _generateTemplateId = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee9(_ref) {
+    var template, templateData, messages, dependencies, _arguments, encodedHex;
+
+    return _regeneratorRuntime__default["default"].wrap(function _callee9$(_context9) {
+      while (1) {
+        switch (_context9.prev = _context9.next) {
+          case 0:
+            template = _ref.template;
+            sdk.invariant(template != undefined, "generateTemplateId({ template }) -- template must be defined");
+            sdk.invariant(_typeof__default["default"](template) === "object", "generateTemplateId({ template }) -- template must be an object");
+            sdk.invariant(typeof template.f_type === "InteractionTemplate", "generateTemplateId({ template }) -- template object must be an InteractionTemplate");
+            template = normalizeInteractionTemplate(template);
+            _context9.t0 = template.f_version;
+            _context9.next = _context9.t0 === "1.0.0" ? 8 : 40;
+            break;
+
+          case 8:
+            templateData = template.data;
+            _context9.next = 11;
+            return Promise.all(Object.keys(templateData.messages).map( /*#__PURE__*/function () {
+              var _ref2 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee2(messageKey) {
+                var _templateData$message, _templateData$message2;
+
+                return _regeneratorRuntime__default["default"].wrap(function _callee2$(_context2) {
+                  while (1) {
+                    switch (_context2.prev = _context2.next) {
+                      case 0:
+                        _context2.next = 2;
+                        return genHash(messageKey);
+
+                      case 2:
+                        _context2.t0 = _context2.sent;
+                        _context2.next = 5;
+                        return Promise.all(Object.keys((_templateData$message = templateData.messages) === null || _templateData$message === void 0 ? void 0 : (_templateData$message2 = _templateData$message[messageKey]) === null || _templateData$message2 === void 0 ? void 0 : _templateData$message2.i18n).map( /*#__PURE__*/function () {
+                          var _ref3 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(i18nkeylanguage) {
+                            var _templateData$message3, _templateData$message4, _templateData$message5;
+
+                            return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
+                              while (1) {
+                                switch (_context.prev = _context.next) {
+                                  case 0:
+                                    _context.next = 2;
+                                    return genHash(i18nkeylanguage);
+
+                                  case 2:
+                                    _context.t0 = _context.sent;
+                                    _context.next = 5;
+                                    return genHash((_templateData$message3 = templateData.messages) === null || _templateData$message3 === void 0 ? void 0 : (_templateData$message4 = _templateData$message3[messageKey]) === null || _templateData$message4 === void 0 ? void 0 : (_templateData$message5 = _templateData$message4.i18n) === null || _templateData$message5 === void 0 ? void 0 : _templateData$message5[i18nkeylanguage]);
+
+                                  case 5:
+                                    _context.t1 = _context.sent;
+                                    return _context.abrupt("return", [_context.t0, _context.t1]);
+
+                                  case 7:
+                                  case "end":
+                                    return _context.stop();
+                                }
+                              }
+                            }, _callee);
+                          }));
+
+                          return function (_x3) {
+                            return _ref3.apply(this, arguments);
+                          };
+                        }()));
+
+                      case 5:
+                        _context2.t1 = _context2.sent;
+                        return _context2.abrupt("return", [_context2.t0, _context2.t1]);
+
+                      case 7:
+                      case "end":
+                        return _context2.stop();
+                    }
+                  }
+                }, _callee2);
+              }));
+
+              return function (_x2) {
+                return _ref2.apply(this, arguments);
+              };
+            }()));
+
+          case 11:
+            messages = _context9.sent;
+            _context9.next = 14;
+            return Promise.all(Object.keys(templateData === null || templateData === void 0 ? void 0 : templateData.dependencies).map( /*#__PURE__*/function () {
+              var _ref4 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee5(dependencyAddressPlaceholder) {
+                var _templateData$depende;
+
+                return _regeneratorRuntime__default["default"].wrap(function _callee5$(_context5) {
+                  while (1) {
+                    switch (_context5.prev = _context5.next) {
+                      case 0:
+                        _context5.next = 2;
+                        return genHash(dependencyAddressPlaceholder);
+
+                      case 2:
+                        _context5.t0 = _context5.sent;
+                        _context5.next = 5;
+                        return Promise.all(Object.keys(templateData === null || templateData === void 0 ? void 0 : (_templateData$depende = templateData.dependencies) === null || _templateData$depende === void 0 ? void 0 : _templateData$depende[dependencyAddressPlaceholder]).map( /*#__PURE__*/function () {
+                          var _ref5 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee4(dependencyContract) {
+                            var _templateData$depende2, _templateData$depende3;
+
+                            return _regeneratorRuntime__default["default"].wrap(function _callee4$(_context4) {
+                              while (1) {
+                                switch (_context4.prev = _context4.next) {
+                                  case 0:
+                                    _context4.next = 2;
+                                    return genHash(dependencyContract);
+
+                                  case 2:
+                                    _context4.t0 = _context4.sent;
+                                    _context4.next = 5;
+                                    return Promise.all(Object.keys(templateData === null || templateData === void 0 ? void 0 : (_templateData$depende2 = templateData.dependencies) === null || _templateData$depende2 === void 0 ? void 0 : (_templateData$depende3 = _templateData$depende2[dependencyAddressPlaceholder]) === null || _templateData$depende3 === void 0 ? void 0 : _templateData$depende3[dependencyContract]).map( /*#__PURE__*/function () {
+                                      var _ref6 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee3(dependencyContractNetwork) {
+                                        var _templateData$depende4, _templateData$depende5, _templateData$depende6, _templateData$depende7, _templateData$depende8, _templateData$depende9, _templateData$depende10, _templateData$depende11, _templateData$depende12, _templateData$depende13, _templateData$depende14, _templateData$depende15, _templateData$depende16, _templateData$depende17, _templateData$depende18;
+
+                                        return _regeneratorRuntime__default["default"].wrap(function _callee3$(_context3) {
+                                          while (1) {
+                                            switch (_context3.prev = _context3.next) {
+                                              case 0:
+                                                _context3.next = 2;
+                                                return genHash(dependencyContractNetwork);
+
+                                              case 2:
+                                                _context3.t0 = _context3.sent;
+                                                _context3.next = 5;
+                                                return genHash(templateData === null || templateData === void 0 ? void 0 : (_templateData$depende4 = templateData.dependencies) === null || _templateData$depende4 === void 0 ? void 0 : (_templateData$depende5 = _templateData$depende4[dependencyAddressPlaceholder]) === null || _templateData$depende5 === void 0 ? void 0 : (_templateData$depende6 = _templateData$depende5[dependencyContract]) === null || _templateData$depende6 === void 0 ? void 0 : _templateData$depende6[dependencyContractNetwork].address);
+
+                                              case 5:
+                                                _context3.t1 = _context3.sent;
+                                                _context3.next = 8;
+                                                return genHash(templateData === null || templateData === void 0 ? void 0 : (_templateData$depende7 = templateData.dependencies) === null || _templateData$depende7 === void 0 ? void 0 : (_templateData$depende8 = _templateData$depende7[dependencyAddressPlaceholder]) === null || _templateData$depende8 === void 0 ? void 0 : (_templateData$depende9 = _templateData$depende8[dependencyContract]) === null || _templateData$depende9 === void 0 ? void 0 : _templateData$depende9[dependencyContractNetwork].contract);
+
+                                              case 8:
+                                                _context3.t2 = _context3.sent;
+                                                _context3.next = 11;
+                                                return genHash(templateData === null || templateData === void 0 ? void 0 : (_templateData$depende10 = templateData.dependencies) === null || _templateData$depende10 === void 0 ? void 0 : (_templateData$depende11 = _templateData$depende10[dependencyAddressPlaceholder]) === null || _templateData$depende11 === void 0 ? void 0 : (_templateData$depende12 = _templateData$depende11[dependencyContract]) === null || _templateData$depende12 === void 0 ? void 0 : _templateData$depende12[dependencyContractNetwork].fq_address);
+
+                                              case 11:
+                                                _context3.t3 = _context3.sent;
+                                                _context3.next = 14;
+                                                return genHash(templateData === null || templateData === void 0 ? void 0 : (_templateData$depende13 = templateData.dependencies) === null || _templateData$depende13 === void 0 ? void 0 : (_templateData$depende14 = _templateData$depende13[dependencyAddressPlaceholder]) === null || _templateData$depende14 === void 0 ? void 0 : (_templateData$depende15 = _templateData$depende14[dependencyContract]) === null || _templateData$depende15 === void 0 ? void 0 : _templateData$depende15[dependencyContractNetwork].pin);
+
+                                              case 14:
+                                                _context3.t4 = _context3.sent;
+                                                _context3.next = 17;
+                                                return genHash(String(templateData === null || templateData === void 0 ? void 0 : (_templateData$depende16 = templateData.dependencies) === null || _templateData$depende16 === void 0 ? void 0 : (_templateData$depende17 = _templateData$depende16[dependencyAddressPlaceholder]) === null || _templateData$depende17 === void 0 ? void 0 : (_templateData$depende18 = _templateData$depende17[dependencyContract]) === null || _templateData$depende18 === void 0 ? void 0 : _templateData$depende18[dependencyContractNetwork].pin_block_height));
+
+                                              case 17:
+                                                _context3.t5 = _context3.sent;
+                                                _context3.t6 = [_context3.t1, _context3.t2, _context3.t3, _context3.t4, _context3.t5];
+                                                return _context3.abrupt("return", [_context3.t0, _context3.t6]);
+
+                                              case 20:
+                                              case "end":
+                                                return _context3.stop();
+                                            }
+                                          }
+                                        }, _callee3);
+                                      }));
+
+                                      return function (_x6) {
+                                        return _ref6.apply(this, arguments);
+                                      };
+                                    }()));
+
+                                  case 5:
+                                    _context4.t1 = _context4.sent;
+                                    return _context4.abrupt("return", [_context4.t0, _context4.t1]);
+
+                                  case 7:
+                                  case "end":
+                                    return _context4.stop();
+                                }
+                              }
+                            }, _callee4);
+                          }));
+
+                          return function (_x5) {
+                            return _ref5.apply(this, arguments);
+                          };
+                        }()));
+
+                      case 5:
+                        _context5.t1 = _context5.sent;
+                        return _context5.abrupt("return", [_context5.t0, _context5.t1]);
+
+                      case 7:
+                      case "end":
+                        return _context5.stop();
+                    }
+                  }
+                }, _callee5);
+              }));
+
+              return function (_x4) {
+                return _ref4.apply(this, arguments);
+              };
+            }()));
+
+          case 14:
+            dependencies = _context9.sent;
+            _context9.next = 17;
+            return Promise.all(Object.keys(templateData === null || templateData === void 0 ? void 0 : templateData["arguments"]).map( /*#__PURE__*/function () {
+              var _ref7 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee8(argumentLabel) {
+                var _templateData$argumen, _templateData$argumen2, _templateData$argumen3, _templateData$argumen4;
+
+                return _regeneratorRuntime__default["default"].wrap(function _callee8$(_context8) {
+                  while (1) {
+                    switch (_context8.prev = _context8.next) {
+                      case 0:
+                        _context8.next = 2;
+                        return genHash(argumentLabel);
+
+                      case 2:
+                        _context8.t0 = _context8.sent;
+                        _context8.next = 5;
+                        return genHash(String(templateData === null || templateData === void 0 ? void 0 : (_templateData$argumen = templateData["arguments"]) === null || _templateData$argumen === void 0 ? void 0 : _templateData$argumen[argumentLabel].index));
+
+                      case 5:
+                        _context8.t1 = _context8.sent;
+                        _context8.next = 8;
+                        return genHash(templateData === null || templateData === void 0 ? void 0 : (_templateData$argumen2 = templateData["arguments"]) === null || _templateData$argumen2 === void 0 ? void 0 : _templateData$argumen2[argumentLabel].type);
+
+                      case 8:
+                        _context8.t2 = _context8.sent;
+                        _context8.next = 11;
+                        return genHash((templateData === null || templateData === void 0 ? void 0 : (_templateData$argumen3 = templateData["arguments"]) === null || _templateData$argumen3 === void 0 ? void 0 : _templateData$argumen3[argumentLabel].balance) || "");
+
+                      case 11:
+                        _context8.t3 = _context8.sent;
+                        _context8.next = 14;
+                        return Promise.all(Object.keys(templateData === null || templateData === void 0 ? void 0 : (_templateData$argumen4 = templateData["arguments"]) === null || _templateData$argumen4 === void 0 ? void 0 : _templateData$argumen4[argumentLabel].messages).map( /*#__PURE__*/function () {
+                          var _ref8 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee7(argumentMessageKey) {
+                            var _templateData$argumen5, _templateData$argumen6;
+
+                            return _regeneratorRuntime__default["default"].wrap(function _callee7$(_context7) {
+                              while (1) {
+                                switch (_context7.prev = _context7.next) {
+                                  case 0:
+                                    _context7.next = 2;
+                                    return genHash(argumentMessageKey);
+
+                                  case 2:
+                                    _context7.t0 = _context7.sent;
+                                    _context7.next = 5;
+                                    return Promise.all(Object.keys(templateData === null || templateData === void 0 ? void 0 : (_templateData$argumen5 = templateData["arguments"]) === null || _templateData$argumen5 === void 0 ? void 0 : (_templateData$argumen6 = _templateData$argumen5[argumentLabel].messages) === null || _templateData$argumen6 === void 0 ? void 0 : _templateData$argumen6[argumentMessageKey].i18n).map( /*#__PURE__*/function () {
+                                      var _ref9 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee6(i18nkeylanguage) {
+                                        var _templateData$argumen7, _templateData$argumen8, _templateData$argumen9;
+
+                                        return _regeneratorRuntime__default["default"].wrap(function _callee6$(_context6) {
+                                          while (1) {
+                                            switch (_context6.prev = _context6.next) {
+                                              case 0:
+                                                _context6.next = 2;
+                                                return genHash(i18nkeylanguage);
+
+                                              case 2:
+                                                _context6.t0 = _context6.sent;
+                                                _context6.next = 5;
+                                                return genHash(templateData === null || templateData === void 0 ? void 0 : (_templateData$argumen7 = templateData["arguments"]) === null || _templateData$argumen7 === void 0 ? void 0 : (_templateData$argumen8 = _templateData$argumen7[argumentLabel].messages) === null || _templateData$argumen8 === void 0 ? void 0 : (_templateData$argumen9 = _templateData$argumen8[argumentMessageKey].i18n) === null || _templateData$argumen9 === void 0 ? void 0 : _templateData$argumen9[i18nkeylanguage]);
+
+                                              case 5:
+                                                _context6.t1 = _context6.sent;
+                                                return _context6.abrupt("return", [_context6.t0, _context6.t1]);
+
+                                              case 7:
+                                              case "end":
+                                                return _context6.stop();
+                                            }
+                                          }
+                                        }, _callee6);
+                                      }));
+
+                                      return function (_x9) {
+                                        return _ref9.apply(this, arguments);
+                                      };
+                                    }()));
+
+                                  case 5:
+                                    _context7.t1 = _context7.sent;
+                                    return _context7.abrupt("return", [_context7.t0, _context7.t1]);
+
+                                  case 7:
+                                  case "end":
+                                    return _context7.stop();
+                                }
+                              }
+                            }, _callee7);
+                          }));
+
+                          return function (_x8) {
+                            return _ref8.apply(this, arguments);
+                          };
+                        }()));
+
+                      case 14:
+                        _context8.t4 = _context8.sent;
+                        _context8.t5 = [_context8.t1, _context8.t2, _context8.t3, _context8.t4];
+                        return _context8.abrupt("return", [_context8.t0, _context8.t5]);
+
+                      case 17:
+                      case "end":
+                        return _context8.stop();
+                    }
+                  }
+                }, _callee8);
+              }));
+
+              return function (_x7) {
+                return _ref7.apply(this, arguments);
+              };
+            }()));
+
+          case 17:
+            _arguments = _context9.sent;
+            _context9.t1 = rlp.encode;
+            _context9.next = 21;
+            return genHash("InteractionTemplate");
+
+          case 21:
+            _context9.t2 = _context9.sent;
+            _context9.next = 24;
+            return genHash("1.0.0");
+
+          case 24:
+            _context9.t3 = _context9.sent;
+            _context9.next = 27;
+            return genHash(templateData === null || templateData === void 0 ? void 0 : templateData.type);
+
+          case 27:
+            _context9.t4 = _context9.sent;
+            _context9.next = 30;
+            return genHash(templateData === null || templateData === void 0 ? void 0 : templateData["interface"]);
+
+          case 30:
+            _context9.t5 = _context9.sent;
+            _context9.t6 = messages;
+            _context9.next = 34;
+            return genHash(templateData === null || templateData === void 0 ? void 0 : templateData.cadence);
+
+          case 34:
+            _context9.t7 = _context9.sent;
+            _context9.t8 = dependencies;
+            _context9.t9 = _arguments;
+            _context9.t10 = [_context9.t2, _context9.t3, _context9.t4, _context9.t5, _context9.t6, _context9.t7, _context9.t8, _context9.t9];
+            encodedHex = (0, _context9.t1)(_context9.t10).toString("hex");
+            return _context9.abrupt("return", genHash(encodedHex));
+
+          case 40:
+            throw new Error("generateTemplateId Error: Unsupported template version");
+
+          case 41:
+          case "end":
+            return _context9.stop();
+        }
+      }
+    }, _callee9);
+  }));
+  return _generateTemplateId.apply(this, arguments);
+}
+
+function getInteractionTemplateAudits(_x) {
+  return _getInteractionTemplateAudits.apply(this, arguments);
+}
+
+function _getInteractionTemplateAudits() {
+  _getInteractionTemplateAudits = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(_ref) {
+    var template,
+        auditors,
+        opts,
+        recomputedTemplateID,
+        _auditors,
+        FlowInteractionAuditContract,
+        fclNetwork,
+        audits,
+        _args = arguments;
+
+    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            template = _ref.template, auditors = _ref.auditors;
+            opts = _args.length > 1 && _args[1] !== undefined ? _args[1] : {};
+            sdk.invariant(template != undefined, "getInteractionTemplateAudits({ template }) -- template must be defined");
+            template = normalizeInteractionTemplate(template);
+            sdk.invariant(template.f_type === "InteractionTemplate", "getInteractionTemplateAudits({ template }) -- template must be an InteractionTemplate"); // Recompute ID to be sure it matches
+
+            _context.next = 7;
+            return generateTemplateId({
+              template: template
+            });
+
+          case 7:
+            recomputedTemplateID = _context.sent;
+
+            if (!(recomputedTemplateID !== template.id)) {
+              _context.next = 11;
+              break;
+            }
+
+            utilLogger.log({
+              title: "getInteractionTemplateAudits Debug Error",
+              message: "Could not recompute and match template ID\n                computed: ".concat(recomputedTemplateID, "\n                template: ").concat(template.id, "\n            "),
+              level: utilLogger.LEVELS.debug
+            });
+            throw new Error("getInteractionTemplateAudits Error: Could not recompute and match template ID");
+
+          case 11:
+            _context.t0 = template.f_version;
+            _context.next = _context.t0 === "1.0.0" ? 14 : 33;
+            break;
+
+          case 14:
+            _context.t1 = auditors;
+
+            if (_context.t1) {
+              _context.next = 19;
+              break;
+            }
+
+            _context.next = 18;
+            return sdk.config().get("flow.auditors");
+
+          case 18:
+            _context.t1 = _context.sent;
+
+          case 19:
+            _auditors = _context.t1;
+            sdk.invariant(_auditors, "getInteractionTemplateAudits Error: Required configuration for 'fcl.auditors' is not set");
+            sdk.invariant(Array.isArray(_auditors), "getInteractionTemplateAudits Error: Required configuration for 'fcl.auditors' is not an array");
+            FlowInteractionAuditContract = opts.flowInteractionAuditContract;
+
+            if (FlowInteractionAuditContract) {
+              _context.next = 29;
+              break;
+            }
+
+            _context.next = 26;
+            return sdk.config().get("flow.network");
+
+          case 26:
+            fclNetwork = _context.sent;
+            sdk.invariant(fclNetwork === "mainnet" || fclNetwork === "testnet", "getInteractionTemplateAudits Error: Unable to determine address for FlowInteractionTemplateAudit contract. Set configuration for 'fcl.network' to 'mainnet' or 'testnet'");
+
+            if (fclNetwork === "mainnet") {
+              FlowInteractionAuditContract = "0xfd100e39d50a13e6";
+            } else {
+              FlowInteractionAuditContract = "0xf78bfc12d0a786dc";
+            }
+
+          case 29:
+            _context.next = 31;
+            return query({
+              cadence: "\n        import FlowInteractionTemplateAudit from ".concat(FlowInteractionAuditContract, "\n        pub fun main(templateId: String, auditors: [Address]): {Address:Bool} {\n          return FlowInteractionTemplateAudit.getHasTemplateBeenAuditedByAuditors(templateId: templateId, auditors: auditors)\n        }\n        "),
+              args: function args(arg, t) {
+                return [arg(recomputedTemplateID, t.String), arg(_auditors, t.Array(t.Address))];
+              }
+            });
+
+          case 31:
+            audits = _context.sent;
+            return _context.abrupt("return", audits);
+
+          case 33:
+            throw new Error("getInteractionTemplateAudits Error: Unsupported template version");
+
+          case 34:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee);
+  }));
+  return _getInteractionTemplateAudits.apply(this, arguments);
+}
+
+function generateImport(_ref) {
+  var contractName = _ref.contractName,
+      address = _ref.address;
+  return {
+    contractName: contractName,
+    address: address,
+    contract: ""
+  };
+}
+
+function findImports(cadence) {
+  var imports = [];
+  var importsReg = /import ((\w|,| )+)* from 0x\w+/g;
+  var fileImports = cadence.match(importsReg) || [];
+
+  var _iterator = _createForOfIteratorHelper__default["default"](fileImports),
+      _step;
+
+  try {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+      var fileImport = _step.value;
+      var importLineReg = /import ((\w+|, |)*) from (0x\w+)/g;
+      var importLine = importLineReg.exec(fileImport);
+      var contractsReg = /((?:\w+)+),?/g;
+      var contracts = importLine[1].match(contractsReg) || [];
+
+      var _iterator2 = _createForOfIteratorHelper__default["default"](contracts),
+          _step2;
+
+      try {
+        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+          var contract = _step2.value;
+          imports.push(generateImport({
+            address: importLine[3],
+            contractName: contract.replace(/,/g, "")
+          }));
+        }
+      } catch (err) {
+        _iterator2.e(err);
+      } finally {
+        _iterator2.f();
+      }
+    }
+  } catch (err) {
+    _iterator.e(err);
+  } finally {
+    _iterator.f();
+  }
+
+  return imports;
+}
+
+function generateDependencyPin(_x) {
+  return _generateDependencyPin.apply(this, arguments);
+}
+
+function _generateDependencyPin() {
+  _generateDependencyPin = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(_ref) {
+    var address,
+        contractName,
+        blockHeight,
+        opts,
+        horizon,
+        _i,
+        _horizon,
+        _account$contracts,
+        horizonImport,
+        account,
+        contractImports,
+        contractHashes,
+        contractHashesJoined,
+        _args = arguments;
+
+    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            address = _ref.address, contractName = _ref.contractName, blockHeight = _ref.blockHeight;
+            opts = _args.length > 1 && _args[1] !== undefined ? _args[1] : {};
+            sdk.invariant(address != undefined, "generateDependencyPin({ address }) -- address must be defined");
+            sdk.invariant(contractName != undefined, "generateDependencyPin({ contractName }) -- contractName must be defined");
+            sdk.invariant(blockHeight != undefined, "generateDependencyPin({ blockHeight }) -- blockHeight must be defined");
+            sdk.invariant(typeof address === "string", "generateDependencyPin({ address }) -- address must be a string");
+            sdk.invariant(typeof contractName === "string", "generateDependencyPin({ contractName }) -- contractName must be a string");
+            sdk.invariant(typeof blockHeight === "number", "generateDependencyPin({ blockHeight }) -- blockHeight must be a number");
+            horizon = [generateImport({
+              contractName: contractName,
+              address: address
+            })];
+            _i = 0, _horizon = horizon;
+
+          case 10:
+            if (!(_i < _horizon.length)) {
+              _context.next = 33;
+              break;
+            }
+
+            horizonImport = _horizon[_i];
+            _context.t0 = sdk.send;
+            _context.t1 = sdk.getAccount;
+            _context.next = 16;
+            return sdk.config().get(horizonImport.address, horizonImport.address);
+
+          case 16:
+            _context.t2 = _context.sent;
+            _context.t3 = (0, _context.t1)(_context.t2);
+            _context.t4 = sdk.atBlockHeight(blockHeight);
+            _context.t5 = [_context.t3, _context.t4];
+            _context.t6 = opts;
+            _context.next = 23;
+            return (0, _context.t0)(_context.t5, _context.t6).then(sdk.decode);
+
+          case 23:
+            account = _context.sent;
+            horizonImport.contract = (_account$contracts = account.contracts) === null || _account$contracts === void 0 ? void 0 : _account$contracts[horizonImport.contractName];
+
+            if (horizonImport.contract) {
+              _context.next = 28;
+              break;
+            }
+
+            console.error("Did not find expected contract", horizonImport, account);
+            throw new Error("Did not find expected contract");
+
+          case 28:
+            contractImports = findImports(horizonImport.contract);
+            horizon.push.apply(horizon, _toConsumableArray__default["default"](contractImports));
+
+          case 30:
+            _i++;
+            _context.next = 10;
+            break;
+
+          case 33:
+            contractHashes = horizon.map(function (iport) {
+              return genHash(iport.contract);
+            });
+            contractHashesJoined = contractHashes.join("");
+            return _context.abrupt("return", genHash(contractHashesJoined));
+
+          case 36:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee);
+  }));
+  return _generateDependencyPin.apply(this, arguments);
+}
+
+function generateDependencyPinAtLatestSealedBlock(_x2) {
+  return _generateDependencyPinAtLatestSealedBlock.apply(this, arguments);
+}
+
+function _generateDependencyPinAtLatestSealedBlock() {
+  _generateDependencyPinAtLatestSealedBlock = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee2(_ref2) {
+    var address,
+        contractName,
+        opts,
+        latestSealedBlock,
+        latestSealedBlockHeight,
+        _args2 = arguments;
+    return _regeneratorRuntime__default["default"].wrap(function _callee2$(_context2) {
+      while (1) {
+        switch (_context2.prev = _context2.next) {
+          case 0:
+            address = _ref2.address, contractName = _ref2.contractName;
+            opts = _args2.length > 1 && _args2[1] !== undefined ? _args2[1] : {};
+            _context2.next = 4;
+            return sdk.block({
+              sealed: true
+            }, opts);
+
+          case 4:
+            latestSealedBlock = _context2.sent;
+            latestSealedBlockHeight = latestSealedBlock === null || latestSealedBlock === void 0 ? void 0 : latestSealedBlock.height;
+            return _context2.abrupt("return", generateDependencyPin({
+              address: address,
+              contractName: contractName,
+              blockHeight: latestSealedBlockHeight
+            }, opts));
+
+          case 7:
+          case "end":
+            return _context2.stop();
+        }
+      }
+    }, _callee2);
+  }));
+  return _generateDependencyPinAtLatestSealedBlock.apply(this, arguments);
+}
+
+function normalizeInteractionTemplateInterface(templateInterface) {
+  if (templateInterface == null) return null;
+
+  switch (templateInterface["f_version"]) {
+    case "1.0.0":
+      return templateInterface;
+
+    default:
+      throw new Error("normalizeInteractionTemplateInterface Error: Invalid InteractionTemplateInterface");
+  }
+}
+
+function generateTemplateInterfaceId(_x) {
+  return _generateTemplateInterfaceId.apply(this, arguments);
+}
+
+function _generateTemplateInterfaceId() {
+  _generateTemplateInterfaceId = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee2(_ref) {
+    var templateInterface, interfaceData, encodedHex;
+    return _regeneratorRuntime__default["default"].wrap(function _callee2$(_context2) {
+      while (1) {
+        switch (_context2.prev = _context2.next) {
+          case 0:
+            templateInterface = _ref.templateInterface;
+            sdk.invariant(templateInterface != undefined, "generateTemplateInterfaceId({ templateInterface }) -- templateInterface must be defined");
+            sdk.invariant(_typeof__default["default"](templateInterface) === "object", "generateTemplateInterfaceId({ templateInterface }) -- templateInterface must be an object");
+            sdk.invariant(typeof templateInterface.f_type === "InteractionTemplateInterface", "generateTemplateInterfaceId({ templateInterface }) -- templateInterface object must be an InteractionTemplate");
+            templateInterface = normalizeInteractionTemplateInterface(templateInterface);
+            _context2.t0 = templateInterface.f_version;
+            _context2.next = _context2.t0 === "1.0.0" ? 8 : 25;
+            break;
+
+          case 8:
+            interfaceData = templateInterface.data;
+            _context2.t1 = rlp.encode;
+            _context2.next = 12;
+            return genHash("InteractionTemplateInterface");
+
+          case 12:
+            _context2.t2 = _context2.sent;
+            _context2.next = 15;
+            return genHash("1.0.0");
+
+          case 15:
+            _context2.t3 = _context2.sent;
+            _context2.next = 18;
+            return genHash(interfaceData.flip);
+
+          case 18:
+            _context2.t4 = _context2.sent;
+            _context2.next = 21;
+            return Promise.all(Object.keys(interfaceData.arguments).map( /*#__PURE__*/function () {
+              var _ref2 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(argumentLabel) {
+                return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
+                  while (1) {
+                    switch (_context.prev = _context.next) {
+                      case 0:
+                        _context.next = 2;
+                        return genHash(argumentLabel);
+
+                      case 2:
+                        _context.t0 = _context.sent;
+                        _context.next = 5;
+                        return genHash(String(interfaceData.arguments[argumentLabel].index));
+
+                      case 5:
+                        _context.t1 = _context.sent;
+                        _context.next = 8;
+                        return genHash(interfaceData.arguments[argumentLabel].type);
+
+                      case 8:
+                        _context.t2 = _context.sent;
+                        return _context.abrupt("return", [_context.t0, _context.t1, _context.t2]);
+
+                      case 10:
+                      case "end":
+                        return _context.stop();
+                    }
+                  }
+                }, _callee);
+              }));
+
+              return function (_x2) {
+                return _ref2.apply(this, arguments);
+              };
+            }()));
+
+          case 21:
+            _context2.t5 = _context2.sent;
+            _context2.t6 = [_context2.t2, _context2.t3, _context2.t4, _context2.t5];
+            encodedHex = (0, _context2.t1)(_context2.t6).toString("hex");
+            return _context2.abrupt("return", genHash(encodedHex));
+
+          case 25:
+            throw new Error("generateTemplateInterfaceId Error: Unsupported templateInterface version");
+
+          case 26:
+          case "end":
+            return _context2.stop();
+        }
+      }
+    }, _callee2);
+  }));
+  return _generateTemplateInterfaceId.apply(this, arguments);
+}
+
+function verifyDependencyPinsSame(_x) {
+  return _verifyDependencyPinsSame.apply(this, arguments);
+}
+
+function _verifyDependencyPinsSame() {
+  _verifyDependencyPinsSame = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(_ref) {
+    var template,
+        blockHeight,
+        network,
+        opts,
+        templateDependenciesPlaceholderKeys,
+        _i,
+        _templateDependencies,
+        templateDependencyPlaceholderKey,
+        templateDependencyPlaceholder,
+        templateDependencyPlaceholderContractNames,
+        _i2,
+        _templateDependencyPl,
+        templateDependencyPlaceholderContractName,
+        templateDependencyPlaceholderContractNetworks,
+        templateDependency,
+        pin,
+        _args = arguments;
+
+    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            template = _ref.template, blockHeight = _ref.blockHeight, network = _ref.network;
+            opts = _args.length > 1 && _args[1] !== undefined ? _args[1] : {};
+            sdk.invariant(template != undefined, "generateDependencyPin({ template }) -- template must be defined");
+            sdk.invariant(_typeof__default["default"](template) === "object", "generateDependencyPin({ template }) -- template must be an object");
+            sdk.invariant(template.f_type === "InteractionTemplate", "generateDependencyPin({ template }) -- template must be an InteractionTemplate");
+            template = normalizeInteractionTemplate(template);
+            sdk.invariant(network != undefined, "generateDependencyPin({ network }) network must be defined");
+            sdk.invariant(blockHeight != undefined, "generateDependencyPin({ blockHeight }) blockHeight must be defined");
+            sdk.invariant(typeof blockHeight === "number", "generateDependencyPin({ blockHeight }) blockHeight must be a number");
+            _context.t0 = template.f_version;
+            _context.next = _context.t0 === "1.0.0" ? 12 : 38;
+            break;
+
+          case 12:
+            templateDependenciesPlaceholderKeys = Object.keys(template.data.dependencies);
+            _i = 0, _templateDependencies = templateDependenciesPlaceholderKeys;
+
+          case 14:
+            if (!(_i < _templateDependencies.length)) {
+              _context.next = 37;
+              break;
+            }
+
+            templateDependencyPlaceholderKey = _templateDependencies[_i];
+            templateDependencyPlaceholder = template.data.dependencies[templateDependencyPlaceholderKey];
+            templateDependencyPlaceholderContractNames = Object.keys(templateDependencyPlaceholder);
+            _i2 = 0, _templateDependencyPl = templateDependencyPlaceholderContractNames;
+
+          case 19:
+            if (!(_i2 < _templateDependencyPl.length)) {
+              _context.next = 34;
+              break;
+            }
+
+            templateDependencyPlaceholderContractName = _templateDependencyPl[_i2];
+            templateDependencyPlaceholderContractNetworks = template.data.dependencies[templateDependencyPlaceholderKey][templateDependencyPlaceholderContractName];
+            templateDependency = templateDependencyPlaceholderContractNetworks[network];
+
+            if (!(typeof templateDependency === "undefined")) {
+              _context.next = 25;
+              break;
+            }
+
+            return _context.abrupt("continue", 31);
+
+          case 25:
+            _context.next = 27;
+            return generateDependencyPin({
+              address: templateDependency.address,
+              contractName: templateDependency.contract,
+              blockHeight: blockHeight
+            }, opts);
+
+          case 27:
+            pin = _context.sent;
+
+            if (!(pin !== templateDependency.pin)) {
+              _context.next = 31;
+              break;
+            }
+
+            utilLogger.log({
+              title: "verifyDependencyPinsSame Debug Error",
+              message: "Could not recompute and match dependency pin.\n                                address: ".concat(templateDependency.address, " | contract: ").concat(templateDependency.contract, "\n                                computed: ").concat(pin, "\n                                template: ").concat(templateDependency.pin, "\n                            "),
+              level: utilLogger.LEVELS.debug
+            });
+            return _context.abrupt("return", false);
+
+          case 31:
+            _i2++;
+            _context.next = 19;
+            break;
+
+          case 34:
+            _i++;
+            _context.next = 14;
+            break;
+
+          case 37:
+            return _context.abrupt("return", true);
+
+          case 38:
+            throw new Error("verifyDependencyPinsSame Error: Unsupported template version");
+
+          case 39:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee);
+  }));
+  return _verifyDependencyPinsSame.apply(this, arguments);
+}
+
+function verifyDependencyPinsSameAtLatestSealedBlock(_x2) {
+  return _verifyDependencyPinsSameAtLatestSealedBlock.apply(this, arguments);
+}
+
+function _verifyDependencyPinsSameAtLatestSealedBlock() {
+  _verifyDependencyPinsSameAtLatestSealedBlock = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee2(_ref2) {
+    var template,
+        network,
+        opts,
+        latestSealedBlock,
+        latestSealedBlockHeight,
+        _args2 = arguments;
+    return _regeneratorRuntime__default["default"].wrap(function _callee2$(_context2) {
+      while (1) {
+        switch (_context2.prev = _context2.next) {
+          case 0:
+            template = _ref2.template, network = _ref2.network;
+            opts = _args2.length > 1 && _args2[1] !== undefined ? _args2[1] : {};
+            _context2.next = 4;
+            return sdk.block({
+              sealed: true
+            });
+
+          case 4:
+            latestSealedBlock = _context2.sent;
+            latestSealedBlockHeight = latestSealedBlock === null || latestSealedBlock === void 0 ? void 0 : latestSealedBlock.height;
+            return _context2.abrupt("return", verifyDependencyPinsSame({
+              template: template,
+              network: network,
+              blockHeight: latestSealedBlockHeight
+            }, opts));
+
+          case 7:
+          case "end":
+            return _context2.stop();
+        }
+      }
+    }, _callee2);
+  }));
+  return _verifyDependencyPinsSameAtLatestSealedBlock.apply(this, arguments);
+}
+
+function getTemplateMessage(_ref) {
+  var _template$data, _messages$messageKey, _messages$messageKey$;
+
+  var _ref$localization = _ref.localization,
+      localization = _ref$localization === void 0 ? "en-US" : _ref$localization,
+      messageKey = _ref.messageKey,
+      template = _ref.template;
+  sdk.invariant(messageKey, "getMessage({ messageKey }) -- messageKey must be defined");
+  sdk.invariant(typeof messageKey === "stirng", "getMessage({ messageKey }) -- messageKey must be a string");
+  sdk.invariant(localization, "getMessage({ localization }) -- localization must be defined");
+  sdk.invariant(typeof localization === "stirng", "getMessage({ localization }) -- localization must be a string");
+  sdk.invariant(template != undefined, "generateTemplateId({ template }) -- template must be defined");
+  sdk.invariant(_typeof__default["default"](template) === "object", "generateTemplateId({ template }) -- template must be an object");
+  sdk.invariant(typeof template.f_type === "InteractionTemplate", "generateTemplateId({ template }) -- template object must be an InteractionTemplate");
+  var messages = template === null || template === void 0 ? void 0 : (_template$data = template.data) === null || _template$data === void 0 ? void 0 : _template$data.messages;
+  return messages === null || messages === void 0 ? void 0 : (_messages$messageKey = messages[messageKey]) === null || _messages$messageKey === void 0 ? void 0 : (_messages$messageKey$ = _messages$messageKey.i18n) === null || _messages$messageKey$ === void 0 ? void 0 : _messages$messageKey$[localization];
+}
+
+function getTemplateArgumentMessage(_ref) {
+  var _template$data, _args$argumentLabel, _args$argumentLabel$m, _args$argumentLabel$m2, _args$argumentLabel$m3;
+
+  var _ref$localization = _ref.localization,
+      localization = _ref$localization === void 0 ? "en-US" : _ref$localization,
+      argumentLabel = _ref.argumentLabel,
+      messageKey = _ref.messageKey,
+      template = _ref.template;
+  sdk.invariant(messageKey, "getMessage({ messageKey }) -- messageKey must be defined");
+  sdk.invariant(typeof messageKey === "stirng", "getMessage({ messageKey }) -- messageKey must be a string");
+  sdk.invariant(argumentLabel, "getMessage({ argumentLabel }) -- argumentLabel must be defined");
+  sdk.invariant(typeof messageKey === "stirng", "getMessage({ argumentLabel }) -- argumentLabel must be a string");
+  sdk.invariant(localization, "getMessage({ localization }) -- localization must be defined");
+  sdk.invariant(typeof localization === "stirng", "getMessage({ localization }) -- localization must be a string");
+  sdk.invariant(template != undefined, "generateTemplateId({ template }) -- template must be defined");
+  sdk.invariant(_typeof__default["default"](template) === "object", "generateTemplateId({ template }) -- template must be an object");
+  sdk.invariant(typeof template.f_type === "InteractionTemplate", "generateTemplateId({ template }) -- template object must be an InteractionTemplate");
+  var args = template === null || template === void 0 ? void 0 : (_template$data = template.data) === null || _template$data === void 0 ? void 0 : _template$data.arguments;
+  return args === null || args === void 0 ? void 0 : (_args$argumentLabel = args[argumentLabel]) === null || _args$argumentLabel === void 0 ? void 0 : (_args$argumentLabel$m = _args$argumentLabel.messages) === null || _args$argumentLabel$m === void 0 ? void 0 : (_args$argumentLabel$m2 = _args$argumentLabel$m[messageKey]) === null || _args$argumentLabel$m2 === void 0 ? void 0 : (_args$argumentLabel$m3 = _args$argumentLabel$m2.i18n) === null || _args$argumentLabel$m3 === void 0 ? void 0 : _args$argumentLabel$m3[localization];
+}
+
+var index = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  getInteractionTemplateAudits: getInteractionTemplateAudits,
+  generateDependencyPin: generateDependencyPin,
+  generateDependencyPinAtLatestSealedBlock: generateDependencyPinAtLatestSealedBlock,
+  generateTemplateId: generateTemplateId,
+  generateTemplateInterfaceId: generateTemplateInterfaceId,
+  verifyDependencyPinsSame: verifyDependencyPinsSame,
+  verifyDependencyPinsSameAtLatestSealedBlock: verifyDependencyPinsSameAtLatestSealedBlock,
+  deriveCadenceByNetwork: deriveCadenceByNetwork,
+  getTemplateMessage: getTemplateMessage,
+  getTemplateArgumentMessage: getTemplateArgumentMessage
+});
+
+var authenticate = function authenticate() {
+  var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  return currentUser().authenticate(opts);
+};
+var unauthenticate = function unauthenticate() {
+  return currentUser().unauthenticate();
+};
+var reauthenticate = function reauthenticate() {
+  var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  currentUser().unauthenticate();
+  return currentUser().authenticate(opts);
+};
+var signUp = function signUp() {
+  var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  return currentUser().authenticate(opts);
+};
+var logIn = function logIn() {
+  var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  return currentUser().authenticate(opts);
+};
+var authz = currentUser().authorization;
+var t = t__namespace;
+
+Object.defineProperty(exports, 'config', {
+  enumerable: true,
+  get: function () { return config.config; }
+});
+Object.defineProperty(exports, 'TestUtils', {
+  enumerable: true,
+  get: function () { return sdk.TestUtils; }
+});
+Object.defineProperty(exports, 'account', {
+  enumerable: true,
+  get: function () { return sdk.account; }
+});
+Object.defineProperty(exports, 'arg', {
+  enumerable: true,
+  get: function () { return sdk.arg; }
+});
+Object.defineProperty(exports, 'args', {
+  enumerable: true,
+  get: function () { return sdk.args; }
+});
+Object.defineProperty(exports, 'atBlockHeight', {
+  enumerable: true,
+  get: function () { return sdk.atBlockHeight; }
+});
+Object.defineProperty(exports, 'atBlockId', {
+  enumerable: true,
+  get: function () { return sdk.atBlockId; }
+});
+Object.defineProperty(exports, 'authorization', {
+  enumerable: true,
+  get: function () { return sdk.authorization; }
+});
+Object.defineProperty(exports, 'authorizations', {
+  enumerable: true,
+  get: function () { return sdk.authorizations; }
+});
+Object.defineProperty(exports, 'block', {
+  enumerable: true,
+  get: function () { return sdk.block; }
+});
+Object.defineProperty(exports, 'build', {
+  enumerable: true,
+  get: function () { return sdk.build; }
+});
+Object.defineProperty(exports, 'createSignableVoucher', {
+  enumerable: true,
+  get: function () { return sdk.createSignableVoucher; }
+});
+Object.defineProperty(exports, 'decode', {
+  enumerable: true,
+  get: function () { return sdk.decode; }
+});
+Object.defineProperty(exports, 'getAccount', {
+  enumerable: true,
+  get: function () { return sdk.getAccount; }
+});
+Object.defineProperty(exports, 'getBlock', {
+  enumerable: true,
+  get: function () { return sdk.getBlock; }
+});
+Object.defineProperty(exports, 'getBlockHeader', {
+  enumerable: true,
+  get: function () { return sdk.getBlockHeader; }
+});
+Object.defineProperty(exports, 'getCollection', {
+  enumerable: true,
+  get: function () { return sdk.getCollection; }
+});
+Object.defineProperty(exports, 'getEvents', {
+  enumerable: true,
+  get: function () { return sdk.getEvents; }
+});
+Object.defineProperty(exports, 'getEventsAtBlockHeightRange', {
+  enumerable: true,
+  get: function () { return sdk.getEventsAtBlockHeightRange; }
+});
+Object.defineProperty(exports, 'getEventsAtBlockIds', {
+  enumerable: true,
+  get: function () { return sdk.getEventsAtBlockIds; }
+});
+Object.defineProperty(exports, 'getTransaction', {
+  enumerable: true,
+  get: function () { return sdk.getTransaction; }
+});
+Object.defineProperty(exports, 'getTransactionStatus', {
+  enumerable: true,
+  get: function () { return sdk.getTransactionStatus; }
+});
+Object.defineProperty(exports, 'invariant', {
+  enumerable: true,
+  get: function () { return sdk.invariant; }
+});
+Object.defineProperty(exports, 'isBad', {
+  enumerable: true,
+  get: function () { return sdk.isBad; }
+});
+Object.defineProperty(exports, 'isOk', {
+  enumerable: true,
+  get: function () { return sdk.isOk; }
+});
+Object.defineProperty(exports, 'limit', {
+  enumerable: true,
+  get: function () { return sdk.limit; }
+});
+Object.defineProperty(exports, 'param', {
+  enumerable: true,
+  get: function () { return sdk.param; }
+});
+Object.defineProperty(exports, 'params', {
+  enumerable: true,
+  get: function () { return sdk.params; }
+});
+Object.defineProperty(exports, 'payer', {
+  enumerable: true,
+  get: function () { return sdk.payer; }
+});
+Object.defineProperty(exports, 'ping', {
+  enumerable: true,
+  get: function () { return sdk.ping; }
+});
+Object.defineProperty(exports, 'pipe', {
+  enumerable: true,
+  get: function () { return sdk.pipe; }
+});
+Object.defineProperty(exports, 'proposer', {
+  enumerable: true,
+  get: function () { return sdk.proposer; }
+});
+Object.defineProperty(exports, 'ref', {
+  enumerable: true,
+  get: function () { return sdk.ref; }
+});
+Object.defineProperty(exports, 'script', {
+  enumerable: true,
+  get: function () { return sdk.script; }
+});
+Object.defineProperty(exports, 'send', {
+  enumerable: true,
+  get: function () { return sdk.send; }
+});
+Object.defineProperty(exports, 'transaction', {
+  enumerable: true,
+  get: function () { return sdk.transaction; }
+});
+Object.defineProperty(exports, 'validator', {
+  enumerable: true,
+  get: function () { return sdk.validator; }
+});
+Object.defineProperty(exports, 'voucherIntercept', {
+  enumerable: true,
+  get: function () { return sdk.voucherIntercept; }
+});
+Object.defineProperty(exports, 'voucherToTxId', {
+  enumerable: true,
+  get: function () { return sdk.voucherToTxId; }
+});
+Object.defineProperty(exports, 'why', {
+  enumerable: true,
+  get: function () { return sdk.why; }
+});
+Object.defineProperty(exports, 'display', {
+  enumerable: true,
+  get: function () { return utilAddress.display; }
+});
+Object.defineProperty(exports, 'sansPrefix', {
+  enumerable: true,
+  get: function () { return utilAddress.sansPrefix; }
+});
+Object.defineProperty(exports, 'withPrefix', {
+  enumerable: true,
+  get: function () { return utilAddress.withPrefix; }
+});
+Object.defineProperty(exports, 'cadence', {
+  enumerable: true,
+  get: function () { return utilTemplate.template; }
+});
+Object.defineProperty(exports, 'cdc', {
+  enumerable: true,
+  get: function () { return utilTemplate.template; }
+});
+exports.AppUtils = index$1;
+exports.InteractionTemplateUtils = index;
+exports.VERSION = VERSION;
+exports.WalletUtils = index$2;
+exports.authenticate = authenticate;
+exports.authz = authz;
+exports.currentUser = currentUser;
+exports.discovery = discovery;
+exports.events = events;
+exports.logIn = logIn;
+exports.mutate = mutate;
+exports.pluginRegistry = pluginRegistry;
+exports.query = query;
+exports.reauthenticate = reauthenticate;
+exports.serialize = serialize;
+exports.signUp = signUp;
+exports.t = t;
+exports.tx = transaction;
+exports.unauthenticate = unauthenticate;
+exports.verifyUserSignatures = verifyUserSignatures;
+
+
+},{"@babel/runtime/helpers/asyncToGenerator":5,"@babel/runtime/helpers/createForOfIteratorHelper":6,"@babel/runtime/helpers/defineProperty":7,"@babel/runtime/helpers/objectSpread2":12,"@babel/runtime/helpers/slicedToArray":14,"@babel/runtime/helpers/toConsumableArray":15,"@babel/runtime/helpers/typeof":18,"@babel/runtime/regenerator":20,"@onflow/config":180,"@onflow/rlp":182,"@onflow/sdk":183,"@onflow/types":185,"@onflow/util-actor":186,"@onflow/util-address":187,"@onflow/util-invariant":188,"@onflow/util-logger":189,"@onflow/util-template":190,"@onflow/util-uid":191,"buffer":273,"node-fetch":241}],182:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var buffer = require('buffer');
+
+/**
+ * Built on top of rlp library, removing the BN dependency for the flow.
+ * Package : https://github.com/ethereumjs/rlp
+ * RLP License : https://github.com/ethereumjs/rlp/blob/master/LICENSE
+ *
+ * ethereumjs/rlp is licensed under the
+ * Mozilla Public License 2.0
+ * Permissions of this weak copyleft license are conditioned on making available source code of licensed files and modifications of those files under the same license (or in certain cases, one of the GNU licenses). Copyright and license notices must be preserved. Contributors provide an express grant of patent rights. However, a larger work using the licensed work may be distributed under different terms and without source code for files added in the larger work.
+ **/
+
+/**
+ * @param input - will be converted to buffer
+ * @returns returns buffer of encoded data
+ **/
+function encode(input) {
+  if (Array.isArray(input)) {
+    var output = [];
+    for (var i = 0; i < input.length; i++) {
+      output.push(encode(input[i]));
+    }
+    var buf = buffer.Buffer.concat(output);
+    return buffer.Buffer.concat([encodeLength(buf.length, 192), buf]);
+  } else {
+    var inputBuf = toBuffer(input);
+    return inputBuf.length === 1 && inputBuf[0] < 128 ? inputBuf : buffer.Buffer.concat([encodeLength(inputBuf.length, 128), inputBuf]);
+  }
+}
+
+/**
+ * Parse integers. Check if there is no leading zeros
+ * @param v The value to parse
+ * @param base The base to parse the integer into
+ */
+function safeParseInt(v, base) {
+  if (v.slice(0, 2) === "00") {
+    throw new Error("invalid RLP: extra zeros");
+  }
+  return parseInt(v, base);
+}
+function encodeLength(len, offset) {
+  if (len < 56) {
+    return buffer.Buffer.from([len + offset]);
+  } else {
+    var hexLength = intToHex(len);
+    var lLength = hexLength.length / 2;
+    var firstByte = intToHex(offset + 55 + lLength);
+    return buffer.Buffer.from(firstByte + hexLength, "hex");
+  }
+}
+
+/**
+ * Built on top of rlp library, removing the BN dependency for the flow.
+ * Package : https://github.com/ethereumjs/rlp
+ * RLP License : https://github.com/ethereumjs/rlp/blob/master/LICENSE
+ *
+ * ethereumjs/rlp is licensed under the
+ * Mozilla Public License 2.0
+ * Permissions of this weak copyleft license are conditioned on making available source code of licensed files and modifications of those files under the same license (or in certain cases, one of the GNU licenses). Copyright and license notices must be preserved. Contributors provide an express grant of patent rights. However, a larger work using the licensed work may be distributed under different terms and without source code for files added in the larger work.
+ **/
+
+/**
+ * @param input - will be converted to buffer
+ * @param stream Is the input a stream (false by default)
+ * @returns returns buffer of encoded data
+ **/
+function decode(input, stream) {
+  if (stream === void 0) {
+    stream = false;
+  }
+  if (!input || input.length === 0) {
+    return buffer.Buffer.from([]);
+  }
+  var inputBuffer = toBuffer(input);
+  var decoded = _decode(inputBuffer);
+  if (stream) {
+    return decoded;
+  }
+  if (decoded.remainder.length !== 0) {
+    throw new Error("invalid remainder");
+  }
+  return decoded.data;
+}
+
+/**
+ * Get the length of the RLP input
+ * @param input
+ * @returns The length of the input or an empty Buffer if no input
+ */
+function getLength(input) {
+  if (!input || input.length === 0) {
+    return buffer.Buffer.from([]);
+  }
+  var inputBuffer = toBuffer(input);
+  var firstByte = inputBuffer[0];
+  if (firstByte <= 0x7f) {
+    return inputBuffer.length;
+  } else if (firstByte <= 0xb7) {
+    return firstByte - 0x7f;
+  } else if (firstByte <= 0xbf) {
+    return firstByte - 0xb6;
+  } else if (firstByte <= 0xf7) {
+    // a list between  0-55 bytes long
+    return firstByte - 0xbf;
+  } else {
+    // a list  over 55 bytes long
+    var llength = firstByte - 0xf6;
+    var length = safeParseInt(inputBuffer.slice(1, llength).toString("hex"), 16);
+    return llength + length;
+  }
+}
+
+/** Decode an input with RLP */
+function _decode(input) {
+  var length, llength, data, innerRemainder, d;
+  var decoded = [];
+  var firstByte = input[0];
+  if (firstByte <= 0x7f) {
+    // a single byte whose value is in the [0x00, 0x7f] range, that byte is its own RLP encoding.
+    return {
+      data: input.slice(0, 1),
+      remainder: input.slice(1)
+    };
+  } else if (firstByte <= 0xb7) {
+    // string is 0-55 bytes long. A single byte with value 0x80 plus the length of the string followed by the string
+    // The range of the first byte is [0x80, 0xb7]
+    length = firstByte - 0x7f;
+    // set 0x80 null to 0
+    if (firstByte === 0x80) {
+      data = buffer.Buffer.from([]);
+    } else {
+      data = input.slice(1, length);
+    }
+    if (length === 2 && data[0] < 0x80) {
+      throw new Error("invalid rlp encoding: byte must be less 0x80");
+    }
+    return {
+      data: data,
+      remainder: input.slice(length)
+    };
+  } else if (firstByte <= 0xbf) {
+    llength = firstByte - 0xb6;
+    length = safeParseInt(input.slice(1, llength).toString("hex"), 16);
+    data = input.slice(llength, length + llength);
+    if (data.length < length) {
+      throw new Error("invalid RLP");
+    }
+    return {
+      data: data,
+      remainder: input.slice(length + llength)
+    };
+  } else if (firstByte <= 0xf7) {
+    // a list between  0-55 bytes long
+    length = firstByte - 0xbf;
+    innerRemainder = input.slice(1, length);
+    while (innerRemainder.length) {
+      d = _decode(innerRemainder);
+      decoded.push(d.data);
+      innerRemainder = d.remainder;
+    }
+    return {
+      data: decoded,
+      remainder: input.slice(length)
+    };
+  } else {
+    // a list  over 55 bytes long
+    llength = firstByte - 0xf6;
+    length = safeParseInt(input.slice(1, llength).toString("hex"), 16);
+    var totalLength = llength + length;
+    if (totalLength > input.length) {
+      throw new Error("invalid rlp: total length is larger than the data");
+    }
+    innerRemainder = input.slice(llength, totalLength);
+    if (innerRemainder.length === 0) {
+      throw new Error("invalid rlp, List has a invalid length");
+    }
+    while (innerRemainder.length) {
+      d = _decode(innerRemainder);
+      decoded.push(d.data);
+      innerRemainder = d.remainder;
+    }
+    return {
+      data: decoded,
+      remainder: input.slice(totalLength)
+    };
+  }
+}
+/** Check if a string is prefixed by 0x */
+function isHexPrefixed(str) {
+  return str.slice(0, 2) === "0x";
+}
+/** Removes 0x from a given String */
+function stripHexPrefix(str) {
+  if (typeof str !== "string") {
+    return str;
+  }
+  return isHexPrefixed(str) ? str.slice(2) : str;
+}
+/** Transform an integer into its hexadecimal value */
+function intToHex(integer) {
+  if (integer < 0) {
+    throw new Error("Invalid integer as argument, must be unsigned!");
+  }
+  var hex = integer.toString(16);
+  return hex.length % 2 ? "0" + hex : hex;
+}
+/** Pad a string to be even */
+function padToEven(a) {
+  return a.length % 2 ? "0" + a : a;
+}
+/** Transform an integer into a Buffer */
+function intToBuffer(integer) {
+  var hex = intToHex(integer);
+  return buffer.Buffer.from(hex, "hex");
+}
+
+/** Transform anything into a Buffer */
+function toBuffer(v) {
+  if (!buffer.Buffer.isBuffer(v)) {
+    if (typeof v === "string") {
+      if (isHexPrefixed(v)) {
+        return buffer.Buffer.from(padToEven(stripHexPrefix(v)), "hex");
+      } else {
+        return buffer.Buffer.from(v);
+      }
+    } else if (typeof v === "number") {
+      if (!v) {
+        return buffer.Buffer.from([]);
+      } else {
+        return intToBuffer(v);
+      }
+    } else if (v === null || v === undefined) {
+      return buffer.Buffer.from([]);
+    } else if (v instanceof Uint8Array) {
+      return buffer.Buffer.from(v);
+    } else {
+      throw new Error("invalid type");
+    }
+  }
+  return v;
+}
+
+Object.defineProperty(exports, 'Buffer', {
+  enumerable: true,
+  get: function () { return buffer.Buffer; }
+});
+exports.decode = decode;
+exports.encode = encode;
+exports.getLength = getLength;
+exports.toBuffer = toBuffer;
+
+
+},{"buffer":273}],183:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var logger = require('@onflow/util-logger');
+var utilInvariant = require('@onflow/util-invariant');
+var uuid = require('uuid');
+var config = require('@onflow/config');
+var rlp = require('@onflow/rlp');
+var transportHttp = require('@onflow/transport-http');
+var utilAddress = require('@onflow/util-address');
+var sha3 = require('sha3');
+var utilTemplate = require('@onflow/util-template');
+
+function _interopNamespace(e) {
+  if (e && e.__esModule) return e;
+  var n = Object.create(null);
+  if (e) {
+    Object.keys(e).forEach(function (k) {
+      if (k !== 'default') {
+        var d = Object.getOwnPropertyDescriptor(e, k);
+        Object.defineProperty(n, k, d.get ? d : {
+          enumerable: true,
+          get: function () { return e[k]; }
+        });
+      }
+    });
+  }
+  n["default"] = e;
+  return Object.freeze(n);
+}
+
+var logger__namespace = /*#__PURE__*/_interopNamespace(logger);
+
+const UNKNOWN /*                       */ = "UNKNOWN";
+const SCRIPT /*                        */ = "SCRIPT";
+const TRANSACTION /*                   */ = "TRANSACTION";
+const GET_TRANSACTION_STATUS /*        */ = "GET_TRANSACTION_STATUS";
+const GET_ACCOUNT /*                   */ = "GET_ACCOUNT";
+const GET_EVENTS /*                    */ = "GET_EVENTS";
+const PING /*                          */ = "PING";
+const GET_TRANSACTION /*               */ = "GET_TRANSACTION";
+const GET_BLOCK /*                     */ = "GET_BLOCK";
+const GET_BLOCK_HEADER /*              */ = "GET_BLOCK_HEADER";
+const GET_COLLECTION /*                */ = "GET_COLLECTION";
+const GET_NETWORK_PARAMETERS /*        */ = "GET_NETWORK_PARAMETERS";
+const BAD /* */ = "BAD";
+const OK /*  */ = "OK";
+const ACCOUNT /*  */ = "ACCOUNT";
+const PARAM /*    */ = "PARAM";
+const ARGUMENT /* */ = "ARGUMENT";
+const AUTHORIZER /* */ = "authorizer";
+const PAYER /*      */ = "payer";
+const PROPOSER /*   */ = "proposer";
+const ACCT = `{
+  "kind":"${ACCOUNT}",
+  "tempId":null,
+  "addr":null,
+  "keyId":null,
+  "sequenceNum":null,
+  "signature":null,
+  "signingFunction":null,
+  "resolve":null,
+  "role": {
+    "proposer":false,
+    "authorizer":false,
+    "payer":false,
+    "param":false
+  }
+}`;
+const ARG = `{
+  "kind":"${ARGUMENT}",
+  "tempId":null,
+  "value":null,
+  "asArgument":null,
+  "xform":null,
+  "resolve": null,
+  "resolveArgument": null
+}`;
+const IX = `{
+  "tag":"${UNKNOWN}",
+  "assigns":{},
+  "status":"${OK}",
+  "reason":null,
+  "accounts":{},
+  "params":{},
+  "arguments":{},
+  "message": {
+    "cadence":null,
+    "refBlock":null,
+    "computeLimit":null,
+    "proposer":null,
+    "payer":null,
+    "authorizations":[],
+    "params":[],
+    "arguments":[]
+  },
+  "proposer":null,
+  "authorizations":[],
+  "payer":[],
+  "events": {
+    "eventType":null,
+    "start":null,
+    "end":null,
+    "blockIds":[]
+  },
+  "transaction": {
+    "id":null
+  },
+  "block": {
+    "id":null,
+    "height":null,
+    "isSealed":null
+  },
+  "account": {
+    "addr":null
+  },
+  "collection": {
+    "id":null
+  }
+}`;
+const KEYS = new Set(Object.keys(JSON.parse(IX)));
+const interaction = () => JSON.parse(IX);
+const isNumber$1 = d => typeof d === "number";
+const isArray$1 = d => Array.isArray(d);
+const isObj = d => d !== null && typeof d === "object";
+const isNull = d => d == null;
+const isFn$3 = d => typeof d === "function";
+const isInteraction = ix => {
+  if (!isObj(ix) || isNull(ix) || isNumber$1(ix)) return false;
+  for (let key of KEYS) if (!ix.hasOwnProperty(key)) return false;
+  return true;
+};
+const Ok = ix => {
+  ix.status = OK;
+  return ix;
+};
+const Bad = (ix, reason) => {
+  ix.status = BAD;
+  ix.reason = reason;
+  return ix;
+};
+const makeIx = wat => ix => {
+  ix.tag = wat;
+  return Ok(ix);
+};
+const prepAccountKeyId = acct => {
+  if (acct.keyId == null) return acct;
+  utilInvariant.invariant(!isNaN(parseInt(acct.keyId)), "account.keyId must be an integer");
+  return {
+    ...acct,
+    keyId: parseInt(acct.keyId)
+  };
+};
+const prepAccount = function (acct) {
+  let opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  return ix => {
+    utilInvariant.invariant(typeof acct === "function" || typeof acct === "object", "prepAccount must be passed an authorization function or an account object");
+    utilInvariant.invariant(opts.role != null, "Account must have a role");
+    const ACCOUNT = JSON.parse(ACCT);
+    const role = opts.role;
+    const tempId = uuid.v4();
+    if (acct.authorization && isFn$3(acct.authorization)) acct = {
+      resolve: acct.authorization
+    };
+    if (!acct.authorization && isFn$3(acct)) acct = {
+      resolve: acct
+    };
+    const resolve = acct.resolve;
+    if (resolve) acct.resolve = function (acct) {
+      for (var _len = arguments.length, rest = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+        rest[_key - 1] = arguments[_key];
+      }
+      return [resolve, prepAccountKeyId].reduce(async (d, fn) => fn(await d, ...rest), acct);
+    };
+    acct = prepAccountKeyId(acct);
+    ix.accounts[tempId] = {
+      ...ACCOUNT,
+      tempId,
+      ...acct,
+      role: {
+        ...ACCOUNT.role,
+        ...(typeof acct.role === "object" ? acct.role : {}),
+        [role]: true
+      }
+    };
+    if (role === AUTHORIZER) {
+      ix.authorizations.push(tempId);
+    } else if (role === PAYER) {
+      ix.payer.push(tempId);
+    } else {
+      ix[role] = tempId;
+    }
+    return ix;
+  };
+};
+const makeArgument = arg => ix => {
+  let tempId = uuid.v4();
+  ix.message.arguments.push(tempId);
+  ix.arguments[tempId] = JSON.parse(ARG);
+  ix.arguments[tempId].tempId = tempId;
+  ix.arguments[tempId].value = arg.value;
+  ix.arguments[tempId].asArgument = arg.asArgument;
+  ix.arguments[tempId].xform = arg.xform;
+  ix.arguments[tempId].resolve = arg.resolve;
+  ix.arguments[tempId].resolveArgument = isFn$3(arg.resolveArgument) ? arg.resolveArgument.bind(arg) : arg.resolveArgument;
+  return Ok(ix);
+};
+const makeUnknown /*                 */ = makeIx(UNKNOWN);
+const makeScript /*                  */ = makeIx(SCRIPT);
+const makeTransaction /*             */ = makeIx(TRANSACTION);
+const makeGetTransactionStatus /*    */ = makeIx(GET_TRANSACTION_STATUS);
+const makeGetTransaction /*          */ = makeIx(GET_TRANSACTION);
+const makeGetAccount /*              */ = makeIx(GET_ACCOUNT);
+const makeGetEvents /*               */ = makeIx(GET_EVENTS);
+const makePing /*                    */ = makeIx(PING);
+const makeGetBlock /*                */ = makeIx(GET_BLOCK);
+const makeGetBlockHeader /*          */ = makeIx(GET_BLOCK_HEADER);
+const makeGetCollection /*           */ = makeIx(GET_COLLECTION);
+const makeGetNetworkParameters /*    */ = makeIx(GET_NETWORK_PARAMETERS);
+const is = wat => ix => ix.tag === wat;
+const isUnknown /*                 */ = is(UNKNOWN);
+const isScript /*                  */ = is(SCRIPT);
+const isTransaction /*             */ = is(TRANSACTION);
+const isGetTransactionStatus /*    */ = is(GET_TRANSACTION_STATUS);
+const isGetTransaction /*          */ = is(GET_TRANSACTION);
+const isGetAccount /*              */ = is(GET_ACCOUNT);
+const isGetEvents /*               */ = is(GET_EVENTS);
+const isPing /*                    */ = is(PING);
+const isGetBlock /*                */ = is(GET_BLOCK);
+const isGetBlockHeader /*          */ = is(GET_BLOCK_HEADER);
+const isGetCollection /*           */ = is(GET_COLLECTION);
+const isGetNetworkParameters /*    */ = is(GET_NETWORK_PARAMETERS);
+const isOk /*  */ = ix => ix.status === OK;
+const isBad /* */ = ix => ix.status === BAD;
+const why /*   */ = ix => ix.reason;
+const isAccount /*  */ = account => account.kind === ACCOUNT;
+const isParam /*    */ = param => param.kind === PARAM;
+const isArgument /* */ = argument => argument.kind === ARGUMENT;
+const hardMode = ix => {
+  for (let key of Object.keys(ix)) {
+    if (!KEYS.has(key)) throw new Error(`"${key}" is an invalid root level Interaction property.`);
+  }
+  return ix;
+};
+const recPipe = async function (ix) {
+  let fns = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+  try {
+    ix = hardMode(await ix);
+    if (isBad(ix)) throw new Error(`Interaction Error: ${ix.reason}`);
+    if (!fns.length) return ix;
+    const [hd, ...rest] = fns;
+    const cur = await hd;
+    if (isFn$3(cur)) return recPipe(cur(ix), rest);
+    if (isNull(cur) || !cur) return recPipe(ix, rest);
+    if (isInteraction(cur)) return recPipe(cur, rest);
+    throw new Error("Invalid Interaction Composition");
+  } catch (e) {
+    throw e;
+  }
+};
+const pipe = function () {
+  for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+    args[_key2] = arguments[_key2];
+  }
+  const [arg1, arg2] = args;
+  if (isArray$1(arg1) && arg2 == null) return d => pipe(d, arg1);
+  return recPipe(arg1, arg2);
+};
+const identity$1 = v => v;
+const get = (ix, key, fallback) => {
+  return ix.assigns[key] == null ? fallback : ix.assigns[key];
+};
+const put = (key, value) => ix => {
+  ix.assigns[key] = value;
+  return Ok(ix);
+};
+const update = function (key) {
+  let fn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : identity$1;
+  return ix => {
+    ix.assigns[key] = fn(ix.assigns[key], ix);
+    return Ok(ix);
+  };
+};
+const destroy = key => ix => {
+  delete ix.assigns[key];
+  return Ok(ix);
+};
+
+var ixModule = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  UNKNOWN: UNKNOWN,
+  SCRIPT: SCRIPT,
+  TRANSACTION: TRANSACTION,
+  GET_TRANSACTION_STATUS: GET_TRANSACTION_STATUS,
+  GET_ACCOUNT: GET_ACCOUNT,
+  GET_EVENTS: GET_EVENTS,
+  PING: PING,
+  GET_TRANSACTION: GET_TRANSACTION,
+  GET_BLOCK: GET_BLOCK,
+  GET_BLOCK_HEADER: GET_BLOCK_HEADER,
+  GET_COLLECTION: GET_COLLECTION,
+  GET_NETWORK_PARAMETERS: GET_NETWORK_PARAMETERS,
+  BAD: BAD,
+  OK: OK,
+  ACCOUNT: ACCOUNT,
+  PARAM: PARAM,
+  ARGUMENT: ARGUMENT,
+  AUTHORIZER: AUTHORIZER,
+  PAYER: PAYER,
+  PROPOSER: PROPOSER,
+  interaction: interaction,
+  isNumber: isNumber$1,
+  isArray: isArray$1,
+  isObj: isObj,
+  isNull: isNull,
+  isFn: isFn$3,
+  isInteraction: isInteraction,
+  Ok: Ok,
+  Bad: Bad,
+  prepAccount: prepAccount,
+  makeArgument: makeArgument,
+  makeUnknown: makeUnknown,
+  makeScript: makeScript,
+  makeTransaction: makeTransaction,
+  makeGetTransactionStatus: makeGetTransactionStatus,
+  makeGetTransaction: makeGetTransaction,
+  makeGetAccount: makeGetAccount,
+  makeGetEvents: makeGetEvents,
+  makePing: makePing,
+  makeGetBlock: makeGetBlock,
+  makeGetBlockHeader: makeGetBlockHeader,
+  makeGetCollection: makeGetCollection,
+  makeGetNetworkParameters: makeGetNetworkParameters,
+  isUnknown: isUnknown,
+  isScript: isScript,
+  isTransaction: isTransaction,
+  isGetTransactionStatus: isGetTransactionStatus,
+  isGetTransaction: isGetTransaction,
+  isGetAccount: isGetAccount,
+  isGetEvents: isGetEvents,
+  isPing: isPing,
+  isGetBlock: isGetBlock,
+  isGetBlockHeader: isGetBlockHeader,
+  isGetCollection: isGetCollection,
+  isGetNetworkParameters: isGetNetworkParameters,
+  isOk: isOk,
+  isBad: isBad,
+  why: why,
+  isAccount: isAccount,
+  isParam: isParam,
+  isArgument: isArgument,
+  pipe: pipe,
+  get: get,
+  put: put,
+  update: update,
+  destroy: destroy
+});
+
+function build() {
+  let fns = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+  return pipe(interaction(), fns);
+}
+
+const DEFAULT_RESPONSE = `{
+    "tag":null,
+    "transaction":null,
+    "transactionStatus":null,
+    "transactionId":null,
+    "encodedData":null,
+    "events":null,
+    "account":null,
+    "block":null,
+    "blockHeader":null,
+    "latestBlock":null,
+    "collection":null,
+    "networkParameters":null
+}`;
+const response = () => JSON.parse(DEFAULT_RESPONSE);
+
+/**
+ * @description - A builder function that returns the interaction to get the latest block
+ * @param {boolean} [isSealed] - Whether or not the block should be sealed
+ * @returns {Function} - An interaction object
+ */
+function getBlock() {
+  let isSealed = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+  return pipe([makeGetBlock, ix => {
+    ix.block.isSealed = isSealed;
+    return Ok(ix);
+  }]);
+}
+
+/**
+ * @description - A builder function that returns the interaction to get an account by address
+ * @param {string} addr - The address of the account to getq
+ * @returns {Function} - An interaction object
+ */
+function getAccount(addr) {
+  return pipe([makeGetAccount, ix => {
+    ix.account.addr = utilAddress.sansPrefix(addr);
+    return Ok(ix);
+  }]);
+}
+
+const latestBlockDeprecationNotice = () => {
+  logger.log.deprecate({
+    pkg: "@onflow/decode",
+    subject: "Operating upon data of the latestBlock field of the response object",
+    transition: "https://github.com/onflow/flow-js-sdk/blob/master/packages/decode/WARNINGS.md#0001-Deprecating-latestBlock-field"
+  });
+};
+const decodeImplicit = async i => i;
+const decodeVoid = async () => null;
+const decodeType = async type => {
+  return type.staticType;
+};
+const decodePath = async path => {
+  return {
+    domain: path.domain,
+    identifier: path.identifier
+  };
+};
+const decodeCapability = async cap => {
+  return {
+    path: cap.path,
+    address: cap.address,
+    borrowType: cap.borrowType
+  };
+};
+const decodeOptional = async (optional, decoders, stack) => optional ? await recurseDecode(optional, decoders, stack) : null;
+const decodeReference = async v => ({
+  address: v.address,
+  type: v.type
+});
+const decodeArray = async (array, decoders, stack) => await Promise.all(array.map(v => new Promise(async res => res(await recurseDecode(v, decoders, [...stack, v.type])))));
+const decodeDictionary = async (dictionary, decoders, stack) => await dictionary.reduce(async (acc, v) => {
+  acc = await acc;
+  acc[await recurseDecode(v.key, decoders, [...stack, v.key])] = await recurseDecode(v.value, decoders, [...stack, v.key]);
+  return acc;
+}, Promise.resolve({}));
+const decodeComposite = async (composite, decoders, stack) => {
+  const decoded = await composite.fields.reduce(async (acc, v) => {
+    acc = await acc;
+    acc[v.name] = await recurseDecode(v.value, decoders, [...stack, v.name]);
+    return acc;
+  }, Promise.resolve({}));
+  const decoder = composite.id && decoderLookup(decoders, composite.id);
+  return decoder ? await decoder(decoded) : decoded;
+};
+const defaultDecoders = {
+  UInt: decodeImplicit,
+  Int: decodeImplicit,
+  UInt8: decodeImplicit,
+  Int8: decodeImplicit,
+  UInt16: decodeImplicit,
+  Int16: decodeImplicit,
+  UInt32: decodeImplicit,
+  Int32: decodeImplicit,
+  UInt64: decodeImplicit,
+  Int64: decodeImplicit,
+  UInt128: decodeImplicit,
+  Int128: decodeImplicit,
+  UInt256: decodeImplicit,
+  Int256: decodeImplicit,
+  Word8: decodeImplicit,
+  Word16: decodeImplicit,
+  Word32: decodeImplicit,
+  Word64: decodeImplicit,
+  UFix64: decodeImplicit,
+  Fix64: decodeImplicit,
+  String: decodeImplicit,
+  Character: decodeImplicit,
+  Bool: decodeImplicit,
+  Address: decodeImplicit,
+  Void: decodeVoid,
+  Optional: decodeOptional,
+  Reference: decodeReference,
+  Array: decodeArray,
+  Dictionary: decodeDictionary,
+  Event: decodeComposite,
+  Resource: decodeComposite,
+  Struct: decodeComposite,
+  Enum: decodeComposite,
+  Type: decodeType,
+  Path: decodePath,
+  Capability: decodeCapability
+};
+const decoderLookup = (decoders, lookup) => {
+  const found = Object.keys(decoders).find(decoder => {
+    if (/^\/.*\/$/.test(decoder)) {
+      const reg = new RegExp(decoder.substring(1, decoder.length - 1));
+      return reg.test(lookup);
+    }
+    return decoder === lookup;
+  });
+  return lookup && found && decoders[found];
+};
+const recurseDecode = async (decodeInstructions, decoders, stack) => {
+  let decoder = decoderLookup(decoders, decodeInstructions.type);
+  if (!decoder) throw new Error(`Undefined Decoder Error: ${decodeInstructions.type}@${stack.join(".")}`);
+  return await decoder(decodeInstructions.value, decoders, stack);
+};
+
+/**
+ * @description - Decodes a response from Flow into JSON
+ * @param {*} decodeInstructions - The response object from Flow
+ * @param {object} customDecoders - An object of custom decoders
+ * @param {Array<*>} stack - The stack of the current decoding
+ * @returns {Promise<*>} - The decoded response
+ */
+const decode$1 = async function (decodeInstructions) {
+  let customDecoders = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  let stack = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
+  // Filter out all default decoders which are overridden by a custom decoder regex
+  const filteredDecoders = Object.keys(defaultDecoders).filter(decoder => !Object.keys(customDecoders).find(customDecoder => new RegExp(customDecoder).test(decoder))).reduce((decoders, decoderKey) => {
+    decoders[decoderKey] = defaultDecoders[decoderKey];
+    return decoders;
+  }, customDecoders);
+  const decoders = {
+    ...filteredDecoders,
+    ...customDecoders
+  };
+  return recurseDecode(decodeInstructions, decoders, stack);
+};
+const decodeResponse = async function (response) {
+  let customDecoders = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  if (response.encodedData) {
+    return decode$1(response.encodedData, customDecoders);
+  } else if (response.transactionStatus) {
+    return {
+      ...response.transactionStatus,
+      events: await Promise.all(response.transactionStatus.events.map(async function decodeEvents(e) {
+        return {
+          type: e.type,
+          transactionId: e.transactionId,
+          transactionIndex: e.transactionIndex,
+          eventIndex: e.eventIndex,
+          data: await decode$1(e.payload, customDecoders)
+        };
+      }))
+    };
+  } else if (response.transaction) {
+    return response.transaction;
+  } else if (response.events) {
+    return await Promise.all(response.events.map(async function decodeEvents(e) {
+      return {
+        blockId: e.blockId,
+        blockHeight: e.blockHeight,
+        blockTimestamp: e.blockTimestamp,
+        type: e.type,
+        transactionId: e.transactionId,
+        transactionIndex: e.transactionIndex,
+        eventIndex: e.eventIndex,
+        data: await decode$1(e.payload, customDecoders)
+      };
+    }));
+  } else if (response.account) {
+    return response.account;
+  } else if (response.block) {
+    return response.block;
+  } else if (response.blockHeader) {
+    return response.blockHeader;
+  } else if (response.latestBlock) {
+    latestBlockDeprecationNotice();
+    return response.latestBlock;
+  } else if (response.transactionId) {
+    return response.transactionId;
+  } else if (response.collection) {
+    return response.collection;
+  } else if (response.networkParameters) {
+    const chainIdMap = {
+      "flow-testnet": "testnet",
+      "flow-mainnet": "mainnet",
+      "flow-emulator": "local"
+    };
+    return {
+      chainId: chainIdMap[response.networkParameters.chainId]
+    };
+  }
+  return null;
+};
+
+const isFn$2 = v => typeof v === "function";
+const isString$1 = v => typeof v === "string";
+const oldIdentifierPatternFn = () => /\b(0x\w+)\b/g;
+function isOldIdentifierSyntax(cadence) {
+  return oldIdentifierPatternFn().test(cadence);
+}
+const newIdentifierPatternFn = () => /import\s+"(\w+)"/g;
+function isNewIdentifierSyntax(cadence) {
+  return newIdentifierPatternFn().test(cadence);
+}
+function getContractIdentifierSyntaxMatches(cadence) {
+  return cadence.matchAll(newIdentifierPatternFn());
+}
+async function resolveCadence(ix) {
+  if (!isTransaction(ix) && !isScript(ix)) return ix;
+  var cadence = get(ix, "ix.cadence");
+  utilInvariant.invariant(isFn$2(cadence) || isString$1(cadence), "Cadence needs to be a function or a string.");
+  if (isFn$2(cadence)) cadence = await cadence({});
+  utilInvariant.invariant(isString$1(cadence), "Cadence needs to be a string at this point.");
+  utilInvariant.invariant(!isOldIdentifierSyntax(cadence) || !isNewIdentifierSyntax(cadence), "Both account identifier and contract identifier syntax not simultaneously supported.");
+  if (isOldIdentifierSyntax(cadence)) {
+    cadence = await config.config().where(/^0x/).then(d => Object.entries(d).reduce((cadence, _ref) => {
+      let [key, value] = _ref;
+      const regex = new RegExp("(\\b" + key + "\\b)", "g");
+      return cadence.replace(regex, value);
+    }, cadence));
+  }
+  if (isNewIdentifierSyntax(cadence)) {
+    for (const [fullMatch, contractName] of getContractIdentifierSyntaxMatches(cadence)) {
+      const address = await config.config().get(`system.contracts.${contractName}`);
+      if (address) {
+        cadence = cadence.replace(fullMatch, `import ${contractName} from ${utilAddress.withPrefix(address)}`);
+      } else {
+        logger__namespace.log({
+          title: "Contract Placeholder not found",
+          message: `Cannot find a value for contract placeholder ${contractName}. Please add to your flow.json or explicitly add it to the config 'contracts.*' namespace.`,
+          level: logger__namespace.LEVELS.warn
+        });
+      }
+    }
+  }
+
+  // We need to move this over in any case.
+  ix.message.cadence = cadence;
+  return ix;
+}
+
+const isFn$1 = v => typeof v === "function";
+function cast(arg) {
+  // prettier-ignore
+  utilInvariant.invariant(typeof arg.xform != null, `No type specified for argument: ${arg.value}`);
+  if (isFn$1(arg.xform)) return arg.xform(arg.value);
+  if (isFn$1(arg.xform.asArgument)) return arg.xform.asArgument(arg.value);
+
+  // prettier-ignore
+  utilInvariant.invariant(false, `Invalid Argument`, arg);
+}
+async function handleArgResolution(arg) {
+  let depth = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 3;
+  utilInvariant.invariant(depth > 0, `Argument Resolve Recursion Limit Exceeded for Arg: ${arg.tempId}`);
+  if (isFn$1(arg.resolveArgument)) {
+    const resolvedArg = await arg.resolveArgument();
+    return handleArgResolution(resolvedArg, depth - 1);
+  } else {
+    return arg;
+  }
+}
+async function resolveArguments(ix) {
+  if (isTransaction(ix) || isScript(ix)) {
+    for (let [id, arg] of Object.entries(ix.arguments)) {
+      const res = await handleArgResolution(arg);
+      ix.arguments[id].asArgument = cast(res);
+    }
+  }
+  return ix;
+}
+
+const encodeTransactionPayload = tx => prependTransactionDomainTag(rlpEncode(preparePayload(tx)));
+const encodeTransactionEnvelope = tx => prependTransactionDomainTag(rlpEncode(prepareEnvelope(tx)));
+const encodeTxIdFromVoucher = voucher => sha3_256(rlpEncode(prepareVoucher(voucher)));
+const rightPaddedHexBuffer = (value, pad) => rlp.Buffer.from(value.padEnd(pad * 2, 0), "hex");
+const leftPaddedHexBuffer = (value, pad) => rlp.Buffer.from(value.padStart(pad * 2, 0), "hex");
+const TRANSACTION_DOMAIN_TAG = rightPaddedHexBuffer(rlp.Buffer.from("FLOW-V0.0-transaction").toString("hex"), 32).toString("hex");
+const prependTransactionDomainTag = tx => TRANSACTION_DOMAIN_TAG + tx;
+const addressBuffer = addr => leftPaddedHexBuffer(addr, 8);
+const blockBuffer = block => leftPaddedHexBuffer(block, 32);
+const argumentToString = arg => rlp.Buffer.from(JSON.stringify(arg), "utf8");
+const scriptBuffer = script => rlp.Buffer.from(script, "utf8");
+const signatureBuffer = signature => rlp.Buffer.from(signature, "hex");
+const rlpEncode = v => {
+  return rlp.encode(v).toString("hex");
+};
+const sha3_256 = msg => {
+  const sha = new sha3.SHA3(256);
+  sha.update(rlp.Buffer.from(msg, "hex"));
+  return sha.digest().toString("hex");
+};
+const preparePayload = tx => {
+  validatePayload(tx);
+  return [scriptBuffer(tx.cadence), tx.arguments.map(argumentToString), blockBuffer(tx.refBlock), tx.computeLimit, addressBuffer(utilAddress.sansPrefix(tx.proposalKey.address)), tx.proposalKey.keyId, tx.proposalKey.sequenceNum, addressBuffer(utilAddress.sansPrefix(tx.payer)), tx.authorizers.map(authorizer => addressBuffer(utilAddress.sansPrefix(authorizer)))];
+};
+const prepareEnvelope = tx => {
+  validateEnvelope(tx);
+  return [preparePayload(tx), preparePayloadSignatures(tx)];
+};
+const preparePayloadSignatures = tx => {
+  const signers = collectSigners(tx);
+  return tx.payloadSigs.map(sig => {
+    return {
+      signerIndex: signers.get(sig.address),
+      keyId: sig.keyId,
+      sig: sig.sig
+    };
+  }).sort((a, b) => {
+    if (a.signerIndex > b.signerIndex) return 1;
+    if (a.signerIndex < b.signerIndex) return -1;
+    if (a.keyId > b.keyId) return 1;
+    if (a.keyId < b.keyId) return -1;
+  }).map(sig => {
+    return [sig.signerIndex, sig.keyId, signatureBuffer(sig.sig)];
+  });
+};
+const collectSigners = tx => {
+  const signers = new Map();
+  let i = 0;
+  const addSigner = addr => {
+    if (!signers.has(addr)) {
+      signers.set(addr, i);
+      i++;
+    }
+  };
+  addSigner(tx.proposalKey.address);
+  addSigner(tx.payer);
+  tx.authorizers.forEach(addSigner);
+  return signers;
+};
+const prepareVoucher = voucher => {
+  validateVoucher(voucher);
+  const signers = collectSigners(voucher);
+  const prepareSigs = sigs => {
+    return sigs.map(_ref => {
+      let {
+        address,
+        keyId,
+        sig
+      } = _ref;
+      return {
+        signerIndex: signers.get(address),
+        keyId,
+        sig
+      };
+    }).sort((a, b) => {
+      if (a.signerIndex > b.signerIndex) return 1;
+      if (a.signerIndex < b.signerIndex) return -1;
+      if (a.keyId > b.keyId) return 1;
+      if (a.keyId < b.keyId) return -1;
+    }).map(sig => {
+      return [sig.signerIndex, sig.keyId, signatureBuffer(sig.sig)];
+    });
+  };
+  return [[scriptBuffer(voucher.cadence), voucher.arguments.map(argumentToString), blockBuffer(voucher.refBlock), voucher.computeLimit, addressBuffer(utilAddress.sansPrefix(voucher.proposalKey.address)), voucher.proposalKey.keyId, voucher.proposalKey.sequenceNum, addressBuffer(utilAddress.sansPrefix(voucher.payer)), voucher.authorizers.map(authorizer => addressBuffer(utilAddress.sansPrefix(authorizer)))], prepareSigs(voucher.payloadSigs), prepareSigs(voucher.envelopeSigs)];
+};
+const validatePayload = tx => {
+  payloadFields.forEach(field => checkField(tx, field));
+  proposalKeyFields.forEach(field => checkField(tx.proposalKey, field, "proposalKey"));
+};
+const validateEnvelope = tx => {
+  payloadSigsFields.forEach(field => checkField(tx, field));
+  tx.payloadSigs.forEach((sig, index) => {
+    payloadSigFields.forEach(field => checkField(sig, field, "payloadSigs", index));
+  });
+};
+const validateVoucher = voucher => {
+  payloadFields.forEach(field => checkField(voucher, field));
+  proposalKeyFields.forEach(field => checkField(voucher.proposalKey, field, "proposalKey"));
+  payloadSigsFields.forEach(field => checkField(voucher, field));
+  voucher.payloadSigs.forEach((sig, index) => {
+    payloadSigFields.forEach(field => checkField(sig, field, "payloadSigs", index));
+  });
+  envelopeSigsFields.forEach(field => checkField(voucher, field));
+  voucher.envelopeSigs.forEach((sig, index) => {
+    envelopeSigFields.forEach(field => checkField(sig, field, "envelopeSigs", index));
+  });
+};
+const isNumber = v => typeof v === "number";
+const isString = v => typeof v === "string";
+const isObject = v => v !== null && typeof v === "object";
+const isArray = v => isObject(v) && v instanceof Array;
+const payloadFields = [{
+  name: "cadence",
+  check: isString
+}, {
+  name: "arguments",
+  check: isArray
+}, {
+  name: "refBlock",
+  check: isString,
+  defaultVal: "0"
+}, {
+  name: "computeLimit",
+  check: isNumber
+}, {
+  name: "proposalKey",
+  check: isObject
+}, {
+  name: "payer",
+  check: isString
+}, {
+  name: "authorizers",
+  check: isArray
+}];
+const proposalKeyFields = [{
+  name: "address",
+  check: isString
+}, {
+  name: "keyId",
+  check: isNumber
+}, {
+  name: "sequenceNum",
+  check: isNumber
+}];
+const payloadSigsFields = [{
+  name: "payloadSigs",
+  check: isArray
+}];
+const payloadSigFields = [{
+  name: "address",
+  check: isString
+}, {
+  name: "keyId",
+  check: isNumber
+}, {
+  name: "sig",
+  check: isString
+}];
+const envelopeSigsFields = [{
+  name: "envelopeSigs",
+  check: isArray
+}];
+const envelopeSigFields = [{
+  name: "address",
+  check: isString
+}, {
+  name: "keyId",
+  check: isNumber
+}, {
+  name: "sig",
+  check: isString
+}];
+const checkField = (obj, field, base, index) => {
+  const {
+    name,
+    check,
+    defaultVal
+  } = field;
+  if (obj[name] == null && defaultVal != null) obj[name] = defaultVal;
+  if (obj[name] == null) throw missingFieldError(name, base, index);
+  if (!check(obj[name])) throw invalidFieldError(name, base, index);
+};
+const printFieldName = (field, base, index) => {
+  if (!!base) return index == null ? `${base}.${field}` : `${base}.${index}.${field}`;
+  return field;
+};
+const missingFieldError = (field, base, index) => new Error(`Missing field ${printFieldName(field, base, index)}`);
+const invalidFieldError = (field, base, index) => new Error(`Invalid field ${printFieldName(field, base, index)}`);
+
+function findInsideSigners(ix) {
+  // Inside Signers Are: (authorizers + proposer) - payer
+  let inside = new Set(ix.authorizations);
+  inside.add(ix.proposer);
+  if (Array.isArray(ix.payer)) {
+    ix.payer.forEach(p => inside.delete(p));
+  } else {
+    inside.delete(ix.payer);
+  }
+  return Array.from(inside);
+}
+function findOutsideSigners(ix) {
+  // Outside Signers Are: (payer)
+  let outside = new Set(Array.isArray(ix.payer) ? ix.payer : [ix.payer]);
+  return Array.from(outside);
+}
+const createSignableVoucher = ix => {
+  const buildAuthorizers = () => {
+    const authorizations = ix.authorizations.map(cid => utilAddress.withPrefix(ix.accounts[cid].addr)).reduce((prev, current) => {
+      return prev.find(item => item === current) ? prev : [...prev, current];
+    }, []);
+    return authorizations[0] ? authorizations : [];
+  };
+  const buildInsideSigners = () => findInsideSigners(ix).map(id => ({
+    address: utilAddress.withPrefix(ix.accounts[id].addr),
+    keyId: ix.accounts[id].keyId,
+    sig: ix.accounts[id].signature
+  }));
+  const buildOutsideSigners = () => findOutsideSigners(ix).map(id => ({
+    address: utilAddress.withPrefix(ix.accounts[id].addr),
+    keyId: ix.accounts[id].keyId,
+    sig: ix.accounts[id].signature
+  }));
+  return {
+    cadence: ix.message.cadence,
+    refBlock: ix.message.refBlock || null,
+    computeLimit: ix.message.computeLimit,
+    arguments: ix.message.arguments.map(id => ix.arguments[id].asArgument),
+    proposalKey: {
+      address: utilAddress.withPrefix(ix.accounts[ix.proposer].addr),
+      keyId: ix.accounts[ix.proposer].keyId,
+      sequenceNum: ix.accounts[ix.proposer].sequenceNum
+    },
+    payer: utilAddress.withPrefix(ix.accounts[Array.isArray(ix.payer) ? ix.payer[0] : ix.payer].addr),
+    authorizers: buildAuthorizers(),
+    payloadSigs: buildInsideSigners(),
+    envelopeSigs: buildOutsideSigners()
+  };
+};
+const voucherToTxId = voucher => {
+  return encodeTxIdFromVoucher(voucher);
+};
+
+const MAX_DEPTH_LIMIT = 5;
+const idof$1 = acct => `${utilAddress.withPrefix(acct.addr)}-${acct.keyId}`;
+const isFn = v => v && (Object.prototype.toString.call(v) === "[object Function]" || "function" === typeof v || v instanceof Function);
+const genAccountId = function () {
+  for (var _len = arguments.length, ids = new Array(_len), _key = 0; _key < _len; _key++) {
+    ids[_key] = arguments[_key];
+  }
+  return ids.join("-");
+};
+const ROLES = {
+  PAYER: "payer",
+  PROPOSER: "proposer",
+  AUTHORIZATIONS: "authorizations"
+};
+function debug$1() {
+  const SPACE = " ";
+  const SPACE_COUNT_PER_INDENT = 4;
+  const DEBUG_MESSAGE = [];
+  return [function (msg) {
+    let indent = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+    DEBUG_MESSAGE.push(Array(indent * SPACE_COUNT_PER_INDENT).fill(SPACE).join("-") + msg);
+  }, function () {
+    return DEBUG_MESSAGE.reduce((prev, curr) => prev + "\n" + curr);
+  }];
+}
+function recurseFlatMap(el) {
+  let depthLimit = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 3;
+  if (depthLimit <= 0) return el;
+  if (!Array.isArray(el)) return el;
+  return recurseFlatMap(el.flatMap(e => e), depthLimit - 1);
+}
+function buildPreSignable(acct, ix) {
+  try {
+    return {
+      f_type: "PreSignable",
+      f_vsn: "1.0.1",
+      roles: acct.role,
+      cadence: ix.message.cadence,
+      args: ix.message.arguments.map(d => ix.arguments[d].asArgument),
+      data: {},
+      interaction: ix,
+      voucher: createSignableVoucher(ix)
+    };
+  } catch (error) {
+    console.error("buildPreSignable", error);
+    throw error;
+  }
+}
+async function removeUnusedIxAccounts(ix) {
+  const payerTempIds = Array.isArray(ix.payer) ? ix.payer : [ix.payer];
+  const authorizersTempIds = Array.isArray(ix.authorizations) ? ix.authorizations : [ix.authorizations];
+  const proposerTempIds = Array.isArray(ix.proposer) ? ix.proposer : [ix.proposer];
+  const ixAccountKeys = Object.keys(ix.accounts);
+  const uniqueTempIds = [...new Set(payerTempIds.concat(authorizersTempIds, proposerTempIds))];
+  for (const ixAccountKey of ixAccountKeys) {
+    if (!uniqueTempIds.find(id => id === ixAccountKey)) {
+      delete ix.accounts[ixAccountKey];
+    }
+  }
+}
+function addAccountToIx(ix, newAccount) {
+  if (typeof newAccount.addr === "string" && (typeof newAccount.keyId === "number" || typeof newAccount.keyId === "string")) {
+    newAccount.tempId = idof$1(newAccount);
+  } else {
+    newAccount.tempId = newAccount.tempId || uuid.v4();
+  }
+  const existingAccount = ix.accounts[newAccount.tempId] || newAccount;
+  if (!ix.accounts[newAccount.tempId]) {
+    ix.accounts[newAccount.tempId] = newAccount;
+  }
+  ix.accounts[newAccount.tempId].role.proposer = existingAccount.role.proposer || newAccount.role.proposer;
+  ix.accounts[newAccount.tempId].role.payer = existingAccount.role.payer || newAccount.role.payer;
+  ix.accounts[newAccount.tempId].role.authorizer = existingAccount.role.authorizer || newAccount.role.authorizer;
+  return ix.accounts[newAccount.tempId];
+}
+function uniqueAccountsFlatMap(accounts) {
+  const flatMapped = recurseFlatMap(accounts);
+  const seen = new Set();
+  const uniqueAccountsFlatMapped = flatMapped.map(account => {
+    const accountId = genAccountId(account.tempId, account.role.payer, account.role.proposer, account.role.authorizer, account.role.param);
+    if (seen.has(accountId)) return null;
+    seen.add(accountId);
+    return account;
+  }).filter(e => e !== null);
+  return uniqueAccountsFlatMapped;
+}
+async function recurseResolveAccount(ix, currentAccountTempId) {
+  let depthLimit = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : MAX_DEPTH_LIMIT;
+  let {
+    debugLogger
+  } = arguments.length > 3 ? arguments[3] : undefined;
+  if (depthLimit <= 0) {
+    throw new Error(`recurseResolveAccount Error: Depth limit (${MAX_DEPTH_LIMIT}) reached. Ensure your authorization functions resolve to an account after ${MAX_DEPTH_LIMIT} resolves.`);
+  }
+  let account = ix.accounts[currentAccountTempId];
+  if (!account) return null;
+  debugLogger(`account: ${account.tempId}`, Math.max(MAX_DEPTH_LIMIT - depthLimit, 0));
+  if (account?.resolve) {
+    if (isFn(account?.resolve)) {
+      debugLogger(`account: ${account.tempId} -- cache MISS`, Math.max(MAX_DEPTH_LIMIT - depthLimit, 0));
+      const {
+        resolve,
+        ...accountWithoutResolve
+      } = account;
+      let resolvedAccounts = await resolve(accountWithoutResolve, buildPreSignable(accountWithoutResolve, ix));
+      resolvedAccounts = Array.isArray(resolvedAccounts) ? resolvedAccounts : [resolvedAccounts];
+      let flatResolvedAccounts = recurseFlatMap(resolvedAccounts);
+      flatResolvedAccounts = flatResolvedAccounts.map(flatResolvedAccount => addAccountToIx(ix, flatResolvedAccount));
+      account.resolve = flatResolvedAccounts.map(flatResolvedAccount => flatResolvedAccount.tempId);
+      account = addAccountToIx(ix, account);
+      const recursedAccounts = await Promise.all(flatResolvedAccounts.map(async resolvedAccount => {
+        return await recurseResolveAccount(ix, resolvedAccount.tempId, depthLimit - 1, {
+          debugLogger
+        });
+      }));
+      return recursedAccounts ? recurseFlatMap(recursedAccounts) : account.tempId;
+    } else {
+      debugLogger(`account: ${account.tempId} -- cache HIT`, Math.max(MAX_DEPTH_LIMIT - depthLimit, 0));
+      return account.resolve;
+    }
+  }
+  return account.tempId;
+}
+async function resolveAccountType(ix, type, _ref) {
+  let {
+    debugLogger
+  } = _ref;
+  utilInvariant.invariant(ix && typeof ix === "object", "resolveAccountType Error: ix not defined");
+  utilInvariant.invariant(type === ROLES.PAYER || type === ROLES.PROPOSER || type === ROLES.AUTHORIZATIONS, "resolveAccountType Error: type must be 'payer', 'proposer' or 'authorizations'");
+  let accountTempIDs = Array.isArray(ix[type]) ? ix[type] : [ix[type]];
+  let allResolvedAccounts = [];
+  for (let accountId of accountTempIDs) {
+    let account = ix.accounts[accountId];
+    utilInvariant.invariant(account, `resolveAccountType Error: account not found`);
+    let resolvedAccountTempIds = await recurseResolveAccount(ix, accountId, MAX_DEPTH_LIMIT, {
+      debugLogger
+    });
+    resolvedAccountTempIds = Array.isArray(resolvedAccountTempIds) ? resolvedAccountTempIds : [resolvedAccountTempIds];
+    let resolvedAccounts = resolvedAccountTempIds.map(resolvedAccountTempId => ix.accounts[resolvedAccountTempId]);
+    let flatResolvedAccounts = uniqueAccountsFlatMap(resolvedAccounts);
+    allResolvedAccounts = allResolvedAccounts.concat(flatResolvedAccounts);
+  }
+  utilInvariant.invariant(allResolvedAccounts.length > 0, "resolveAccountType Error: failed to resolve any accounts");
+  if (type === ROLES.PAYER) {
+    allResolvedAccounts = allResolvedAccounts.filter(acct => acct.role.payer === true);
+  }
+  if (type === ROLES.PROPOSER) {
+    allResolvedAccounts = allResolvedAccounts.filter(acct => acct.role.proposer === true);
+  }
+  if (type === ROLES.AUTHORIZATIONS) {
+    allResolvedAccounts = allResolvedAccounts.filter(acct => acct.role.authorizer === true);
+  }
+  ix[type] = Array.isArray(ix[type]) ? [...new Set(allResolvedAccounts.map(acct => acct.tempId))] : allResolvedAccounts[0].tempId;
+
+  // Ensure all payers are of the same account
+  if (type === ROLES.PAYER) {
+    let address;
+    for (const payerTempID of ix[ROLES.PAYER]) {
+      let pAcct = ix.accounts[payerTempID];
+      if (!address) address = pAcct.addr;else if (address !== pAcct.addr) {
+        throw new Error("resolveAccountType Error: payers from different accounts detected");
+      }
+    }
+  }
+}
+async function resolveAccounts(ix) {
+  let opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  if (isTransaction(ix)) {
+    if (!Array.isArray(ix.payer)) {
+      logger.log.deprecate({
+        pkg: "FCL",
+        subject: '"ix.payer" must be an array. Support for ix.payer as a singular',
+        message: "See changelog for more info."
+      });
+    }
+    let [debugLogger, getDebugMessage] = debug$1();
+    try {
+      await resolveAccountType(ix, ROLES.PROPOSER, {
+        debugLogger
+      });
+      await resolveAccountType(ix, ROLES.AUTHORIZATIONS, {
+        debugLogger
+      });
+      await resolveAccountType(ix, ROLES.PAYER, {
+        debugLogger
+      });
+      await removeUnusedIxAccounts(ix, {
+        debugLogger
+      });
+      if (opts.enableDebug) {
+        console.debug(getDebugMessage());
+      }
+    } catch (error) {
+      console.error("=== SAD PANDA ===\n\n", error, "\n\n=== SAD PANDA ===");
+      throw error;
+    }
+  }
+  return ix;
+}
+
+async function resolveSignatures(ix) {
+  if (isTransaction(ix)) {
+    try {
+      let insideSigners = findInsideSigners(ix);
+      const insidePayload = encodeTransactionPayload(prepForEncoding(ix));
+
+      // Promise.all could potentially break the flow if there are multiple inside signers trying to resolve at the same time
+      // causing multiple triggers of authz function that tries to render multiple auth iiframes/tabs/extensions
+      // as an alternative, use this:
+      // for(const insideSigner of insideSigners) {
+      //   await fetchSignature(ix, insidePayload)(insideSigner);
+      // }
+      await Promise.all(insideSigners.map(fetchSignature(ix, insidePayload)));
+      let outsideSigners = findOutsideSigners(ix);
+      const outsidePayload = encodeTransactionEnvelope({
+        ...prepForEncoding(ix),
+        payloadSigs: insideSigners.map(id => ({
+          address: ix.accounts[id].addr,
+          keyId: ix.accounts[id].keyId,
+          sig: ix.accounts[id].signature
+        }))
+      });
+
+      // Promise.all could potentially break the flow if there are multiple outside signers trying to resolve at the same time
+      // causing multiple triggers of authz function that tries to render multiple auth iframes/tabs/extensions
+      // as an alternative, use this:
+      // for(const outsideSigner of outsideSigners) {
+      //   await fetchSignature(ix, outsidePayload)(outsideSigner);
+      // }
+      await Promise.all(outsideSigners.map(fetchSignature(ix, outsidePayload)));
+    } catch (error) {
+      console.error("Signatures", error, {
+        ix
+      });
+      throw error;
+    }
+  }
+  return ix;
+}
+function fetchSignature(ix, payload) {
+  return async function innerFetchSignature(id) {
+    const acct = ix.accounts[id];
+    if (acct.signature != null && acct.signature !== undefined) return;
+    const {
+      signature
+    } = await acct.signingFunction(buildSignable(acct, payload, ix));
+    ix.accounts[id].signature = signature;
+  };
+}
+function buildSignable(acct, message, ix) {
+  try {
+    return {
+      f_type: "Signable",
+      f_vsn: "1.0.1",
+      message,
+      addr: utilAddress.sansPrefix(acct.addr),
+      keyId: acct.keyId,
+      roles: acct.role,
+      cadence: ix.message.cadence,
+      args: ix.message.arguments.map(d => ix.arguments[d].asArgument),
+      data: {},
+      interaction: ix,
+      voucher: createSignableVoucher(ix)
+    };
+  } catch (error) {
+    console.error("buildSignable", error);
+    throw error;
+  }
+}
+function prepForEncoding(ix) {
+  const payerAddress = utilAddress.sansPrefix((Array.isArray(ix.payer) ? ix.accounts[ix.payer[0]] : ix.accounts[ix.payer]).addr);
+  return {
+    cadence: ix.message.cadence,
+    refBlock: ix.message.refBlock || null,
+    computeLimit: ix.message.computeLimit,
+    arguments: ix.message.arguments.map(id => ix.arguments[id].asArgument),
+    proposalKey: {
+      address: utilAddress.sansPrefix(ix.accounts[ix.proposer].addr),
+      keyId: ix.accounts[ix.proposer].keyId,
+      sequenceNum: ix.accounts[ix.proposer].sequenceNum
+    },
+    payer: payerAddress,
+    authorizers: ix.authorizations.map(cid => utilAddress.sansPrefix(ix.accounts[cid].addr)).reduce((prev, current) => {
+      return prev.find(item => item === current) ? prev : [...prev, current];
+    }, [])
+  };
+}
+
+async function resolveValidators(ix) {
+  const validators = get(ix, "ix.validators", []);
+  return pipe(ix, validators.map(cb => ix => cb(ix, {
+    Ok,
+    Bad
+  })));
+}
+
+async function resolveFinalNormalization(ix) {
+  for (let key of Object.keys(ix.accounts)) {
+    ix.accounts[key].addr = utilAddress.sansPrefix(ix.accounts[key].addr);
+  }
+  return ix;
+}
+
+async function resolveVoucherIntercept(ix) {
+  const fn = get(ix, "ix.voucher-intercept");
+  if (isFn$3(fn)) {
+    await fn(createSignableVoucher(ix));
+  }
+  return ix;
+}
+
+const DEFAULT_COMPUTE_LIMIT = 100;
+async function resolveComputeLimit(ix) {
+  if (isTransaction(ix)) {
+    ix.message.computeLimit = ix.message.computeLimit || (await config.config.get("fcl.limit"));
+    if (!ix.message.computeLimit) {
+      logger__namespace.log.deprecate({
+        pkg: "FCL/SDK",
+        subject: "The built-in default compute limit (DEFAULT_COMPUTE_LIMIT=10)",
+        transition: "https://github.com/onflow/flow-js-sdk/blob/master/packages/sdk/TRANSITIONS.md#0009-deprecate-default-compute-limit"
+      });
+      ix.message.computeLimit = DEFAULT_COMPUTE_LIMIT;
+    }
+  }
+  return ix;
+}
+
+const noop = v => v;
+const debug = function (key) {
+  let fn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : noop;
+  return async ix => {
+    const accts = ix => ["\nAccounts:", {
+      proposer: ix.proposer,
+      authorizations: ix.authorizations,
+      payer: ix.payer
+    }, "\n\nDetails:", ix.accounts].filter(Boolean);
+    const log = function () {
+      for (var _len = arguments.length, msg = new Array(_len), _key = 0; _key < _len; _key++) {
+        msg[_key] = arguments[_key];
+      }
+      console.log(`debug[${key}] ---\n`, ...msg, "\n\n\n---");
+    };
+    if (await config.config.get(`debug.${key}`)) await fn(ix, log, accts);
+    return ix;
+  };
+};
+const resolve = pipe([resolveCadence, debug("cadence", (ix, log) => log(ix.message.cadence)), resolveComputeLimit, debug("compute limit", (ix, log) => log(ix.message.computeLimit)), resolveArguments, debug("arguments", (ix, log) => log(ix.message.arguments, ix.message)), resolveAccounts, debug("accounts", (ix, log, accts) => log(...accts(ix))), /* special */execFetchRef, /* special */execFetchSequenceNumber, resolveSignatures, debug("signatures", (ix, log, accts) => log(...accts(ix))), resolveFinalNormalization, resolveValidators, resolveVoucherIntercept, debug("resolved", (ix, log) => log(ix))]);
+async function execFetchRef(ix) {
+  if (isTransaction(ix) && ix.message.refBlock == null) {
+    const node = await config.config().get("accessNode.api");
+    const sendFn = await config.config.first(["sdk.transport", "sdk.send"], transportHttp.send);
+    utilInvariant.invariant(sendFn, `Required value for sdk.transport is not defined in config. See: ${"https://github.com/onflow/fcl-js/blob/master/packages/sdk/CHANGELOG.md#0057-alpha1----2022-01-21"}`);
+    ix.message.refBlock = (await sendFn(build([getBlock()]), {
+      config: config.config,
+      response,
+      Buffer: rlp.Buffer,
+      ix: ixModule
+    }, {
+      node
+    }).then(decodeResponse)).id;
+  }
+  return ix;
+}
+async function execFetchSequenceNumber(ix) {
+  if (isTransaction(ix)) {
+    var acct = Object.values(ix.accounts).find(a => a.role.proposer);
+    utilInvariant.invariant(acct, `Transactions require a proposer`);
+    if (acct.sequenceNum == null) {
+      const node = await config.config().get("accessNode.api");
+      const sendFn = await config.config.first(["sdk.transport", "sdk.send"], transportHttp.send);
+      utilInvariant.invariant(sendFn, `Required value for sdk.transport is not defined in config. See: ${"https://github.com/onflow/fcl-js/blob/master/packages/sdk/CHANGELOG.md#0057-alpha1----2022-01-21"}`);
+      ix.accounts[acct.tempId].sequenceNum = await sendFn(await build([getAccount(acct.addr)]), {
+        config: config.config,
+        response,
+        Buffer: rlp.Buffer,
+        ix: ixModule
+      }, {
+        node
+      }).then(decodeResponse).then(acct => acct.keys).then(keys => keys.find(key => key.index === acct.keyId)).then(key => key.sequenceNumber);
+    }
+  }
+  return ix;
+}
+
+function invariant() {
+  for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+    args[_key] = arguments[_key];
+  }
+  if (args.length > 1) {
+    const [predicate, message] = args;
+    return invariant((ix, _ref) => {
+      let {
+        Ok,
+        Bad
+      } = _ref;
+      return predicate ? Ok(ix) : Bad(ix, message);
+    });
+  }
+  const [fn] = args;
+  return ix => fn(ix, {
+    Ok,
+    Bad
+  });
+}
+
+/**
+ * @description - Sends arbitrary scripts, transactions, and requests to Flow
+ * @param {Array.<Function>} args - An array of functions that take interaction and return interaction
+ * @param {object} opts - Optional parameters
+ * @returns {Promise<*>} - A promise that resolves to a response
+ */
+const send = async function () {
+  let args = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+  let opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  const sendFn = await config.config.first(["sdk.transport", "sdk.send"], opts.send || transportHttp.send);
+  invariant(sendFn, `Required value for sdk.transport is not defined in config. See: ${"https://github.com/onflow/fcl-js/blob/master/packages/sdk/CHANGELOG.md#0057-alpha1----2022-01-21"}`);
+  const resolveFn = await config.config.first(["sdk.resolve"], opts.resolve || resolve);
+  opts.node = opts.node || (await config.config().get("accessNode.api"));
+  if (Array.isArray(args)) args = pipe(interaction(), args);
+  return sendFn(await resolveFn(args), {
+    config: config.config,
+    response,
+    ix: ixModule,
+    Buffer: rlp.Buffer
+  }, opts);
+};
+
+async function decode(response) {
+  const decodersFromConfig = await config.config().where(/^decoder\./);
+  const decoders = Object.entries(decodersFromConfig).map(_ref => {
+    let [pattern, xform] = _ref;
+    pattern = `/${pattern.replace(/^decoder\./, "")}$/`;
+    return [pattern, xform];
+  });
+  return decodeResponse(response, Object.fromEntries(decoders));
+}
+
+const findPayloadSigners = voucher => {
+  // Payload Signers Are: (authorizers + proposer) - payer
+  let payload = new Set(voucher.authorizers);
+  payload.add(voucher.proposalKey.address);
+  payload.delete(voucher.payer);
+  return Array.from(payload).map(utilAddress.withPrefix);
+};
+const findEnvelopeSigners = voucher => {
+  // Envelope Signers Are: (payer)
+  let envelope = new Set([voucher.payer]);
+  return Array.from(envelope).map(utilAddress.withPrefix);
+};
+class UnableToDetermineMessageEncodingTypeForSignerAddress extends Error {
+  constructor(signerAddress) {
+    const msg = `
+        Encode Message From Signable Error: Unable to determine message encoding for signer addresss: ${signerAddress}. 
+        Please ensure the address: ${signerAddress} is intended to sign the given transaction as specified by the transaction signable.
+      `.trim();
+    super(msg);
+    this.name = "Unable To Determine Message Encoding For Signer Addresss";
+  }
+}
+const encodeMessageFromSignable = (signable, signerAddress) => {
+  let payloadSigners = findPayloadSigners(signable.voucher);
+  let envelopeSigners = findEnvelopeSigners(signable.voucher);
+  const isPayloadSigner = payloadSigners.includes(utilAddress.withPrefix(signerAddress));
+  const isEnvelopeSigner = envelopeSigners.includes(utilAddress.withPrefix(signerAddress));
+  if (!isPayloadSigner && !isEnvelopeSigner) {
+    throw new UnableToDetermineMessageEncodingTypeForSignerAddress(signerAddress);
+  }
+  const message = {
+    cadence: signable.voucher.cadence,
+    refBlock: signable.voucher.refBlock,
+    computeLimit: signable.voucher.computeLimit,
+    arguments: signable.voucher.arguments,
+    proposalKey: {
+      ...signable.voucher.proposalKey,
+      address: utilAddress.sansPrefix(signable.voucher.proposalKey.address)
+    },
+    payer: utilAddress.sansPrefix(signable.voucher.payer),
+    authorizers: signable.voucher.authorizers.map(utilAddress.sansPrefix),
+    payloadSigs: signable.voucher.payloadSigs.map(ps => ({
+      ...ps,
+      address: utilAddress.sansPrefix(ps.address)
+    }))
+  };
+  return isPayloadSigner ? encodeTransactionPayload(message) : encodeTransactionEnvelope(message);
+};
+
+function validator(cb) {
+  return update("ix.validators", validators => Array.isArray(validators) ? validators.push(cb) : [cb]);
+}
+
+/**
+ * @description - A builder function that returns a partial interaction to a block at a specific height
+ * @param {number} height - The height of the block to get
+ * @returns {Function} - A partial interaction object
+ */
+function atBlockHeight(height) {
+  return pipe([ix => {
+    ix.block.height = height;
+    return ix;
+  }, validator(ix => {
+    if (typeof ix.block.isSealed === "boolean") throw new Error("Unable to specify both block height and isSealed.");
+    if (ix.block.id) throw new Error("Unable to specify both block height and block id.");
+    return ix;
+  })]);
+}
+
+function atBlockId(id) {
+  return pipe([ix => {
+    ix.block.id = id;
+    return Ok(ix);
+  }, validator((ix, _ref) => {
+    let {
+      Ok,
+      Bad
+    } = _ref;
+    if (isGetAccount(ix)) return Bad(ix, "Unable to specify a block id with a Get Account interaction.");
+    if (typeof ix.block.isSealed === "boolean") return Bad(ix, "Unable to specify both block id and isSealed.");
+    if (ix.block.height) return Bad(ix, "Unable to specify both block id and block height.");
+    return Ok(ix);
+  })]);
+}
+
+/**
+ * @typedef {import("@onflow/typedefs").Account} Account
+ */
+
+/**
+ * @description  Returns the details of an account from their public address
+ * @param {string} address - Address of the account
+ * @param {object} [queryOptions] - Query parameters
+ * @param {number} [queryOptions.height] - Block height to query
+ * @param {string} [queryOptions.id] - Block ID to query
+ * @param {object} [opts] - Optional parameters
+ * @returns {Promise<Account>} - A promise that resolves to an account response
+ */
+function account(address) {
+  let {
+    height,
+    id
+  } = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  let opts = arguments.length > 2 ? arguments[2] : undefined;
+  utilInvariant.invariant(!(id && height), `Method: account -- Cannot pass "id" and "height" simultaneously`);
+
+  // Get account by ID
+  if (id) return send([getAccount(address), atBlockId(id)], opts).then(decodeResponse);
+
+  // Get account by height
+  if (height) return send([getAccount(address), atBlockHeight(height)], opts).then(decodeResponse);
+  return send([getAccount(address)], opts).then(decodeResponse);
+}
+
+/**
+ * @typedef {import("@onflow/typedefs").Block} Block
+ */
+
+/**
+ * @description Returns the latest block (optionally sealed or not), by id, or by height
+ * @param {object} [queryOptions] - Query parameters
+ * @param {boolean} [queryOptions.sealed=false] - Whether to query for a sealed block
+ * @param {number} [queryOptions.height] - Block height to query
+ * @param {string} [queryOptions.id] - Block ID to query
+ * @param {object} [opts] - Optional parameters
+ * @returns {Promise<Block>} - A promise that resolves to a block response
+ */
+function block() {
+  let {
+    sealed = false,
+    id,
+    height
+  } = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  let opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  utilInvariant.invariant(!(sealed && id || sealed && height), `Method: block -- Cannot pass "sealed" with "id" or "height"`);
+  utilInvariant.invariant(!(id && height), `Method: block -- Cannot pass "id" and "height" simultaneously`);
+
+  // Get block by ID
+  if (id) return send([getBlock(), atBlockId(id)], opts).then(decodeResponse);
+
+  // Get block by height
+  if (height) return send([getBlock(), atBlockHeight(height)], opts).then(decodeResponse);
+
+  // Get latest block
+  return send([getBlock(sealed)], opts).then(decodeResponse);
+}
+
+function authorizations() {
+  let ax = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+  return pipe(ax.map(authz => {
+    return prepAccount(authz, {
+      role: AUTHORIZER
+    });
+  }));
+}
+function authorization(addr, signingFunction, keyId, sequenceNum) {
+  return {
+    addr,
+    signingFunction,
+    keyId,
+    sequenceNum
+  };
+}
+
+function getEvents(eventType, start, end) {
+  if (typeof start !== "undefined" || typeof end !== "undefined") {
+    logger__namespace.log.deprecate({
+      pkg: "FCL/SDK",
+      subject: "Passing a start and end into getEvents",
+      transition: "https://github.com/onflow/flow-js-sdk/blob/master/packages/sdk/TRANSITIONS.md#0005-deprecate-start-end-get-events-builder"
+    });
+  }
+  return pipe([makeGetEvents, ix => {
+    ix.events.eventType = eventType;
+    ix.events.start = start;
+    ix.events.end = end;
+    return Ok(ix);
+  }]);
+}
+
+/**
+ * @description - A builder function that returns all instances of a particular event (by name) within a height range
+ * NOTE:
+ * - The block range provided must be from the current spork.
+ * - The block range provided must be 250 blocks or lower per request.
+ * @param {string} eventName - The name of the event to get
+ * @param {number} fromBlockHeight - The height of the block to start looking for events (inclusive)
+ * @param {number} toBlockHeight - The height of the block to stop looking for events (inclusive)
+ * @returns {Function} - An interaction object
+ */
+function getEventsAtBlockHeightRange(eventName, fromBlockHeight, toBlockHeight) {
+  return pipe([makeGetEvents, ix => {
+    ix.events.eventType = eventName;
+    ix.events.start = fromBlockHeight;
+    ix.events.end = toBlockHeight;
+    return Ok(ix);
+  }]);
+}
+
+/**
+ * @description - A builder function that returns all instances of a particular event (by name) within a set of blocks, specified by block ids
+ * NOTE:
+ * - The block range provided must be from the current spork.
+ * @param {string} eventName - The name of the event to get
+ * @param {number[]} blockIds - The ids of the blocks to look for events
+ * @returns {Function} - An interaction object
+ */
+function getEventsAtBlockIds(eventName) {
+  let blockIds = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+  return pipe([makeGetEvents, ix => {
+    ix.events.eventType = eventName;
+    ix.events.blockIds = blockIds;
+    return Ok(ix);
+  }]);
+}
+
+/**
+ * @description - A builder function that returns the interaction to get a block header
+ * @param {boolean} [isSealed] - Whether or not the block should be sealed
+ * @returns {Function} - An interaction object
+ */
+function getBlockHeader() {
+  let isSealed = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+  return pipe([makeGetBlockHeader, ix => {
+    ix.block.isSealed = isSealed;
+    return Ok(ix);
+  }]);
+}
+
+/**
+ * @description - A builder function that returns all a collection containing a list of transaction ids by its collection id
+ * NOTE:
+ * - The block range provided must be from the current spork. All events emitted during past sporks is current unavailable.
+ * @param {string} [id] - The id of the collection to get
+ * @returns {Function} - An interaction object
+ */
+function getCollection() {
+  let id = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+  return pipe([makeGetCollection, ix => {
+    ix.collection.id = id;
+    return ix;
+  }]);
+}
+
+/**
+ * @description - A builder function that returns the status of transaction
+ * NOTE: The transactionID provided must be from the current spork.
+ * @param {string} transactionId - The id of the transaction to get status
+ * @returns {Function} - An interaction object
+ */
+function getTransactionStatus(transactionId) {
+  return pipe([makeGetTransactionStatus, ix => {
+    ix.transaction.id = transactionId;
+    return Ok(ix);
+  }]);
+}
+
+/**
+ * @description - A builder function that returns a transaction
+ * NOTE: The transactionID provided must be from the current spork.
+ * @param {string} transactionId - The id of the transaction to get
+ * @returns {Function} - An interaction object
+ */
+function getTransaction(transactionId) {
+  return pipe([makeGetTransaction, ix => {
+    ix.transaction.id = transactionId;
+    return Ok(ix);
+  }]);
+}
+
+function getNetworkParameters() {
+  return pipe([makeGetNetworkParameters, ix => {
+    return Ok(ix);
+  }]);
+}
+
+function limit(computeLimit) {
+  return ix => {
+    ix.message.computeLimit = computeLimit;
+    return ix;
+  };
+}
+
+/**
+ * @description - A utility builder to be used with other builders to pass in arguments with a value and supported type
+ * @param {Array.<*>} ax - An array of arguments
+ * @returns {Function} - An interaction object
+ */
+function args() {
+  let ax = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+  return pipe(ax.map(makeArgument));
+}
+
+/**
+ * @description - A utility builder to be used with fcl.args[...] to create FCL supported arguments for interactions
+ * @param {any} value - The value of the argument
+ * @param {Function} xform - A function to transform the value
+ * @returns {object} - An argument object
+ */
+function arg(value, xform) {
+  return {
+    value,
+    xform
+  };
+}
+
+async function proposer(authz) {
+  return prepAccount(authz, {
+    role: PROPOSER
+  });
+}
+
+function payer() {
+  let ax = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+  if (!Array.isArray(ax)) ax = [ax];
+  return pipe(ax.map(authz => {
+    return prepAccount(authz, {
+      role: PAYER
+    });
+  }));
+}
+
+function ping() {
+  return makePing;
+}
+
+function ref(refBlock) {
+  return pipe([ix => {
+    ix.message.refBlock = refBlock;
+    return Ok(ix);
+  }]);
+}
+
+function script() {
+  return pipe([makeScript, put("ix.cadence", utilTemplate.template(...arguments))]);
+}
+
+const DEFAULT_SCRIPT_ACCOUNTS = [];
+const DEFUALT_REF = null;
+
+/**
+ * @description - A template builder to use a Cadence transaction for an interaction
+ * @param {...*} args - The arguments to pass
+ * @returns {Function} - An interaction object
+ */
+function transaction() {
+  return pipe([makeTransaction, put("ix.cadence", utilTemplate.template(...arguments)), ix => {
+    ix.message.refBlock = ix.message.refBlock || DEFUALT_REF;
+    ix.authorizations = ix.authorizations || DEFAULT_SCRIPT_ACCOUNTS;
+    return Ok(ix);
+  }]);
+}
+
+function voucherIntercept(fn) {
+  return put("ix.voucher-intercept", fn);
+}
+
+const resolveProposerSequenceNumber = _ref => {
+  let {
+    node
+  } = _ref;
+  return async ix => {
+    if (!isTransaction(ix)) return Ok(ix);
+    if (ix.accounts[ix.proposer].sequenceNum) return Ok(ix);
+    const sendFn = await config.config.first(["sdk.transport", "sdk.send"], transportHttp.send);
+    utilInvariant.invariant(sendFn, `Required value for sdk.transport is not defined in config. See: ${"https://github.com/onflow/fcl-js/blob/master/packages/sdk/CHANGELOG.md#0057-alpha1----2022-01-21"}`);
+    const response$1 = await sendFn(await build([getAccount(ix.accounts[ix.proposer].addr)]), {
+      config: config.config,
+      response: response,
+      Buffer: rlp.Buffer,
+      ix: ixModule
+    }, {
+      node
+    });
+    const decoded = await decodeResponse(response$1);
+    ix.accounts[ix.proposer].sequenceNum = decoded.keys[ix.accounts[ix.proposer].keyId].sequenceNumber;
+    return Ok(ix);
+  };
+};
+
+async function getRefId(opts) {
+  const node = await config.config().get("accessNode.api");
+  const sendFn = await config.config.first(["sdk.transport", "sdk.send"], transportHttp.send);
+  utilInvariant.invariant(sendFn, `Required value for sdk.transport is not defined in config. See: ${"https://github.com/onflow/fcl-js/blob/master/packages/sdk/CHANGELOG.md#0057-alpha1----2022-01-21"}`);
+  var ix;
+  ix = await pipe(interaction(), [getBlock()]);
+  ix = await sendFn(ix, {
+    config: config.config,
+    response,
+    Buffer: rlp.Buffer,
+    ix: ixModule
+  }, {
+    node
+  });
+  ix = await decodeResponse(ix);
+  return ix.id;
+}
+function resolveRefBlockId(opts) {
+  return async ix => {
+    if (!isTransaction(ix)) return Ok(ix);
+    if (ix.message.refBlock) return Ok(ix);
+    ix.message.refBlock = await getRefId();
+    return Ok(ix);
+  };
+}
+
+function mockAccountResponse(ix) {
+  let numberOfKeys = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 5;
+  // prettier-ignore
+  utilInvariant.invariant(ix.account, "mockAccountResponse(ix) -- ix.account is missing", ix);
+  // prettier-ignore
+  utilInvariant.invariant(ix.account.addr, "mockAccountResponse(ix) -- ix.account.addr is missing", ix);
+  const address = ix.account.addr;
+  return {
+    account: {
+      addr: address,
+      keys: Array.from({
+        length: numberOfKeys
+      }, (_, i) => ({
+        index: i,
+        sequenceNumber: 42
+      }))
+    }
+  };
+}
+function mockGetBlockResponse(ix) {
+  return {
+    tag: "GET_BLOCK",
+    block: {
+      id: "32"
+    }
+  };
+}
+const identity = v => v;
+function mockSend() {
+  let fallback = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : identity;
+  return async function execSend(ix) {
+    ix = await ix;
+    switch (true) {
+      case isGetAccount(ix):
+        return mockAccountResponse(ix);
+      case isGetBlock(ix):
+        return mockGetBlockResponse();
+      default:
+        return fallback(ix);
+    }
+  };
+}
+
+const idof = acct => `${utilAddress.withPrefix(acct.addr)}-${acct.keyId}`;
+function sig(opts) {
+  return ["SIGNATURE", opts.addr, opts.keyId].join(".");
+}
+function authzFn() {
+  let opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  return function (account) {
+    const acct = {
+      ...account,
+      ...opts,
+      resolve: null,
+      signingFunction: opts.signingFunction || account.signingFunction || fallbackSigningFunction
+    };
+    return acct;
+    function fallbackSigningFunction(signable) {
+      return {
+        addr: acct.addr,
+        keyId: acct.keyId,
+        signature: sig(acct)
+      };
+    }
+  };
+}
+function authzResolve() {
+  let opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  return function (account) {
+    const {
+      tempId,
+      ...rest
+    } = opts;
+    return {
+      ...account,
+      tempId: tempId || "WITH_RESOLVE",
+      resolve: authzFn(rest)
+    };
+  };
+}
+const ROLE = {
+  proposer: false,
+  authorizer: false,
+  payer: false
+};
+function authzResolveMany() {
+  let opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  return function (account) {
+    const tempId = opts.tempId || "AUTHZ_RESOLVE_MANY";
+    return {
+      ...account,
+      tempId,
+      resolve: () => [opts.proposer && authzFn(opts.proposer)({
+        role: {
+          ...ROLE,
+          proposer: true
+        }
+      }), ...opts.authorizations.map(authzFn).map(d => d({
+        role: {
+          ...ROLE,
+          authorizer: true
+        }
+      })), opts.payer && authzFn(opts.payer)({
+        role: {
+          ...ROLE,
+          payer: true
+        }
+      })].filter(Boolean)
+    };
+  };
+}
+function authzDeepResolveMany() {
+  let opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  let depth = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+  return function (account) {
+    const tempId = opts.tempId || "AUTHZ_DEEP_RESOLVE_MANY";
+    return {
+      ...account,
+      tempId,
+      resolve: depth > 0 ? authzDeepResolveMany(opts, depth - 1)(account).resolve : authzResolveMany(opts)(account).resolve
+    };
+  };
+}
+
+const run = function () {
+  let fns = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+  return build([ref("123"), ...fns]).then(resolve);
+};
+
+var index = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  mockSend: mockSend,
+  authzFn: authzFn,
+  authzResolve: authzResolve,
+  authzResolveMany: authzResolveMany,
+  authzDeepResolveMany: authzDeepResolveMany,
+  sig: sig,
+  idof: idof,
+  run: run
+});
+
+const VERSION = "1.2.3" ;
+
+// Deprecated
+const params = params => logger__namespace.log.deprecate({
+  pkg: "FCL/SDK",
+  message: `The params builder has been removed from the Flow JS-SDK/FCL.`,
+  transition: "https://github.com/onflow/flow-js-sdk/blob/master/packages/sdk/TRANSITIONS.md#0001-deprecate-params",
+  level: logger__namespace.LEVELS.error
+});
+const param = params => logger__namespace.log.deprecate({
+  pkg: "FCL/SDK",
+  message: `The param builder has been removed from the Flow JS-SDK/FCL.`,
+  transition: "https://github.com/onflow/flow-js-sdk/blob/master/packages/sdk/TRANSITIONS.md#0001-deprecate-params",
+  level: logger__namespace.LEVELS.error
+});
+
+Object.defineProperty(exports, 'config', {
+  enumerable: true,
+  get: function () { return config.config; }
+});
+Object.defineProperty(exports, 'cadence', {
+  enumerable: true,
+  get: function () { return utilTemplate.template; }
+});
+Object.defineProperty(exports, 'cdc', {
+  enumerable: true,
+  get: function () { return utilTemplate.template; }
+});
+exports.TestUtils = index;
+exports.VERSION = VERSION;
+exports.account = account;
+exports.arg = arg;
+exports.args = args;
+exports.atBlockHeight = atBlockHeight;
+exports.atBlockId = atBlockId;
+exports.authorization = authorization;
+exports.authorizations = authorizations;
+exports.block = block;
+exports.build = build;
+exports.createSignableVoucher = createSignableVoucher;
+exports.decode = decode;
+exports.destroy = destroy;
+exports.encodeMessageFromSignable = encodeMessageFromSignable;
+exports.encodeTransactionEnvelope = encodeTransactionEnvelope;
+exports.encodeTransactionPayload = encodeTransactionPayload;
+exports.encodeTxIdFromVoucher = encodeTxIdFromVoucher;
+exports.get = get;
+exports.getAccount = getAccount;
+exports.getBlock = getBlock;
+exports.getBlockHeader = getBlockHeader;
+exports.getCollection = getCollection;
+exports.getEvents = getEvents;
+exports.getEventsAtBlockHeightRange = getEventsAtBlockHeightRange;
+exports.getEventsAtBlockIds = getEventsAtBlockIds;
+exports.getNetworkParameters = getNetworkParameters;
+exports.getTransaction = getTransaction;
+exports.getTransactionStatus = getTransactionStatus;
+exports.interaction = interaction;
+exports.invariant = invariant;
+exports.isBad = isBad;
+exports.isGetAccount = isGetAccount;
+exports.isGetBlock = isGetBlock;
+exports.isGetBlockHeader = isGetBlockHeader;
+exports.isGetCollection = isGetCollection;
+exports.isGetEvents = isGetEvents;
+exports.isGetNetworkParameters = isGetNetworkParameters;
+exports.isGetTransaction = isGetTransaction;
+exports.isGetTransactionStatus = isGetTransactionStatus;
+exports.isOk = isOk;
+exports.isPing = isPing;
+exports.isScript = isScript;
+exports.isTransaction = isTransaction;
+exports.isUnknown = isUnknown;
+exports.limit = limit;
+exports.param = param;
+exports.params = params;
+exports.payer = payer;
+exports.ping = ping;
+exports.pipe = pipe;
+exports.proposer = proposer;
+exports.put = put;
+exports.ref = ref;
+exports.resolve = resolve;
+exports.resolveAccounts = resolveAccounts;
+exports.resolveArguments = resolveArguments;
+exports.resolveCadence = resolveCadence;
+exports.resolveFinalNormalization = resolveFinalNormalization;
+exports.resolveProposerSequenceNumber = resolveProposerSequenceNumber;
+exports.resolveRefBlockId = resolveRefBlockId;
+exports.resolveSignatures = resolveSignatures;
+exports.resolveValidators = resolveValidators;
+exports.resolveVoucherIntercept = resolveVoucherIntercept;
+exports.response = response;
+exports.script = script;
+exports.send = send;
+exports.transaction = transaction;
+exports.update = update;
+exports.validator = validator;
+exports.voucherIntercept = voucherIntercept;
+exports.voucherToTxId = voucherToTxId;
+exports.why = why;
+
+
+},{"@onflow/config":180,"@onflow/rlp":182,"@onflow/transport-http":184,"@onflow/util-address":187,"@onflow/util-invariant":188,"@onflow/util-logger":189,"@onflow/util-template":190,"sha3":244,"uuid":255}],184:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var utilInvariant = require('@onflow/util-invariant');
+require('@onflow/rlp');
+var logger = require('@onflow/util-logger');
+var fetchTransport = require('cross-fetch');
+var utilAddress = require('@onflow/util-address');
+
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+
+function _interopNamespace(e) {
+  if (e && e.__esModule) return e;
+  var n = Object.create(null);
+  if (e) {
+    Object.keys(e).forEach(function (k) {
+      if (k !== 'default') {
+        var d = Object.getOwnPropertyDescriptor(e, k);
+        Object.defineProperty(n, k, d.get ? d : {
+          enumerable: true,
+          get: function () { return e[k]; }
+        });
+      }
+    });
+  }
+  n["default"] = e;
+  return Object.freeze(n);
+}
+
+var logger__namespace = /*#__PURE__*/_interopNamespace(logger);
+var fetchTransport__default = /*#__PURE__*/_interopDefaultLegacy(fetchTransport);
+
+const AbortController = globalThis.AbortController || require("abort-controller");
+class HTTPRequestError extends Error {
+  constructor(_ref) {
+    let {
+      error,
+      hostname,
+      path,
+      method,
+      requestBody,
+      responseBody,
+      responseStatusText,
+      statusCode
+    } = _ref;
+    const msg = `
+      HTTP Request Error: An error occurred when interacting with the Access API.
+      ${error ? `error=${error}` : ""}
+      ${hostname ? `hostname=${hostname}` : ""}
+      ${path ? `path=${path}` : ""}
+      ${method ? `method=${method}` : ""}
+      ${requestBody ? `requestBody=${requestBody}` : ""}
+      ${responseBody ? `responseBody=${responseBody}` : ""}
+      ${responseStatusText ? `responseStatusText=${responseStatusText}` : ""}
+      ${statusCode ? `statusCode=${statusCode}` : ""}
+    `;
+    super(msg);
+    this.name = "HTTP Request Error";
+    this.statusCode = statusCode;
+    this.errorMessage = error;
+  }
+}
+
+/**
+ * Creates an HTTP Request to be sent to a REST Access API via Fetch API.
+ *
+ * @param {object} options - Options for the HTTP Request
+ * @param {String} options.hostname - Access API Hostname
+ * @param {String} options.path - Path to the resource on the Access API
+ * @param {String} options.method - HTTP Method
+ * @param {object} options.body - HTTP Request Body
+ * @param {object} [options.headers] - HTTP Request Headers
+ * @param {boolean} [options.enableRequestLogging=true] - Enable/Disable request logging
+ * @param {number} [options.retryLimit=5] - Number of times to retry request
+ * @param {number} [options.retryIntervalMs=1000] - Time in milliseconds to wait before retrying request
+ * @param {number} [options.timeoutLimit=30000] - Time in milliseconds to wait before timing out request
+ *
+ * @returns JSON object response from Access API.
+ */
+async function httpRequest(_ref2) {
+  let {
+    hostname,
+    path,
+    method,
+    body,
+    headers,
+    retryLimit = 5,
+    retryIntervalMs = 1000,
+    timeoutLimit = 30000,
+    enableRequestLogging = true
+  } = _ref2;
+  const bodyJSON = body ? JSON.stringify(body) : null;
+  function makeRequest() {
+    const controller = new AbortController();
+    const fetchTimeout = setTimeout(() => {
+      controller.abort();
+    }, timeoutLimit);
+    return fetchTransport__default["default"](`${hostname}${path}`, {
+      method: method,
+      body: bodyJSON,
+      headers,
+      signal: controller.signal
+    }).then(async res => {
+      if (res.ok) {
+        return res.json();
+      }
+      const responseText = await res.text().catch(() => null);
+      const response = safeParseJSON(responseText);
+      throw new HTTPRequestError({
+        error: response?.message,
+        hostname,
+        path,
+        method,
+        requestBody: bodyJSON,
+        responseBody: responseText,
+        responseStatusText: res.statusText,
+        statusCode: res.status
+      });
+    }).catch(async e => {
+      if (e instanceof HTTPRequestError) {
+        throw e;
+      }
+      if (e.name === "AbortError") {
+        throw e;
+      }
+
+      // Show AN error for all network errors
+      if (enableRequestLogging) {
+        await logger__namespace.log({
+          title: "Access Node Error",
+          message: `The provided access node ${hostname} does not appear to be a valid REST/HTTP access node.
+  Please verify that you are not unintentionally using a GRPC access node.
+  See more here: https://docs.onflow.org/fcl/reference/sdk-guidelines/#connect`,
+          level: logger__namespace.LEVELS.error
+        });
+      }
+      throw new HTTPRequestError({
+        error: e?.message,
+        hostname,
+        path,
+        method,
+        requestBody: bodyJSON
+      });
+    }).finally(() => {
+      clearTimeout(fetchTimeout);
+    });
+  }
+  async function requestLoop() {
+    let retryAttempt = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+    try {
+      const resp = await makeRequest();
+      return resp;
+    } catch (error) {
+      const retryStatusCodes = [408, 429, 500, 502, 503, 504];
+      if (error.name === "AbortError" || retryStatusCodes.includes(error.statusCode)) {
+        return await new Promise((resolve, reject) => {
+          if (retryAttempt < retryLimit) {
+            if (enableRequestLogging) {
+              console.warn(`Access node unavailable, retrying in ${retryIntervalMs} ms...`);
+            }
+            setTimeout(() => {
+              resolve(requestLoop(retryAttempt + 1));
+            }, retryIntervalMs);
+          } else {
+            reject(error);
+          }
+        });
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  // Keep retrying request until server available or max attempts exceeded
+  return await requestLoop();
+}
+function safeParseJSON(data) {
+  try {
+    return JSON.parse(data);
+  } catch {
+    return null;
+  }
+}
+
+async function sendExecuteScriptAtBlockIDRequest(ix, context, opts) {
+  const httpRequest$1 = opts.httpRequest || httpRequest;
+  const res = await httpRequest$1({
+    hostname: opts.node,
+    path: `/v1/scripts?block_id=${ix.block.id}`,
+    method: "POST",
+    body: {
+      script: context.Buffer.from(ix.message.cadence).toString("base64"),
+      arguments: ix.message.arguments.map(arg => context.Buffer.from(JSON.stringify(ix.arguments[arg].asArgument)).toString("base64"))
+    }
+  });
+  return constructResponse$4(ix, context, res);
+}
+async function sendExecuteScriptAtBlockHeightRequest(ix, context, opts) {
+  const httpRequest$1 = opts.httpRequest || httpRequest;
+  const res = await httpRequest$1({
+    hostname: opts.node,
+    path: `/v1/scripts?block_height=${ix.block.height}`,
+    method: "POST",
+    body: {
+      script: context.Buffer.from(ix.message.cadence).toString("base64"),
+      arguments: ix.message.arguments.map(arg => context.Buffer.from(JSON.stringify(ix.arguments[arg].asArgument)).toString("base64"))
+    }
+  });
+  return constructResponse$4(ix, context, res);
+}
+async function sendExecuteScriptAtLatestBlockRequest(ix, context, opts) {
+  const httpRequest$1 = opts.httpRequest || httpRequest;
+  const res = await httpRequest$1({
+    hostname: opts.node,
+    path: `/v1/scripts?block_height=sealed`,
+    method: "POST",
+    body: {
+      script: context.Buffer.from(ix.message.cadence).toString("base64"),
+      arguments: ix.message.arguments.map(arg => context.Buffer.from(JSON.stringify(ix.arguments[arg].asArgument)).toString("base64"))
+    }
+  });
+  return constructResponse$4(ix, context, res);
+}
+function constructResponse$4(ix, context, res) {
+  let ret = context.response();
+  ret.tag = ix.tag;
+  ret.encodedData = JSON.parse(context.Buffer.from(res, "base64").toString());
+  return ret;
+}
+async function sendExecuteScript(ix) {
+  let context = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  let opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+  utilInvariant.invariant(opts.node, `SDK Send Execute Script Error: opts.node must be defined.`);
+  utilInvariant.invariant(context.response, `SDK Send Execute Script Error: context.response must be defined.`);
+  utilInvariant.invariant(context.Buffer, `SDK Send Execute Script Error: context.Buffer must be defined.`);
+  ix = await ix;
+  if (ix.block.id) {
+    return await sendExecuteScriptAtBlockIDRequest(ix, context, opts);
+  } else if (ix.block.height) {
+    return await sendExecuteScriptAtBlockHeightRequest(ix, context, opts);
+  } else {
+    return await sendExecuteScriptAtLatestBlockRequest(ix, context, opts);
+  }
+}
+
+const HashAlgorithmIDs = {
+  SHA2_256: 1,
+  SHA2_384: 2,
+  SHA3_256: 3,
+  SHA3_384: 4,
+  KMAC128_BLS_BLS12_381: 5
+};
+const SignatureAlgorithmIDs = {
+  ECDSA_P256: 1,
+  ECDSA_secp256k1: 2,
+  BLS_BLS12_381: 3
+};
+async function sendGetAccountAtBlockHeightRequest(ix, context, opts) {
+  const httpRequest$1 = opts.httpRequest || httpRequest;
+  const res = await httpRequest$1({
+    hostname: opts.node,
+    path: `/v1/accounts/${ix.account.addr}?block_height=${ix.block.height}&expand=contracts,keys`,
+    method: "GET",
+    body: null
+  });
+  return constructResponse$3(ix, context, res);
+}
+async function sendGetAccountAtLatestBlockRequest(ix, context, opts) {
+  const httpRequest$1 = opts.httpRequest || httpRequest;
+  const res = await httpRequest$1({
+    hostname: opts.node,
+    path: `/v1/accounts/${ix.account.addr}?block_height=sealed&expand=contracts,keys`,
+    method: "GET",
+    body: null
+  });
+  return constructResponse$3(ix, context, res);
+}
+function constructResponse$3(ix, context, res) {
+  let ret = context.response();
+  ret.tag = ix.tag;
+  const unwrapContracts = contracts => {
+    const c = {};
+    if (!contracts) return c;
+    for (let key of Object.keys(contracts)) {
+      c[key] = context.Buffer.from(contracts[key], "base64").toString();
+    }
+    return c;
+  };
+  ret.account = {
+    address: res.address,
+    balance: Number(res.balance),
+    code: "",
+    contracts: unwrapContracts(res.contracts),
+    keys: res.keys?.map(key => ({
+      index: Number(key.index),
+      publicKey: key.public_key.replace(/^0x/, ""),
+      signAlgo: SignatureAlgorithmIDs[key.signing_algorithm],
+      signAlgoString: key.signing_algorithm,
+      hashAlgo: HashAlgorithmIDs[key.hashing_algorithm],
+      hashAlgoString: key.hashing_algorithm,
+      sequenceNumber: Number(key.sequence_number),
+      weight: Number(key.weight),
+      revoked: key.revoked
+    })) ?? []
+  };
+  return ret;
+}
+async function sendGetAccount(ix) {
+  let context = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  let opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+  utilInvariant.invariant(opts.node, `SDK Send Get Account Error: opts.node must be defined.`);
+  utilInvariant.invariant(context.response, `SDK Send Get Account Error: context.response must be defined.`);
+  utilInvariant.invariant(context.Buffer, `SDK Send Get Account Error: context.Buffer must be defined.`);
+  ix = await ix;
+  if (ix.block.height !== null) {
+    return await sendGetAccountAtBlockHeightRequest(ix, context, opts);
+  } else {
+    return await sendGetAccountAtLatestBlockRequest(ix, context, opts);
+  }
+}
+
+async function sendGetBlockHeaderByIDRequest(ix, context, opts) {
+  const httpRequest$1 = opts.httpRequest || httpRequest;
+  const res = await httpRequest$1({
+    hostname: opts.node,
+    path: `/v1/blocks/${ix.block.id}`,
+    method: "GET",
+    body: null
+  });
+  return constructResponse$2(ix, context, res);
+}
+async function sendGetBlockHeaderByHeightRequest(ix, context, opts) {
+  const httpRequest$1 = opts.httpRequest || httpRequest;
+  const res = await httpRequest$1({
+    hostname: opts.node,
+    path: `/v1/blocks?height=${ix.block.height}`,
+    method: "GET",
+    body: null
+  });
+  return constructResponse$2(ix, context, res);
+}
+async function sendGetLatestBlockHeaderRequest(ix, context, opts) {
+  const httpRequest$1 = opts.httpRequest || httpRequest;
+  const height = ix.block?.isSealed ? "sealed" : "final";
+  const res = await httpRequest$1({
+    hostname: opts.node,
+    path: `/v1/blocks?height=${height}`,
+    method: "GET",
+    body: null
+  });
+  return constructResponse$2(ix, context, res);
+}
+function constructResponse$2(ix, context, res) {
+  const block = res.length ? res[0] : null;
+  const ret = context.response();
+  ret.tag = ix.tag;
+  ret.blockHeader = {
+    id: block.header.id,
+    parentId: block.header.parent_id,
+    height: Number(block.header.height),
+    timestamp: block.header.timestamp
+  };
+  return ret;
+}
+async function sendGetBlockHeader(ix) {
+  let context = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  let opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+  utilInvariant.invariant(opts.node, `SDK Send Get Block Header Error: opts.node must be defined.`);
+  utilInvariant.invariant(context.response, `SDK Send Get Block Header Error: context.response must be defined.`);
+  ix = await ix;
+  const interactionHasBlockID = ix.block.id !== null;
+  const interactionHasBlockHeight = ix.block.height !== null;
+  if (interactionHasBlockID) {
+    return await sendGetBlockHeaderByIDRequest(ix, context, opts);
+  } else if (interactionHasBlockHeight) {
+    return await sendGetBlockHeaderByHeightRequest(ix, context, opts);
+  } else {
+    return await sendGetLatestBlockHeaderRequest(ix, context, opts);
+  }
+}
+
+async function sendGetBlockByIDRequest(ix, context, opts) {
+  const httpRequest$1 = opts.httpRequest || httpRequest;
+  const res = await httpRequest$1({
+    hostname: opts.node,
+    path: `/v1/blocks/${ix.block.id}?expand=payload`,
+    method: "GET",
+    body: null
+  });
+  return constructResponse$1(ix, context, res);
+}
+async function sendGetBlockByHeightRequest(ix, context, opts) {
+  const httpRequest$1 = opts.httpRequest || httpRequest;
+  const res = await httpRequest$1({
+    hostname: opts.node,
+    path: `/v1/blocks?height=${ix.block.height}&expand=payload`,
+    method: "GET",
+    body: null
+  });
+  return constructResponse$1(ix, context, res);
+}
+async function sendGetBlockRequest(ix, context, opts) {
+  const httpRequest$1 = opts.httpRequest || httpRequest;
+  const height = ix.block?.isSealed ? "sealed" : "final";
+  const res = await httpRequest$1({
+    hostname: opts.node,
+    path: `/v1/blocks?height=${height}&expand=payload`,
+    method: "GET",
+    body: null
+  });
+  return constructResponse$1(ix, context, res);
+}
+function constructResponse$1(ix, context, res) {
+  const block = res.length ? res[0] : null;
+  const ret = context.response();
+  ret.tag = ix.tag;
+  ret.block = {
+    id: block.header.id,
+    parentId: block.header.parent_id,
+    height: Number(block.header.height),
+    timestamp: block.header.timestamp,
+    collectionGuarantees: block.payload.collection_guarantees.map(collectionGuarantee => ({
+      collectionId: collectionGuarantee.collection_id,
+      signerIds: collectionGuarantee.signer_ids
+    })),
+    blockSeals: block.payload.block_seals.map(blockSeal => ({
+      blockId: blockSeal.block_id,
+      executionReceiptId: blockSeal.result_id
+    }))
+  };
+  return ret;
+}
+async function sendGetBlock(ix) {
+  let context = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  let opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+  utilInvariant.invariant(opts.node, `SDK Send Get Block Error: opts.node must be defined.`);
+  utilInvariant.invariant(context.response, `SDK Send Get Block Error: context.response must be defined.`);
+  ix = await ix;
+  const interactionHasBlockID = ix.block.id !== null;
+  const interactionHasBlockHeight = ix.block.height !== null;
+  if (interactionHasBlockID) {
+    return await sendGetBlockByIDRequest(ix, context, opts);
+  } else if (interactionHasBlockHeight) {
+    return await sendGetBlockByHeightRequest(ix, context, opts);
+  } else {
+    return await sendGetBlockRequest(ix, context, opts);
+  }
+}
+
+async function sendGetCollection(ix) {
+  let context = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  let opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+  utilInvariant.invariant(opts.node, `SDK Send Get Collection Error: opts.node must be defined.`);
+  utilInvariant.invariant(context.response, `SDK Send Get Collection Error: context.response must be defined.`);
+  const httpRequest$1 = opts.httpRequest || httpRequest;
+  const res = await httpRequest$1({
+    hostname: opts.node,
+    path: `/v1/collections/${ix.collection.id}?expand=transactions`,
+    method: "GET",
+    body: null
+  });
+  const ret = context.response();
+  ret.tag = ix.tag;
+  ret.collection = {
+    id: res.id,
+    transactionIds: res.transactions.map(transaction => transaction.id)
+  };
+  return ret;
+}
+
+async function sendGetEventsForHeightRangeRequest(ix, context, opts) {
+  const httpRequest$1 = opts.httpRequest || httpRequest;
+  const res = await httpRequest$1({
+    hostname: opts.node,
+    path: `/v1/events?type=${ix.events.eventType}&start_height=${ix.events.start}&end_height=${ix.events.end}`,
+    method: "GET",
+    body: null
+  });
+  return constructResponse(ix, context, res);
+}
+async function sendGetEventsForBlockIDsRequest(ix, context, opts) {
+  const httpRequest$1 = opts.httpRequest || httpRequest;
+  const res = await httpRequest$1({
+    hostname: opts.node,
+    path: `/v1/events?type=${ix.events.eventType}&block_ids=${ix.events.blockIds.join(",")}`,
+    method: "GET",
+    body: null
+  });
+  return constructResponse(ix, context, res);
+}
+function constructResponse(ix, context, res) {
+  let ret = context.response();
+  ret.tag = ix.tag;
+  ret.events = [];
+  res.forEach(block => block.events ? block.events.forEach(event => ret.events.push({
+    blockId: block.block_id,
+    blockHeight: Number(block.block_height),
+    blockTimestamp: block.block_timestamp,
+    type: event.type,
+    transactionId: event.transaction_id,
+    transactionIndex: Number(event.transaction_index),
+    eventIndex: Number(event.event_index),
+    payload: JSON.parse(context.Buffer.from(event.payload, "base64").toString())
+  })) : null);
+  return ret;
+}
+async function sendGetEvents(ix) {
+  let context = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  let opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+  utilInvariant.invariant(opts.node, `SDK Send Get Events Error: opts.node must be defined.`);
+  utilInvariant.invariant(context.response, `SDK Send Get Events Error: context.response must be defined.`);
+  utilInvariant.invariant(context.Buffer, `SDK Send Get Events Error: context.Buffer must be defined.`);
+  ix = await ix;
+  const interactionContainsBlockHeightRange = ix.events.start !== null;
+  const interactionContainsBlockIDsList = Array.isArray(ix.events.blockIds) && ix.events.blockIds.length > 0;
+  utilInvariant.invariant(interactionContainsBlockHeightRange || interactionContainsBlockIDsList, "SendGetEventsError: Unable to determine which get events request to send. Either a block height range, or block IDs must be specified.");
+  if (interactionContainsBlockHeightRange) {
+    return await sendGetEventsForHeightRangeRequest(ix, context, opts);
+  } else {
+    return await sendGetEventsForBlockIDsRequest(ix, context, opts);
+  }
+}
+
+async function sendGetTransaction(ix) {
+  let context = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  let opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+  utilInvariant.invariant(opts.node, `SDK Send Get Transaction Error: opts.node must be defined.`);
+  utilInvariant.invariant(context.response, `SDK Send Get Transaction Error: context.response must be defined.`);
+  utilInvariant.invariant(context.Buffer, `SDK Send Get Transaction Error: context.Buffer must be defined.`);
+  const httpRequest$1 = opts.httpRequest || httpRequest;
+  ix = await ix;
+  const res = await httpRequest$1({
+    hostname: opts.node,
+    path: `/v1/transactions/${ix.transaction.id}`,
+    method: "GET",
+    body: null
+  });
+  const unwrapKey = key => ({
+    address: key.address,
+    keyId: Number(key.key_id),
+    sequenceNumber: Number(key.sequence_number)
+  });
+  const unwrapSignature = sig => ({
+    address: sig.address,
+    keyId: Number(sig.key_index),
+    signature: sig.signature
+  });
+  const unwrapArg = arg => JSON.parse(context.Buffer.from(arg, "base64").toString());
+  let ret = context.response();
+  ret.tag = ix.tag;
+  ret.transaction = {
+    script: context.Buffer.from(res.script, "base64").toString(),
+    args: [...res.arguments.map(unwrapArg)],
+    referenceBlockId: res.reference_block_id,
+    gasLimit: Number(res.gas_limit),
+    payer: res.payer,
+    proposalKey: res.proposal_key ? unwrapKey(res.proposal_key) : res.proposal_key,
+    authorizers: res.authorizers,
+    payloadSignatures: [...res.payload_signatures.map(unwrapSignature)],
+    envelopeSignatures: [...res.envelope_signatures.map(unwrapSignature)]
+  };
+  return ret;
+}
+
+const STATUS_MAP = {
+  UNKNOWN: 0,
+  PENDING: 1,
+  FINALIZED: 2,
+  EXECUTED: 3,
+  SEALED: 4,
+  EXPIRED: 5
+};
+async function sendGetTransactionStatus(ix) {
+  let context = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  let opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+  utilInvariant.invariant(opts.node, `SDK Send Get Transaction Status Error: opts.node must be defined.`);
+  utilInvariant.invariant(context.response, `SDK Send Get Transaction Status Error: context.response must be defined.`);
+  utilInvariant.invariant(context.Buffer, `SDK Send Get Transaction Status Error: context.Buffer must be defined.`);
+  const httpRequest$1 = opts.httpRequest || httpRequest;
+  ix = await ix;
+  const res = await httpRequest$1({
+    hostname: opts.node,
+    path: `/v1/transaction_results/${ix.transaction.id}`,
+    method: "GET",
+    body: null
+  });
+  let ret = context.response();
+  ret.tag = ix.tag;
+  ret.transactionStatus = {
+    blockId: res.block_id,
+    status: STATUS_MAP[res.status.toUpperCase()] || "",
+    statusString: res.status.toUpperCase(),
+    statusCode: res.status_code,
+    errorMessage: res.error_message,
+    events: res.events.map(event => ({
+      type: event.type,
+      transactionId: event.transaction_id,
+      transactionIndex: Number(event.transaction_index),
+      eventIndex: Number(event.event_index),
+      payload: JSON.parse(context.Buffer.from(event.payload, "base64").toString())
+    }))
+  };
+  return ret;
+}
+
+async function sendPing(ix) {
+  let context = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  let opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+  utilInvariant.invariant(opts.node, `SDK Send Ping Error: opts.node must be defined.`);
+  utilInvariant.invariant(context.response, `SDK Send Ping Error: context.response must be defined.`);
+  const httpRequest$1 = opts.httpRequest || httpRequest;
+  await httpRequest$1({
+    hostname: opts.node,
+    path: "/v1/blocks?height=sealed",
+    method: "GET",
+    body: null
+  });
+  let ret = context.response();
+  ret.tag = ix.tag;
+  return ret;
+}
+
+const idof = acct => `${withPrefix(acct.addr)}-${acct.keyId}`;
+async function sendTransaction(ix) {
+  let context = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  let opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+  utilInvariant.invariant(opts.node, `SDK Send Transaction Error: opts.node must be defined.`);
+  utilInvariant.invariant(context.response, `SDK Send Transaction Error: context.response must be defined.`);
+  utilInvariant.invariant(context.Buffer, `SDK Send Transaction Error: context.Buffer must be defined.`);
+  const httpRequest$1 = opts.httpRequest || httpRequest;
+  ix = await ix;
+
+  // Apply Non Payer Signatures to Payload Signatures
+  let payloadSignatures = [];
+  for (let acct of Object.values(ix.accounts)) {
+    try {
+      if (!acct.role.payer && acct.signature != null) {
+        const signature = {
+          address: utilAddress.sansPrefix(acct.addr),
+          key_index: String(acct.keyId),
+          signature: context.Buffer.from(acct.signature, "hex").toString("base64")
+        };
+        if (!payloadSignatures.find(existingSignature => existingSignature.address === signature.address && existingSignature.key_index === signature.key_index && existingSignature.signature === signature.signature)) {
+          payloadSignatures.push(signature);
+        }
+      }
+    } catch (error) {
+      console.error("SDK HTTP Send Error: Trouble applying payload signature", {
+        acct,
+        ix
+      });
+      throw error;
+    }
+  }
+
+  // Apply Payer Signatures to Envelope Signatures
+  let envelopeSignatures = {};
+  for (let acct of Object.values(ix.accounts)) {
+    try {
+      if (acct.role.payer && acct.signature != null) {
+        let id = acct.tempId || idof(acct);
+        envelopeSignatures[id] = envelopeSignatures[id] || {
+          address: utilAddress.sansPrefix(acct.addr),
+          key_index: String(acct.keyId),
+          signature: context.Buffer.from(acct.signature, "hex").toString("base64")
+        };
+      }
+    } catch (error) {
+      console.error("SDK HTTP Send Error: Trouble applying envelope signature", {
+        acct,
+        ix
+      });
+      throw error;
+    }
+  }
+  envelopeSignatures = Object.values(envelopeSignatures);
+  var t1 = Date.now();
+  const res = await httpRequest$1({
+    hostname: opts.node,
+    path: `/v1/transactions`,
+    method: "POST",
+    body: {
+      script: context.Buffer.from(ix.message.cadence).toString("base64"),
+      arguments: [...ix.message.arguments.map(arg => context.Buffer.from(JSON.stringify(ix.arguments[arg].asArgument)).toString("base64"))],
+      reference_block_id: ix.message.refBlock ? ix.message.refBlock : null,
+      gas_limit: String(ix.message.computeLimit),
+      payer: utilAddress.sansPrefix(ix.accounts[Array.isArray(ix.payer) ? ix.payer[0] : ix.payer].addr),
+      proposal_key: {
+        address: utilAddress.sansPrefix(ix.accounts[ix.proposer].addr),
+        key_index: String(ix.accounts[ix.proposer].keyId),
+        sequence_number: String(ix.accounts[ix.proposer].sequenceNum)
+      },
+      authorizers: ix.authorizations.map(tempId => ix.accounts[tempId].addr).reduce((prev, current) => {
+        return prev.find(item => item === current) ? prev : [...prev, current];
+      }, []).map(utilAddress.sansPrefix),
+      payload_signatures: payloadSignatures,
+      envelope_signatures: envelopeSignatures
+    }
+  });
+  var t2 = Date.now();
+  let ret = context.response();
+  ret.tag = ix.tag;
+  ret.transactionId = res.id;
+  if (typeof window !== "undefined" && typeof CustomEvent !== "undefined") {
+    window.dispatchEvent(new CustomEvent("FLOW::TX", {
+      detail: {
+        txId: ret.transactionId,
+        delta: t2 - t1
+      }
+    }));
+  }
+  return ret;
+}
+
+async function sendGetNetworkParameters(ix) {
+  let context = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  let opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+  utilInvariant.invariant(opts.node, `SDK Send Get Network Parameters Error: opts.node must be defined.`);
+  utilInvariant.invariant(context.response, `SDK Send Get Network Parameters Error: context.response must be defined.`);
+  const httpRequest$1 = opts.httpRequest || httpRequest;
+  ix = await ix;
+  const res = await httpRequest$1({
+    hostname: opts.node,
+    path: `/v1/network/parameters`,
+    method: "GET",
+    body: null,
+    enableRequestLogging: opts.enableRequestLogging ?? true
+  });
+  let ret = context.response();
+  ret.tag = ix.tag;
+  ret.networkParameters = {
+    chainId: res.chain_id
+  };
+  return ret;
+}
+
+const send = async function (ix) {
+  let context = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  let opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+  utilInvariant.invariant(opts.node, `SDK Send Error: Either opts.node or "accessNode.api" in config must be defined.`);
+  utilInvariant.invariant(context.ix, `SDK Send Error: context.ix must be defined.`);
+  ix = await ix;
+
+  // prettier-ignore
+  switch (true) {
+    case context.ix.isTransaction(ix):
+      return opts.sendTransaction ? opts.sendTransaction(ix, context, opts) : sendTransaction(ix, context, opts);
+    case context.ix.isGetTransactionStatus(ix):
+      return opts.sendGetTransactionStatus ? opts.sendGetTransactionStatus(ix, context, opts) : sendGetTransactionStatus(ix, context, opts);
+    case context.ix.isGetTransaction(ix):
+      return opts.sendGetTransaction ? opts.sendGetTransaction(ix, context, opts) : sendGetTransaction(ix, context, opts);
+    case context.ix.isScript(ix):
+      return opts.sendExecuteScript ? opts.sendExecuteScript(ix, context, opts) : sendExecuteScript(ix, context, opts);
+    case context.ix.isGetAccount(ix):
+      return opts.sendGetAccount ? opts.sendGetAccount(ix, context, opts) : sendGetAccount(ix, context, opts);
+    case context.ix.isGetEvents(ix):
+      return opts.sendGetEvents ? opts.sendGetEvents(ix, context, opts) : sendGetEvents(ix, context, opts);
+    case context.ix.isGetBlock(ix):
+      return opts.sendGetBlock ? opts.sendGetBlock(ix, context, opts) : sendGetBlock(ix, context, opts);
+    case context.ix.isGetBlockHeader(ix):
+      return opts.sendGetBlockHeader ? opts.sendGetBlockHeader(ix, context, opts) : sendGetBlockHeader(ix, context, opts);
+    case context.ix.isGetCollection(ix):
+      return opts.sendGetCollection ? opts.sendGetCollection(ix, context, opts) : sendGetCollection(ix, context, opts);
+    case context.ix.isPing(ix):
+      return opts.sendPing ? opts.sendPing(ix, context, opts) : sendPing(ix, context, opts);
+    case context.ix.isGetNetworkParameters(ix):
+      return opts.sendGetNetworkParameters ? opts.sendGetNetworkParameters(ix, context, opts) : sendGetNetworkParameters(ix, context, opts);
+    default:
+      return ix;
+  }
+};
+
+exports.send = send;
+exports.sendExecuteScript = sendExecuteScript;
+exports.sendGetAccount = sendGetAccount;
+exports.sendGetBlock = sendGetBlock;
+exports.sendGetBlockHeader = sendGetBlockHeader;
+exports.sendGetCollection = sendGetCollection;
+exports.sendGetEvents = sendGetEvents;
+exports.sendGetNetworkParameters = sendGetNetworkParameters;
+exports.sendGetTransaction = sendGetTransaction;
+exports.sendGetTransactionStatus = sendGetTransactionStatus;
+exports.sendPing = sendPing;
+exports.sendTransaction = sendTransaction;
+
+
+},{"@onflow/rlp":182,"@onflow/util-address":187,"@onflow/util-invariant":188,"@onflow/util-logger":189,"abort-controller":192,"cross-fetch":197}],185:[function(require,module,exports){
+(function (global){(function (){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+
+/*! queue-microtask. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> */
+let promise;
+var queueMicrotask_1 = typeof queueMicrotask === 'function' ? queueMicrotask.bind(typeof window !== 'undefined' ? window : commonjsGlobal)
+// reuse resolved promise, and allocate it lazily
+: cb => (promise || (promise = Promise.resolve())).then(cb).catch(err => setTimeout(() => {
+  throw err;
+}, 0));
+
+const mailbox = () => {
+  const queue = [];
+  var next;
+  return {
+    async deliver(msg) {
+      queue.push(msg);
+      if (next) {
+        next(queue.shift());
+        next = undefined;
+      }
+    },
+    receive() {
+      return new Promise(function innerReceive(resolve) {
+        const msg = queue.shift();
+        if (msg) return resolve(msg);
+        next = resolve;
+      });
+    }
+  };
+};
+const INIT = "INIT";
+const SUBSCRIBE = "SUBSCRIBE";
+const UNSUBSCRIBE = "UNSUBSCRIBE";
+const UPDATED$1 = "UPDATED";
+const EXIT = "EXIT";
+const TERMINATE = "TERMINATE";
+const root = typeof self === "object" && self.self === self && self || typeof global === "object" && global.global === global && global || typeof window === "object" && window.window === window && window;
+root.FCL_REGISTRY = root.FCL_REGISTRY == null ? {} : root.FCL_REGISTRY;
+var pid = 0b0;
+const DEFAULT_TIMEOUT = 5000;
+const send = function (addr, tag, data) {
+  let opts = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
+  return new Promise((reply, reject) => {
+    const expectReply = opts.expectReply || false;
+    const timeout = opts.timeout != null ? opts.timeout : DEFAULT_TIMEOUT;
+    if (expectReply && timeout) {
+      setTimeout(() => reject(new Error(`Timeout: ${timeout}ms passed without a response.`)), timeout);
+    }
+    const payload = {
+      to: addr,
+      from: opts.from,
+      tag,
+      data,
+      timeout,
+      reply,
+      reject
+    };
+    try {
+      root.FCL_REGISTRY[addr] && root.FCL_REGISTRY[addr].mailbox.deliver(payload);
+      if (!expectReply) reply(true);
+    } catch (error) {
+      console.error("FCL.Actor -- Could Not Deliver Message", payload, root.FCL_REGISTRY[addr], error);
+    }
+  });
+};
+const kill = addr => {
+  delete root.FCL_REGISTRY[addr];
+};
+const fromHandlers = function () {
+  let handlers = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  return async ctx => {
+    if (typeof handlers[INIT] === "function") await handlers[INIT](ctx);
+    __loop: while (1) {
+      const letter = await ctx.receive();
+      try {
+        if (letter.tag === EXIT) {
+          if (typeof handlers[TERMINATE] === "function") {
+            await handlers[TERMINATE](ctx, letter, letter.data || {});
+          }
+          break __loop;
+        }
+        await handlers[letter.tag](ctx, letter, letter.data || {});
+      } catch (error) {
+        console.error(`${ctx.self()} Error`, letter, error);
+      } finally {
+        continue __loop;
+      }
+    }
+  };
+};
+const spawn = function (fn) {
+  let addr = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+  if (addr == null) addr = ++pid;
+  if (root.FCL_REGISTRY[addr] != null) return addr;
+  root.FCL_REGISTRY[addr] = {
+    addr,
+    mailbox: mailbox(),
+    subs: new Set(),
+    kvs: {},
+    error: null
+  };
+  const ctx = {
+    self: () => addr,
+    receive: () => root.FCL_REGISTRY[addr].mailbox.receive(),
+    send: function (to, tag, data) {
+      let opts = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
+      opts.from = addr;
+      return send(to, tag, data, opts);
+    },
+    sendSelf: (tag, data, opts) => {
+      if (root.FCL_REGISTRY[addr]) send(addr, tag, data, opts);
+    },
+    broadcast: function (tag, data) {
+      let opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+      opts.from = addr;
+      for (let to of root.FCL_REGISTRY[addr].subs) send(to, tag, data, opts);
+    },
+    subscribe: sub => sub != null && root.FCL_REGISTRY[addr].subs.add(sub),
+    unsubscribe: sub => sub != null && root.FCL_REGISTRY[addr].subs.delete(sub),
+    subscriberCount: () => root.FCL_REGISTRY[addr].subs.size,
+    hasSubs: () => !!root.FCL_REGISTRY[addr].subs.size,
+    put: (key, value) => {
+      if (key != null) root.FCL_REGISTRY[addr].kvs[key] = value;
+    },
+    get: (key, fallback) => {
+      const value = root.FCL_REGISTRY[addr].kvs[key];
+      return value == null ? fallback : value;
+    },
+    delete: key => {
+      delete root.FCL_REGISTRY[addr].kvs[key];
+    },
+    update: (key, fn) => {
+      if (key != null) root.FCL_REGISTRY[addr].kvs[key] = fn(root.FCL_REGISTRY[addr].kvs[key]);
+    },
+    keys: () => {
+      return Object.keys(root.FCL_REGISTRY[addr].kvs);
+    },
+    all: () => {
+      return root.FCL_REGISTRY[addr].kvs;
+    },
+    where: pattern => {
+      return Object.keys(root.FCL_REGISTRY[addr].kvs).reduce((acc, key) => {
+        return pattern.test(key) ? {
+          ...acc,
+          [key]: root.FCL_REGISTRY[addr].kvs[key]
+        } : acc;
+      }, {});
+    },
+    merge: function () {
+      let data = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+      Object.keys(data).forEach(key => root.FCL_REGISTRY[addr].kvs[key] = data[key]);
+    },
+    fatalError: error => {
+      root.FCL_REGISTRY[addr].error = error;
+      for (let to of root.FCL_REGISTRY[addr].subs) send(to, UPDATED$1);
+    }
+  };
+  if (typeof fn === "object") fn = fromHandlers(fn);
+  queueMicrotask_1(async () => {
+    await fn(ctx);
+    kill(addr);
+  });
+  return addr;
+};
+
+// Returns an unsubscribe function
+// A SUBSCRIBE handler will need to be created to handle the subscription event
+//
+//  [SUBSCRIBE]: (ctx, letter) => {
+//    ctx.subscribe(letter.from)
+//    ctx.send(letter.from, UPDATED, ctx.all())
+//  }
+//
+function subscriber(address, spawnFn, callback) {
+  spawnFn(address);
+  const EXIT = "@EXIT";
+  const self = spawn(async ctx => {
+    ctx.send(address, SUBSCRIBE);
+    while (1) {
+      const letter = await ctx.receive();
+      const error = root.FCL_REGISTRY[address].error;
+      if (letter.tag === EXIT) {
+        ctx.send(address, UNSUBSCRIBE);
+        return;
+      }
+      if (error) {
+        callback(null, error);
+        ctx.send(address, UNSUBSCRIBE);
+        return;
+      }
+      callback(letter.data, null);
+    }
+  });
+  return () => send(self, EXIT);
+}
+
+/**
+ * Asserts fact is true, otherwise throw an error with invariant message
+ * @param {boolean} fact
+ * @param {string} msg
+ * @param {Array} rest
+ * @returns {void}
+ */
+function invariant(fact, msg) {
+  if (!fact) {
+    const error = new Error(`INVARIANT ${msg}`);
+    error.stack = error.stack.split("\n").filter(d => !/at invariant/.test(d)).join("\n");
+    for (var _len = arguments.length, rest = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+      rest[_key - 2] = arguments[_key];
+    }
+    console.error("\n\n---\n\n", error, "\n\n", ...rest, "\n\n---\n\n");
+    throw error;
+  }
+}
+const pipe = function () {
+  for (var _len = arguments.length, funcs = new Array(_len), _key = 0; _key < _len; _key++) {
+    funcs[_key] = arguments[_key];
+  }
+  return v => {
+    return funcs.reduce((res, func) => {
+      return func(res);
+    }, v);
+  };
+};
+
+/***
+ * Merge multiple functions returning objects into one object.
+ * @param {...function(*): object} funcs - Functions to merge
+ * @return {object} - Merged object
+ */
+const mergePipe = function () {
+  for (var _len2 = arguments.length, funcs = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+    funcs[_key2] = arguments[_key2];
+  }
+  return v => {
+    return funcs.reduce((res, func) => {
+      return {
+        ...res,
+        ...func(v)
+      };
+    }, {});
+  };
+};
+
+/**
+ * @description Object check
+ * @param {*} value - Value to check
+ * @returns {boolean} - Is object status
+ */
+const isObject = value => value && typeof value === "object" && !Array.isArray(value);
+
+/**
+ * @description Deep merge multiple objects.
+ * @param {object} target - Target object
+ * @param {...object[]} sources - Source objects
+ * @returns {object} - Merged object
+ */
+const mergeDeep = function (target) {
+  for (var _len3 = arguments.length, sources = new Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+    sources[_key3 - 1] = arguments[_key3];
+  }
+  if (!sources.length) return target;
+  const source = sources.shift();
+  if (isObject(target) && isObject(source)) {
+    for (const key in source) {
+      if (isObject(source[key])) {
+        if (!target[key]) Object.assign(target, {
+          [key]: {}
+        });
+        mergeDeep(target[key], source[key]);
+      } else {
+        Object.assign(target, {
+          [key]: source[key]
+        });
+      }
+    }
+  }
+  return mergeDeep(target, ...sources);
+};
+
+/**
+ * @description Deep merge multiple Flow JSON.
+ * @param {object|object[]} value - Flow JSON or array of Flow JSONs
+ * @returns {object} - Merged Flow JSON
+ */
+const mergeFlowJSONs = value => Array.isArray(value) ? mergeDeep({}, ...value) : value;
+
+/**
+ * @description Filter out contracts section of flow.json.
+ * @param {object|object[]} obj - Flow JSON or array of Flow JSONs
+ * @returns {object} - Contracts section of Flow JSON
+ */
+const filterContracts = obj => obj.contracts ? obj.contracts : {};
+
+/**
+ * @description Gathers contract addresses by network
+ * @param {string} network - Network to gather addresses for
+ * @returns {object} - Contract names by addresses mapping e.g { "HelloWorld": "0x123" }
+ */
+const mapContractAliasesToNetworkAddress = network => contracts => {
+  return Object.entries(contracts).reduce((c, _ref) => {
+    let [key, value] = _ref;
+    const networkContractAlias = value?.aliases?.[network];
+    if (networkContractAlias) {
+      c[key] = networkContractAlias;
+    }
+    return c;
+  }, {});
+};
+const mapDeploymentsToNetworkAddress = network => _ref2 => {
+  let {
+    deployments = {},
+    accounts = {}
+  } = _ref2;
+  const networkDeployment = deployments?.[network];
+  if (!networkDeployment) return {};
+  return Object.entries(networkDeployment).reduce((c, _ref3) => {
+    let [key, value] = _ref3;
+    // Resolve account address
+    const accountAddress = accounts[key]?.address;
+    if (!accountAddress) return c;
+
+    // Create an object assigning the address to the contract name.
+    return value.reduce((c, contract) => {
+      return {
+        ...c,
+        [contract]: accountAddress
+      };
+    }, {});
+  }, {});
+};
+
+/**
+ * @description Take in flow.json files and return contract to address mapping by network
+ * @param {object|object[]} jsons - Flow JSON or array of Flow JSONs
+ * @param {string} network - Network to gather addresses for
+ * @returns {object} - Contract names by addresses mapping e.g { "HelloWorld": "0x123" }
+ */
+const getContracts = (jsons, network) => {
+  return pipe(mergeFlowJSONs, mergePipe(mapDeploymentsToNetworkAddress(network), pipe(filterContracts, mapContractAliasesToNetworkAddress(network))))(jsons);
+};
+
+/**
+ * @description Checks if string is hexidecimal
+ * @param {string} str - String to check
+ * @returns {boolean} - Is hexidecimal status
+ */
+const isHexidecimal = str => {
+  // Check that it is a string
+  if (typeof str !== "string") return false;
+  return /^[0-9A-Fa-f]+$/.test(str);
+};
+
+/**
+ * @description Checks flow.json file for private keys
+ * @param {object} flowJSON - Flow JSON
+ * @returns {boolean} - Has private keys status
+ */
+const hasPrivateKeys = flowJSON => {
+  return Object.entries(flowJSON?.accounts).reduce((hasPrivateKey, _ref4) => {
+    let [key, value] = _ref4;
+    if (hasPrivateKey) return true;
+    return value?.hasOwnProperty("key") && isHexidecimal(value?.key);
+  }, false);
+};
+
+/**
+ * @description Take in flow.json or array of flow.json files and checks for private keys
+ * @param {object|object[]} value - Flow JSON or array of Flow JSONs
+ * @returns {boolean} - Has private keys status
+ */
+const anyHasPrivateKeys = value => {
+  if (isObject(value)) return hasPrivateKeys(value);
+  return value.some(hasPrivateKeys);
+};
+
+/**
+ * @description Format network to always be 'emulator', 'testnet', or 'mainnet'
+ * @param {string} network - Network to format
+ * @returns {string} - Formatted network name (either 'emulator', 'testnet', or 'mainnet')
+ */
+const cleanNetwork = network => network?.toLowerCase() === "local" ? "emulator" : network?.toLowerCase();
+const NAME = "config";
+const PUT = "PUT_CONFIG";
+const GET = "GET_CONFIG";
+const GET_ALL = "GET_ALL_CONFIG";
+const UPDATE = "UPDATE_CONFIG";
+const DELETE = "DELETE_CONFIG";
+const CLEAR = "CLEAR_CONFIG";
+const WHERE = "WHERE_CONFIG";
+const UPDATED = "CONFIG/UPDATED";
+const identity = v => v;
+const HANDLERS = {
+  [PUT]: (ctx, _letter, _ref) => {
+    let {
+      key,
+      value
+    } = _ref;
+    if (key == null) throw new Error("Missing 'key' for config/put.");
+    ctx.put(key, value);
+    ctx.broadcast(UPDATED, {
+      ...ctx.all()
+    });
+  },
+  [GET]: (ctx, letter, _ref2) => {
+    let {
+      key,
+      fallback
+    } = _ref2;
+    if (key == null) throw new Error("Missing 'key' for config/get");
+    letter.reply(ctx.get(key, fallback));
+  },
+  [GET_ALL]: (ctx, letter) => {
+    letter.reply({
+      ...ctx.all()
+    });
+  },
+  [UPDATE]: (ctx, letter, _ref3) => {
+    let {
+      key,
+      fn
+    } = _ref3;
+    if (key == null) throw new Error("Missing 'key' for config/update");
+    ctx.update(key, fn || identity);
+    ctx.broadcast(UPDATED, {
+      ...ctx.all()
+    });
+  },
+  [DELETE]: (ctx, letter, _ref4) => {
+    let {
+      key
+    } = _ref4;
+    if (key == null) throw new Error("Missing 'key' for config/delete");
+    ctx.delete(key);
+    ctx.broadcast(UPDATED, {
+      ...ctx.all()
+    });
+  },
+  [CLEAR]: (ctx, letter) => {
+    let keys = Object.keys(ctx.all());
+    for (let key of keys) ctx.delete(key);
+    ctx.broadcast(UPDATED, {
+      ...ctx.all()
+    });
+  },
+  [WHERE]: (ctx, letter, _ref5) => {
+    let {
+      pattern
+    } = _ref5;
+    if (pattern == null) throw new Error("Missing 'pattern' for config/where");
+    letter.reply(ctx.where(pattern));
+  },
+  [SUBSCRIBE]: (ctx, letter) => {
+    ctx.subscribe(letter.from);
+    ctx.send(letter.from, UPDATED, {
+      ...ctx.all()
+    });
+  },
+  [UNSUBSCRIBE]: (ctx, letter) => {
+    ctx.unsubscribe(letter.from);
+  }
+};
+spawn(HANDLERS, NAME);
+
+/**
+ * @description Adds a key-value pair to the config
+ * @param {string} key - The key to add
+ * @param {*} value - The value to add
+ * @returns {Promise<object>} - The current config
+ */
+function put(key, value) {
+  send(NAME, PUT, {
+    key,
+    value
+  });
+  return config();
+}
+
+/**
+ * @description Gets a key-value pair with a fallback from the config
+ * @param {string} key - The key to add
+ * @param {*} [fallback] - The fallback value to return if key is not found
+ * @returns {Promise<*>} - The value found at key or fallback
+ */
+function get(key, fallback) {
+  return send(NAME, GET, {
+    key,
+    fallback
+  }, {
+    expectReply: true,
+    timeout: 10
+  });
+}
+
+/**
+ * @description Returns the first non null config value or the fallback
+ * @param {string[]} wants - The keys to search for
+ * @param {*} fallback - The fallback value to return if key is not found
+ * @returns {Promise<*>} - The value found at key or fallback
+ */
+async function first() {
+  let wants = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+  let fallback = arguments.length > 1 ? arguments[1] : undefined;
+  if (!wants.length) return fallback;
+  const [head, ...rest] = wants;
+  const ret = await get(head);
+  if (ret == null) return first(rest, fallback);
+  return ret;
+}
+
+/**
+ * @description Returns the current config
+ * @returns {Promise<object>} - The current config
+ */
+function all() {
+  return send(NAME, GET_ALL, null, {
+    expectReply: true,
+    timeout: 10
+  });
+}
+
+/**
+ * @description Updates a key-value pair in the config
+ * @param {string} key - The key to update
+ * @param {Function} fn - The function to update the value with
+ * @returns {Promise<object>} - The current config
+ */
+function update(key) {
+  let fn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : identity;
+  send(NAME, UPDATE, {
+    key,
+    fn
+  });
+  return config();
+}
+
+/**
+ * @description Deletes a key-value pair from the config
+ * @param {string} key - The key to delete
+ * @returns {Promise<object>} - The current config
+ */
+function _delete(key) {
+  send(NAME, DELETE, {
+    key
+  });
+  return config();
+}
+
+/**
+ * @description Returns a subset of the config based on a pattern
+ * @param {string} pattern - The pattern to match keys against
+ * @returns {Promise<object>} - The subset of the config
+ */
+function where(pattern) {
+  return send(NAME, WHERE, {
+    pattern
+  }, {
+    expectReply: true,
+    timeout: 10
+  });
+}
+
+/**
+ * @description Subscribes to config updates
+ * @param {Function} callback - The callback to call when config is updated
+ * @returns {Function} - The unsubscribe function
+ */
+function subscribe(callback) {
+  return subscriber(NAME, () => spawn(HANDLERS, NAME), callback);
+}
+
+/**
+ * @description Clears the config
+ * @returns {void}
+ */
+function clearConfig() {
+  return send(NAME, CLEAR);
+}
+
+/**
+ * @description Resets the config to a previous state
+ * @param {object} oldConfig - The previous config state
+ * @returns {Promise<object>} - The current config
+ */
+function resetConfig(oldConfig) {
+  return clearConfig().then(config(oldConfig));
+}
+
+/**
+ * @description Takes in flow.json or array of flow.json files and creates contract placeholders
+ * @param {object|object[]} data - The flow.json or array of flow.json files
+ * @returns {void}
+ */
+async function load(data) {
+  const network = await get("flow.network");
+  const cleanedNetwork = cleanNetwork(network);
+  const {
+    flowJSON
+  } = data;
+  invariant(Boolean(flowJSON), "config.load -- 'flowJSON' must be defined");
+  invariant(cleanedNetwork, `Flow Network Required -- In order for FCL to load your contracts please define "flow.network" to "emulator", "local", "testnet", or "mainnet" in your config. See more here: https://developers.flow.com/tools/fcl-js/reference/configure-fcl`);
+  if (anyHasPrivateKeys(flowJSON)) {
+    const isEmulator = cleanedNetwork === "emulator";
+    log({
+      title: "Private Keys Detected",
+      message: `Private keys should be stored in a separate flow.json file for security. See more here: https://developers.flow.com/tools/flow-cli/security`,
+      level: isEmulator ? LEVELS.warn : LEVELS.error
+    });
+    if (!isEmulator) return;
+  }
+  for (const [key, value] of Object.entries(getContracts(flowJSON, cleanedNetwork))) {
+    const contractConfigKey = `0x${key}`;
+    const existingContractConfigKey = await get(contractConfigKey);
+    if (existingContractConfigKey && existingContractConfigKey !== value) {
+      log({
+        title: "Contract Placeholder Conflict Detected",
+        message: `A generated contract placeholder from config.load conflicts with a placeholder you've set manually in config have the same name.`,
+        level: LEVELS.warn
+      });
+    } else {
+      put(contractConfigKey, value);
+    }
+    const systemContractConfigKey = `system.contracts.${key}`;
+    const systemExistingContractConfigKeyValue = await get(systemContractConfigKey);
+    if (systemExistingContractConfigKeyValue && systemExistingContractConfigKeyValue !== value) {
+      log({
+        title: "Contract Placeholder Conflict Detected",
+        message: `A generated contract placeholder from config.load conflicts with a placeholder you've set manually in config have the same name.`,
+        level: LEVELS.warn
+      });
+    } else {
+      put(systemContractConfigKey, value);
+    }
+  }
+}
+
+// eslint-disable-next-line jsdoc/require-returns
+/**
+ * @description Sets the config
+ * @param {object} [values] - The values to set
+ */
+function config(values) {
+  if (values != null && typeof values === "object") {
+    Object.keys(values).map(d => put(d, values[d]));
+  }
+  return {
+    put,
+    get,
+    all,
+    first,
+    update,
+    delete: _delete,
+    where,
+    subscribe,
+    overload,
+    load
+  };
+}
+config.put = put;
+config.get = get;
+config.all = all;
+config.first = first;
+config.update = update;
+config.delete = _delete;
+config.where = where;
+config.subscribe = subscribe;
+config.overload = overload;
+config.load = load;
+const noop = v => v;
+function overload() {
+  let opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  let callback = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : noop;
+  return new Promise(async (resolve, reject) => {
+    const oldConfig = await all();
+    try {
+      config(opts);
+      var result = await callback(await all());
+      await resetConfig(oldConfig);
+      resolve(result);
+    } catch (error) {
+      await resetConfig(oldConfig);
+      reject(error);
+    }
+  });
+}
+
+/**
+ * The levels of the logger
+ * 
+ * @typedef {Object} LEVELS
+ * @property {number} debug - The debug level
+ * @property {number} info - The info level
+ * @property {number} log - The log level
+ * @property {number} warn - The warn level
+ * @property {number} error - The error level
+ * 
+ */
+const LEVELS = Object.freeze({
+  debug: 5,
+  info: 4,
+  log: 3,
+  warn: 2,
+  error: 1
+});
+
+/**
+ * Builds a message formatted for the logger
+ * 
+ * @param {Object} options - The options for the log
+ * @param {string} options.title - The title of the log
+ * @param {string} options.message - The message of the log
+ * @returns {Array<string>} - The message formatted for the logger
+ * 
+ * @example
+ * buildLoggerMessageArgs({ title: "My Title", message: "My Message" })
+ */
+const buildLoggerMessageArgs = _ref => {
+  let {
+    title,
+    message
+  } = _ref;
+  return [`
+    %c${title}
+    ============================
+
+    ${message}
+
+    ============================
+    `.replace(/\n[^\S\r\n]+/g, "\n").trim(),, "font-weight:bold;font-family:monospace;"];
+};
+
+/**
+ * Logs messages based on the level of the message and the level set in the config
+ * 
+ * @param {Object} options - The options for the log
+ * @param {string} options.title - The title of the log
+ * @param {string} options.message - The message of the log
+ * @param {number} options.level - The level of the log
+ * @param {boolean} options.always - Whether to always show the log
+ * @returns {Promise<void>}
+ * 
+ * @example
+ * log({ title: "My Title", message: "My Message", level: LEVELS.warn, always: false })
+ * 
+ */
+const log = async _ref2 => {
+  let {
+    title,
+    message,
+    level,
+    always = false
+  } = _ref2;
+  const configLoggerLevel = await config.get("logger.level", LEVELS.warn);
+
+  // If config level is below message level then don't show it
+  if (!always && configLoggerLevel < level) return;
+  const loggerMessageArgs = buildLoggerMessageArgs({
+    title,
+    message
+  });
+  switch (level) {
+    case LEVELS.debug:
+      console.debug(...loggerMessageArgs);
+      break;
+    case LEVELS.info:
+      console.info(...loggerMessageArgs);
+      break;
+    case LEVELS.warn:
+      console.warn(...loggerMessageArgs);
+      break;
+    case LEVELS.error:
+      console.error(...loggerMessageArgs);
+      break;
+    default:
+      console.log(...loggerMessageArgs);
+  }
+};
+
+/**
+ * Logs a deprecation notice
+ * 
+ * @param {Object} options - The options for the log
+ * @param {string} options.pkg - The package that is being deprecated
+ * @param {string} options.subject - The subject of the deprecation
+ * @param {string} options.transition - The transition path for the deprecation
+ * @param {number} options.level - The level of the log
+ * @param {string} options.message - The message of the log
+ * @param {Function} options.callback - A callback to run after the log
+ * @returns {Promise<void>}
+ * 
+ * @example
+ * log.deprecate({ pkg: "@onflow/fcl", subject: "Some item", transition: "https://github.com/onflow/flow-js-sdk", message: "Descriptive message", level: LEVELS.warn, callback: () => {} })
+ * 
+ */
+log.deprecate = _ref3 => {
+  let {
+    pkg,
+    subject,
+    transition,
+    level = LEVELS.warn,
+    message = "",
+    callback = null
+  } = _ref3;
+  const capitalizeFirstLetter = string => {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  };
+  const logMessage = () => log({
+    title: `${pkg ? pkg + " " : ""}Deprecation Notice`,
+    message: `
+      ${subject ? `${capitalizeFirstLetter(subject)} is deprecated and will cease to work in future releases${pkg ? " of " + pkg : ""}.` : ""}${message ? "\n" + message : ""}${transition ? `\nYou can learn more (including a guide on common transition paths) here: ${transition}` : ""}
+    `.trim(),
+    level
+  });
+  if (typeof callback === "function") {
+    return async function () {
+      await logMessage();
+      return await callback(...arguments);
+    };
+  }
+  return logMessage();
+};
+
+const type = (label, asArgument, asInjection) => ({
+  label,
+  asArgument,
+  asInjection
+});
+const isArray = d => Array.isArray(d);
+const isObj = d => typeof d === "object";
+const isNull = d => d == null;
+const isBoolean = d => typeof d === "boolean";
+const isNumber = d => typeof d === "number";
+const isInteger = d => Number.isInteger(d);
+const isString = d => typeof d === "string";
+const throwTypeError = msg => {
+  throw new Error("Type Error: " + msg);
+};
+const numberValuesDeprecationNotice = type => {
+  log.deprecate({
+    pkg: "@onflow/types",
+    subject: `Passing in Number as value for ${type}`,
+    message: `Going forward, use String as value for ${type}.`,
+    transition: "https://github.com/onflow/flow-js-sdk/blob/master/packages/types/WARNINGS.md#0002-[U]Int*-and-Word*-as-Number"
+  });
+};
+const Identity = type("Identity", v => v, v => v);
+const UInt = type("UInt", v => {
+  if (isNumber(v) && isInteger(v)) {
+    numberValuesDeprecationNotice("UInt");
+    return {
+      type: "UInt",
+      value: v.toString()
+    };
+  }
+  if (isString(v)) {
+    return {
+      type: "UInt",
+      value: v
+    };
+  }
+  throwTypeError("Expected Positive Integer for type Unsigned Int");
+}, v => v);
+const Int = type("Int", v => {
+  if (isNumber(v) && isInteger(v)) {
+    numberValuesDeprecationNotice("Int");
+    return {
+      type: "Int",
+      value: v.toString()
+    };
+  }
+  if (isString(v)) {
+    return {
+      type: "Int",
+      value: v
+    };
+  }
+  throwTypeError("Expected Integer for type Int");
+}, v => v);
+const UInt8 = type("UInt8", v => {
+  if (isNumber(v) && isInteger(v)) {
+    numberValuesDeprecationNotice("UInt8");
+    return {
+      type: "UInt8",
+      value: v.toString()
+    };
+  }
+  if (isString(v)) {
+    return {
+      type: "UInt8",
+      value: v
+    };
+  }
+  throwTypeError("Expected integer for UInt8");
+}, v => v);
+const Int8 = type("Int8", v => {
+  if (isNumber(v) && isInteger(v)) {
+    numberValuesDeprecationNotice("Int8");
+    return {
+      type: "Int8",
+      value: v.toString()
+    };
+  }
+  if (isString(v)) {
+    return {
+      type: "Int8",
+      value: v
+    };
+  }
+  throwTypeError("Expected positive integer for Int8");
+}, v => v);
+const UInt16 = type("UInt16", v => {
+  if (isNumber(v) && isInteger(v)) {
+    numberValuesDeprecationNotice("UInt16");
+    return {
+      type: "UInt16",
+      value: v.toString()
+    };
+  }
+  if (isString(v)) {
+    return {
+      type: "UInt16",
+      value: v
+    };
+  }
+  throwTypeError("Expected integer for UInt16");
+}, v => v);
+const Int16 = type("Int16", v => {
+  if (isNumber(v) && isInteger(v)) {
+    numberValuesDeprecationNotice("Int16");
+    return {
+      type: "Int16",
+      value: v.toString()
+    };
+  }
+  if (isString(v)) {
+    return {
+      type: "Int16",
+      value: v
+    };
+  }
+  throwTypeError("Expected positive integer for Int16");
+}, v => v);
+const UInt32 = type("UInt32", v => {
+  if (isNumber(v) && isInteger(v)) {
+    numberValuesDeprecationNotice("UInt32");
+    return {
+      type: "UInt32",
+      value: v.toString()
+    };
+  }
+  if (isString(v)) {
+    return {
+      type: "UInt32",
+      value: v
+    };
+  }
+  throwTypeError("Expected integer for UInt32");
+}, v => v);
+const Int32 = type("Int32", v => {
+  if (isNumber(v) && isInteger(v)) {
+    numberValuesDeprecationNotice("Int32");
+    return {
+      type: "Int32",
+      value: v.toString()
+    };
+  }
+  if (isString(v)) {
+    return {
+      type: "Int32",
+      value: v
+    };
+  }
+  throwTypeError("Expected positive integer for Int32");
+}, v => v);
+const UInt64 = type("UInt64", v => {
+  if (isNumber(v) && isInteger(v)) {
+    numberValuesDeprecationNotice("UInt64");
+    return {
+      type: "UInt64",
+      value: v.toString()
+    };
+  }
+  if (isString(v)) {
+    return {
+      type: "UInt64",
+      value: v
+    };
+  }
+  throwTypeError("Expected integer for UInt64");
+}, v => v);
+const Int64 = type("Int64", v => {
+  if (isNumber(v) && isInteger(v)) {
+    numberValuesDeprecationNotice("Int64");
+    return {
+      type: "Int64",
+      value: v.toString()
+    };
+  }
+  if (isString(v)) {
+    return {
+      type: "Int64",
+      value: v
+    };
+  }
+  throwTypeError("Expected positive integer for Int64");
+}, v => v);
+const UInt128 = type("UInt128", v => {
+  if (isNumber(v) && isInteger(v)) {
+    numberValuesDeprecationNotice("UInt128");
+    return {
+      type: "UInt128",
+      value: v.toString()
+    };
+  }
+  if (isString(v)) {
+    return {
+      type: "UInt128",
+      value: v
+    };
+  }
+  throwTypeError("Expected integer for UInt128");
+}, v => v);
+const Int128 = type("Int128", v => {
+  if (isNumber(v) && isInteger(v)) {
+    numberValuesDeprecationNotice("Int128");
+    return {
+      type: "Int128",
+      value: v.toString()
+    };
+  }
+  if (isString(v)) {
+    return {
+      type: "Int128",
+      value: v
+    };
+  }
+  throwTypeError("Expected positive integer for Int128");
+}, v => v);
+const UInt256 = type("UInt256", v => {
+  if (isNumber(v) && isInteger(v)) {
+    numberValuesDeprecationNotice("UInt256");
+    return {
+      type: "UInt256",
+      value: v.toString()
+    };
+  }
+  if (isString(v)) {
+    return {
+      type: "UInt256",
+      value: v
+    };
+  }
+  throwTypeError("Expected integer for UInt256");
+}, v => v);
+const Int256 = type("Int256", v => {
+  if (isNumber(v) && isInteger(v)) {
+    numberValuesDeprecationNotice("Int256");
+    return {
+      type: "Int256",
+      value: v.toString()
+    };
+  }
+  if (isString(v)) {
+    return {
+      type: "Int256",
+      value: v
+    };
+  }
+  throwTypeError("Expected integer for Int256");
+}, v => v);
+const Word8 = type("Word8", v => {
+  if (isNumber(v) && isInteger(v)) {
+    numberValuesDeprecationNotice("Word8");
+    return {
+      type: "Word8",
+      value: v.toString()
+    };
+  }
+  if (isString(v)) {
+    return {
+      type: "Word8",
+      value: v
+    };
+  }
+  throwTypeError("Expected positive number for Word8");
+}, v => v);
+const Word16 = type("Word16", v => {
+  if (isNumber(v) && isInteger(v)) {
+    numberValuesDeprecationNotice("Word16");
+    return {
+      type: "Word16",
+      value: v.toString()
+    };
+  }
+  if (isString(v)) {
+    return {
+      type: "Word16",
+      value: v
+    };
+  }
+  throwTypeError("Expected positive number for Word16");
+}, v => v);
+const Word32 = type("Word32", v => {
+  if (isNumber(v) && isInteger(v)) {
+    numberValuesDeprecationNotice("Word32");
+    return {
+      type: "Word32",
+      value: v.toString()
+    };
+  }
+  if (isString(v)) {
+    return {
+      type: "Word32",
+      value: v
+    };
+  }
+  throwTypeError("Expected positive number for Word32");
+}, v => v);
+const Word64 = type("Word64", v => {
+  if (isNumber(v) && isInteger(v)) {
+    numberValuesDeprecationNotice("Word64");
+    return {
+      type: "Word64",
+      value: v.toString()
+    };
+  }
+  if (isString(v)) {
+    return {
+      type: "Word64",
+      value: v
+    };
+  }
+  throwTypeError("Expected positive number for Word64");
+}, v => v);
+const UFix64AndFix64NumberDeprecationNotice = () => {
+  log.deprecate({
+    subject: "Passing in Numbers as values for Fix64 and UFix64 types",
+    pkg: "@onflow/types",
+    transition: "https://github.com/onflow/flow-js-sdk/blob/master/packages/types/WARNINGS.md#0001-[U]Fix64-as-Number"
+  });
+};
+const UFix64 = type("UFix64", v => {
+  if (isString(v)) {
+    const vParts = v.split(".");
+    if (vParts.length !== 2) {
+      throwTypeError(`Expected one decimal but found ${vParts.length} in the [U]Fix64 value. Find out more about [U]Fix64 types here: https://docs.onflow.org/cadence/json-cadence-spec/#fixed-point-numbers`);
+    }
+    if (vParts[1].length == 0 || vParts[1].length > 8) {
+      throwTypeError(`Expected at least one digit, and at most 8 digits following the decimal of the [U]Fix64 value but found ${vParts[1].length} digits. Find out more about [U]Fix64 types here: https://docs.onflow.org/cadence/json-cadence-spec/#fixed-point-numbers`);
+    }
+
+    // make sure the number is extended to 8 decimal places so it matches cadence encoding of UFix values
+    vParts[1] = vParts[1].padEnd(8, "0");
+    v = vParts.join(".");
+    return {
+      type: "UFix64",
+      value: v
+    };
+  } else if (isNumber(v)) {
+    UFix64AndFix64NumberDeprecationNotice();
+    return {
+      type: "UFix64",
+      value: v.toString()
+    };
+  }
+  throwTypeError("Expected String for UFix64");
+}, v => v);
+const Fix64 = type("Fix64", v => {
+  if (isString(v)) {
+    const vParts = v.split(".");
+    if (vParts.length !== 2) {
+      throwTypeError(`Expected one decimal but found ${vParts.length} in the [U]Fix64 value. Find out more about [U]Fix64 types here: https://docs.onflow.org/cadence/json-cadence-spec/#fixed-point-numbers`);
+    }
+    if (vParts[1].length == 0 || vParts[1].length > 8) {
+      throwTypeError(`Expected at least one digit, and at most 8 digits following the decimal of the [U]Fix64 value but found ${vParts[1].length} digits. Find out more about [U]Fix64 types here: https://docs.onflow.org/cadence/json-cadence-spec/#fixed-point-numbers`);
+    }
+
+    // make sure the number is extended to 8 decimal places so it matches cadence encoding of Fix64 values
+    vParts[1] = vParts[1].padEnd(8, "0");
+    v = vParts.join(".");
+    return {
+      type: "Fix64",
+      value: v
+    };
+  } else if (isNumber(v)) {
+    UFix64AndFix64NumberDeprecationNotice();
+    return {
+      type: "Fix64",
+      value: v.toString()
+    };
+  }
+  throwTypeError("Expected String for Fix64");
+}, v => v);
+const String = type("String", v => {
+  if (isString(v)) return {
+    type: "String",
+    value: v
+  };
+  throwTypeError("Expected String for type String");
+}, v => v);
+const Character = type("Character", v => {
+  if (isString(v)) return {
+    type: "Character",
+    value: v
+  };
+  throwTypeError("Expected Character for type Character");
+}, v => v);
+const Bool = type("Bool", v => {
+  if (isBoolean(v)) return {
+    type: "Bool",
+    value: v
+  };
+  throwTypeError("Expected Boolean for type Bool");
+}, v => v);
+const Address = type("Address", v => {
+  if (isString(v)) return {
+    type: "Address",
+    value: v
+  };
+  throwTypeError("Expected Address for type Address");
+}, v => v);
+const Void = type("Void", v => {
+  if (!v || isNull(v)) return {
+    type: "Void"
+  };
+  throwTypeError("Expected Void for type Void");
+}, v => v);
+const Optional = children => type("Optional", v => ({
+  type: "Optional",
+  value: isNull(v) ? null : children.asArgument(v)
+}), v => v);
+const Reference = type("Reference", v => {
+  if (isObj(v)) return {
+    type: "Reference",
+    value: v
+  };
+  throwTypeError("Expected Object for type Reference");
+}, v => v);
+const _Array = function () {
+  let children = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+  return type("Array", v => {
+    return {
+      type: "Array",
+      value: isArray(children) ? children.map((c, i) => c.asArgument(v[i])) : v.map(x => children.asArgument(x))
+    };
+  }, v => v);
+};
+const Dictionary = function () {
+  let children = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+  return type("Dictionary", v => {
+    if (isObj(v)) return {
+      type: "Dictionary",
+      value: isArray(children) ? children.map((c, i) => ({
+        key: c.key.asArgument(v[i].key),
+        value: c.value.asArgument(v[i].value)
+      })) : isArray(v) ? v.map(x => ({
+        key: children.key.asArgument(x.key),
+        value: children.value.asArgument(x.value)
+      })) : [{
+        key: children.key.asArgument(v.key),
+        value: children.value.asArgument(v.value)
+      }]
+    };
+    throwTypeError("Expected Object for type Dictionary");
+  }, v => v);
+};
+const Event = function (id) {
+  let fields = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+  return type("Event", v => {
+    if (isObj(v)) return {
+      type: "Event",
+      value: {
+        id: id,
+        fields: isArray(fields) ? fields.map((c, i) => ({
+          name: v.fields[i].name,
+          value: c.value.asArgument(v.fields[i].value)
+        })) : v.fields.map(x => ({
+          name: x.name,
+          value: fields.value.asArgument(x.value)
+        }))
+      }
+    };
+    throwTypeError("Expected Object for type Event");
+  }, v => v);
+};
+const Resource = function (id) {
+  let fields = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+  return type("Resource", v => {
+    if (isObj(v)) return {
+      type: "Resource",
+      value: {
+        id: id,
+        fields: isArray(fields) ? fields.map((c, i) => ({
+          name: v.fields[i].name,
+          value: c.value.asArgument(v.fields[i].value)
+        })) : v.fields.map(x => ({
+          name: x.name,
+          value: fields.value.asArgument(x.value)
+        }))
+      }
+    };
+    throwTypeError("Expected Object for type Resource");
+  }, v => v);
+};
+const Struct = function (id) {
+  let fields = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+  return type("Struct", v => {
+    if (isObj(v)) return {
+      type: "Struct",
+      value: {
+        id: id,
+        fields: isArray(fields) ? fields.map((c, i) => ({
+          name: v.fields[i].name,
+          value: c.value.asArgument(v.fields[i].value)
+        })) : v.fields.map(x => ({
+          name: x.name,
+          value: fields.value.asArgument(x.value)
+        }))
+      }
+    };
+    throwTypeError("Expected Object for type Struct");
+  }, v => v);
+};
+const Enum = function (id) {
+  let fields = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+  return type("Enum", v => {
+    if (isObj(v)) return {
+      type: "Enum",
+      value: {
+        id: id,
+        fields: isArray(fields) ? fields.map((c, i) => ({
+          name: v.fields[i].name,
+          value: c.value.asArgument(v.fields[i].value)
+        })) : v.fields.map(x => ({
+          name: x.name,
+          value: fields.value.asArgument(x.value)
+        }))
+      }
+    };
+    throwTypeError("Expected Object for type Enum");
+  }, v => v);
+};
+const Path = type("Path", v => {
+  if (isObj(v)) {
+    if (!isString(v.domain)) {
+      throwTypeError(`Expected a string for the Path domain but found ${v.domain}. Find out more about the Path type here: https://docs.onflow.org/cadence/json-cadence-spec/#path`);
+    }
+    if (!(v.domain === "storage" || v.domain === "private" || v.domain === "public")) {
+      throwTypeError(`Expected either "storage", "private" or "public" as the Path domain but found ${v.domain}. Find out more about the Path type here: https://docs.onflow.org/cadence/json-cadence-spec/#path`);
+    }
+    if (!isString(v.identifier)) {
+      throwTypeError(`Expected a string for the Path identifier but found ${v.identifier}. Find out more about the Path type here: https://docs.onflow.org/cadence/json-cadence-spec/#path`);
+    }
+    return {
+      type: "Path",
+      value: {
+        domain: v.domain,
+        identifier: v.identifier
+      }
+    };
+  }
+  throwTypeError("Expected Object for type Path");
+}, v => v);
+
+exports.Address = Address;
+exports.Array = _Array;
+exports.Bool = Bool;
+exports.Character = Character;
+exports.Dictionary = Dictionary;
+exports.Enum = Enum;
+exports.Event = Event;
+exports.Fix64 = Fix64;
+exports.Identity = Identity;
+exports.Int = Int;
+exports.Int128 = Int128;
+exports.Int16 = Int16;
+exports.Int256 = Int256;
+exports.Int32 = Int32;
+exports.Int64 = Int64;
+exports.Int8 = Int8;
+exports.Optional = Optional;
+exports.Path = Path;
+exports.Reference = Reference;
+exports.Resource = Resource;
+exports.String = String;
+exports.Struct = Struct;
+exports.UFix64 = UFix64;
+exports.UInt = UInt;
+exports.UInt128 = UInt128;
+exports.UInt16 = UInt16;
+exports.UInt256 = UInt256;
+exports.UInt32 = UInt32;
+exports.UInt64 = UInt64;
+exports.UInt8 = UInt8;
+exports.Void = Void;
+exports.Word16 = Word16;
+exports.Word32 = Word32;
+exports.Word64 = Word64;
+exports.Word8 = Word8;
+exports._Array = _Array;
+
+
+}).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],186:[function(require,module,exports){
+(function (global){(function (){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var queueMicrotask = require('queue-microtask');
+
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+
+var queueMicrotask__default = /*#__PURE__*/_interopDefaultLegacy(queueMicrotask);
+
+const mailbox = () => {
+  const queue = [];
+  var next;
+  return {
+    async deliver(msg) {
+      queue.push(msg);
+      if (next) {
+        next(queue.shift());
+        next = undefined;
+      }
+    },
+    receive() {
+      return new Promise(function innerReceive(resolve) {
+        const msg = queue.shift();
+        if (msg) return resolve(msg);
+        next = resolve;
+      });
+    }
+  };
+};
+
+const INIT = "INIT";
+const SUBSCRIBE = "SUBSCRIBE";
+const UNSUBSCRIBE = "UNSUBSCRIBE";
+const UPDATED = "UPDATED";
+const SNAPSHOT = "SNAPSHOT";
+const EXIT = "EXIT";
+const TERMINATE = "TERMINATE";
+const root = typeof self === "object" && self.self === self && self || typeof global === "object" && global.global === global && global || typeof window === "object" && window.window === window && window;
+root.FCL_REGISTRY = root.FCL_REGISTRY == null ? {} : root.FCL_REGISTRY;
+var pid = 0b0;
+const DEFAULT_TIMEOUT = 5000;
+const send = function (addr, tag, data) {
+  let opts = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
+  return new Promise((reply, reject) => {
+    const expectReply = opts.expectReply || false;
+    const timeout = opts.timeout != null ? opts.timeout : DEFAULT_TIMEOUT;
+    if (expectReply && timeout) {
+      setTimeout(() => reject(new Error(`Timeout: ${timeout}ms passed without a response.`)), timeout);
+    }
+    const payload = {
+      to: addr,
+      from: opts.from,
+      tag,
+      data,
+      timeout,
+      reply,
+      reject
+    };
+    try {
+      root.FCL_REGISTRY[addr] && root.FCL_REGISTRY[addr].mailbox.deliver(payload);
+      if (!expectReply) reply(true);
+    } catch (error) {
+      console.error("FCL.Actor -- Could Not Deliver Message", payload, root.FCL_REGISTRY[addr], error);
+    }
+  });
+};
+const kill = addr => {
+  delete root.FCL_REGISTRY[addr];
+};
+const fromHandlers = function () {
+  let handlers = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  return async ctx => {
+    if (typeof handlers[INIT] === "function") await handlers[INIT](ctx);
+    __loop: while (1) {
+      const letter = await ctx.receive();
+      try {
+        if (letter.tag === EXIT) {
+          if (typeof handlers[TERMINATE] === "function") {
+            await handlers[TERMINATE](ctx, letter, letter.data || {});
+          }
+          break __loop;
+        }
+        await handlers[letter.tag](ctx, letter, letter.data || {});
+      } catch (error) {
+        console.error(`${ctx.self()} Error`, letter, error);
+      } finally {
+        continue __loop;
+      }
+    }
+  };
+};
+const spawn = function (fn) {
+  let addr = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+  if (addr == null) addr = ++pid;
+  if (root.FCL_REGISTRY[addr] != null) return addr;
+  root.FCL_REGISTRY[addr] = {
+    addr,
+    mailbox: mailbox(),
+    subs: new Set(),
+    kvs: {},
+    error: null
+  };
+  const ctx = {
+    self: () => addr,
+    receive: () => root.FCL_REGISTRY[addr].mailbox.receive(),
+    send: function (to, tag, data) {
+      let opts = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
+      opts.from = addr;
+      return send(to, tag, data, opts);
+    },
+    sendSelf: (tag, data, opts) => {
+      if (root.FCL_REGISTRY[addr]) send(addr, tag, data, opts);
+    },
+    broadcast: function (tag, data) {
+      let opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+      opts.from = addr;
+      for (let to of root.FCL_REGISTRY[addr].subs) send(to, tag, data, opts);
+    },
+    subscribe: sub => sub != null && root.FCL_REGISTRY[addr].subs.add(sub),
+    unsubscribe: sub => sub != null && root.FCL_REGISTRY[addr].subs.delete(sub),
+    subscriberCount: () => root.FCL_REGISTRY[addr].subs.size,
+    hasSubs: () => !!root.FCL_REGISTRY[addr].subs.size,
+    put: (key, value) => {
+      if (key != null) root.FCL_REGISTRY[addr].kvs[key] = value;
+    },
+    get: (key, fallback) => {
+      const value = root.FCL_REGISTRY[addr].kvs[key];
+      return value == null ? fallback : value;
+    },
+    delete: key => {
+      delete root.FCL_REGISTRY[addr].kvs[key];
+    },
+    update: (key, fn) => {
+      if (key != null) root.FCL_REGISTRY[addr].kvs[key] = fn(root.FCL_REGISTRY[addr].kvs[key]);
+    },
+    keys: () => {
+      return Object.keys(root.FCL_REGISTRY[addr].kvs);
+    },
+    all: () => {
+      return root.FCL_REGISTRY[addr].kvs;
+    },
+    where: pattern => {
+      return Object.keys(root.FCL_REGISTRY[addr].kvs).reduce((acc, key) => {
+        return pattern.test(key) ? {
+          ...acc,
+          [key]: root.FCL_REGISTRY[addr].kvs[key]
+        } : acc;
+      }, {});
+    },
+    merge: function () {
+      let data = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+      Object.keys(data).forEach(key => root.FCL_REGISTRY[addr].kvs[key] = data[key]);
+    },
+    fatalError: error => {
+      root.FCL_REGISTRY[addr].error = error;
+      for (let to of root.FCL_REGISTRY[addr].subs) send(to, UPDATED);
+    }
+  };
+  if (typeof fn === "object") fn = fromHandlers(fn);
+  queueMicrotask__default["default"](async () => {
+    await fn(ctx);
+    kill(addr);
+  });
+  return addr;
+};
+
+// Returns an unsubscribe function
+// A SUBSCRIBE handler will need to be created to handle the subscription event
+//
+//  [SUBSCRIBE]: (ctx, letter) => {
+//    ctx.subscribe(letter.from)
+//    ctx.send(letter.from, UPDATED, ctx.all())
+//  }
+//
+function subscriber(address, spawnFn, callback) {
+  spawnFn(address);
+  const EXIT = "@EXIT";
+  const self = spawn(async ctx => {
+    ctx.send(address, SUBSCRIBE);
+    while (1) {
+      const letter = await ctx.receive();
+      const error = root.FCL_REGISTRY[address].error;
+      if (letter.tag === EXIT) {
+        ctx.send(address, UNSUBSCRIBE);
+        return;
+      }
+      if (error) {
+        callback(null, error);
+        ctx.send(address, UNSUBSCRIBE);
+        return;
+      }
+      callback(letter.data, null);
+    }
+  });
+  return () => send(self, EXIT);
+}
+
+// Returns a promise that returns a result
+// A SNAPSHOT handler will need to be created to handle the snapshot event
+//
+//  [SNAPSHOT]: (ctx, letter) => {
+//    letter.reply(ctx.all())
+//  }
+//
+function snapshoter(address, spawnFn) {
+  spawnFn(address);
+  return send(address, SNAPSHOT, null, {
+    expectReply: true,
+    timeout: 0
+  });
+}
+
+exports.EXIT = EXIT;
+exports.INIT = INIT;
+exports.SNAPSHOT = SNAPSHOT;
+exports.SUBSCRIBE = SUBSCRIBE;
+exports.TERMINATE = TERMINATE;
+exports.UNSUBSCRIBE = UNSUBSCRIBE;
+exports.UPDATED = UPDATED;
+exports.kill = kill;
+exports.send = send;
+exports.snapshoter = snapshoter;
+exports.spawn = spawn;
+exports.subscriber = subscriber;
+
+
+}).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"queue-microtask":242}],187:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+/**
+ * @description Removes 0x from address if present
+ * @param {string} address - Flow address
+ * @returns {string} - Flow address without 0x prefix
+ */
+function sansPrefix(address) {
+  if (address == null) return null;
+  return address.replace(/^0x/, "").replace(/^Fx/, "");
+}
+
+/**
+ * @description Adds 0x to address if not already present
+ * @param {string} address - Flow address
+ * @returns {string} - Flow address with 0x prefix
+ */
+function withPrefix(address) {
+  if (address == null) return null;
+  return "0x" + sansPrefix(address);
+}
+
+/**
+ * @description Adds 0x to address if not already present
+ * @param {string} address - Flow address
+ * @returns {string} - Flow address with 0x prefix
+ */
+function display(address) {
+  return withPrefix(address);
+}
+
+exports.display = display;
+exports.sansPrefix = sansPrefix;
+exports.withPrefix = withPrefix;
+
+
+},{}],188:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+/**
+ * Asserts fact is true, otherwise throw an error with invariant message
+ * @param {boolean} fact
+ * @param {string} msg
+ * @param {Array} rest
+ * @returns {void}
+ */
+function invariant(fact, msg) {
+  if (!fact) {
+    const error = new Error(`INVARIANT ${msg}`);
+    error.stack = error.stack.split("\n").filter(d => !/at invariant/.test(d)).join("\n");
+    for (var _len = arguments.length, rest = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+      rest[_key - 2] = arguments[_key];
+    }
+    console.error("\n\n---\n\n", error, "\n\n", ...rest, "\n\n---\n\n");
+    throw error;
+  }
+}
+
+exports.invariant = invariant;
+
+
+},{}],189:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+// Config dependency injected into logger to break circular dependency
+let config = null;
+const setConfig = _config => {
+  config = _config;
+};
+
+/**
+ * The levels of the logger
+ *
+ * @typedef {Object} LEVELS
+ * @property {number} debug - The debug level
+ * @property {number} info - The info level
+ * @property {number} log - The log level
+ * @property {number} warn - The warn level
+ * @property {number} error - The error level
+ *
+ */
+const LEVELS = Object.freeze({
+  debug: 5,
+  info: 4,
+  log: 3,
+  warn: 2,
+  error: 1
+});
+
+/**
+ * Builds a message formatted for the logger
+ *
+ * @param {Object} options - The options for the log
+ * @param {string} options.title - The title of the log
+ * @param {string} options.message - The message of the log
+ * @returns {Array<string>} - The message formatted for the logger
+ *
+ * @example
+ * buildLoggerMessageArgs({ title: "My Title", message: "My Message" })
+ */
+const buildLoggerMessageArgs = _ref => {
+  let {
+    title,
+    message
+  } = _ref;
+  return [`
+    %c${title}
+    ============================
+
+    ${message}
+
+    ============================
+    `.replace(/\n[^\S\r\n]+/g, "\n").trim(),, "font-weight:bold;font-family:monospace;"];
+};
+
+/**
+ * Logs messages based on the level of the message and the level set in the config
+ *
+ * @param {Object} options - The options for the log
+ * @param {string} options.title - The title of the log
+ * @param {string} options.message - The message of the log
+ * @param {number} options.level - The level of the log
+ * @param {boolean} options.always - Whether to always show the log
+ * @returns {Promise<void>}
+ *
+ * @example
+ * log({ title: "My Title", message: "My Message", level: LEVELS.warn, always: false })
+ *
+ */
+const log = async _ref2 => {
+  let {
+    title,
+    message,
+    level,
+    always = false
+  } = _ref2;
+  const configLoggerLevel = (await config?.()?.get("logger.level")) ?? LEVELS.warn;
+
+  // If config level is below message level then don't show it
+  if (!always && configLoggerLevel < level) return;
+  const loggerMessageArgs = buildLoggerMessageArgs({
+    title,
+    message
+  });
+  switch (level) {
+    case LEVELS.debug:
+      console.debug(...loggerMessageArgs);
+      break;
+    case LEVELS.info:
+      console.info(...loggerMessageArgs);
+      break;
+    case LEVELS.warn:
+      console.warn(...loggerMessageArgs);
+      break;
+    case LEVELS.error:
+      console.error(...loggerMessageArgs);
+      break;
+    default:
+      console.log(...loggerMessageArgs);
+  }
+};
+
+/**
+ * Logs a deprecation notice
+ *
+ * @param {Object} options - The options for the log
+ * @param {string} options.pkg - The package that is being deprecated
+ * @param {string} options.subject - The subject of the deprecation
+ * @param {string} options.transition - The transition path for the deprecation
+ * @param {number} options.level - The level of the log
+ * @param {string} options.message - The message of the log
+ * @param {Function} options.callback - A callback to run after the log
+ * @returns {Promise<void>}
+ *
+ * @example
+ * log.deprecate({ pkg: "@onflow/fcl", subject: "Some item", transition: "https://github.com/onflow/flow-js-sdk", message: "Descriptive message", level: LEVELS.warn, callback: () => {} })
+ *
+ */
+log.deprecate = _ref3 => {
+  let {
+    pkg,
+    subject,
+    transition,
+    level = LEVELS.warn,
+    message = "",
+    callback = null
+  } = _ref3;
+  const capitalizeFirstLetter = string => {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  };
+  const logMessage = () => log({
+    title: `${pkg ? pkg + " " : ""}Deprecation Notice`,
+    message: `
+      ${subject ? `${capitalizeFirstLetter(subject)} is deprecated and will cease to work in future releases${pkg ? " of " + pkg : ""}.` : ""}${message ? "\n" + message : ""}${transition ? `\nYou can learn more (including a guide on common transition paths) here: ${transition}` : ""}
+    `.trim(),
+    level
+  });
+  if (typeof callback === "function") {
+    return async function () {
+      await logMessage();
+      return await callback(...arguments);
+    };
+  }
+  return logMessage();
+};
+
+exports.LEVELS = LEVELS;
+exports.log = log;
+exports.setConfig = setConfig;
+
+
+},{}],190:[function(require,module,exports){
+(function (global){(function (){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+
+/*! queue-microtask. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> */
+let promise;
+var queueMicrotask_1 = typeof queueMicrotask === 'function' ? queueMicrotask.bind(typeof window !== 'undefined' ? window : commonjsGlobal)
+// reuse resolved promise, and allocate it lazily
+: cb => (promise || (promise = Promise.resolve())).then(cb).catch(err => setTimeout(() => {
+  throw err;
+}, 0));
+
+const mailbox = () => {
+  const queue = [];
+  var next;
+  return {
+    async deliver(msg) {
+      queue.push(msg);
+      if (next) {
+        next(queue.shift());
+        next = undefined;
+      }
+    },
+    receive() {
+      return new Promise(function innerReceive(resolve) {
+        const msg = queue.shift();
+        if (msg) return resolve(msg);
+        next = resolve;
+      });
+    }
+  };
+};
+const INIT = "INIT";
+const SUBSCRIBE = "SUBSCRIBE";
+const UNSUBSCRIBE = "UNSUBSCRIBE";
+const UPDATED$2 = "UPDATED";
+const EXIT = "EXIT";
+const TERMINATE = "TERMINATE";
+const root = typeof self === "object" && self.self === self && self || typeof global === "object" && global.global === global && global || typeof window === "object" && window.window === window && window;
+root.FCL_REGISTRY = root.FCL_REGISTRY == null ? {} : root.FCL_REGISTRY;
+var pid = 0b0;
+const DEFAULT_TIMEOUT = 5000;
+const send = function (addr, tag, data) {
+  let opts = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
+  return new Promise((reply, reject) => {
+    const expectReply = opts.expectReply || false;
+    const timeout = opts.timeout != null ? opts.timeout : DEFAULT_TIMEOUT;
+    if (expectReply && timeout) {
+      setTimeout(() => reject(new Error(`Timeout: ${timeout}ms passed without a response.`)), timeout);
+    }
+    const payload = {
+      to: addr,
+      from: opts.from,
+      tag,
+      data,
+      timeout,
+      reply,
+      reject
+    };
+    try {
+      root.FCL_REGISTRY[addr] && root.FCL_REGISTRY[addr].mailbox.deliver(payload);
+      if (!expectReply) reply(true);
+    } catch (error) {
+      console.error("FCL.Actor -- Could Not Deliver Message", payload, root.FCL_REGISTRY[addr], error);
+    }
+  });
+};
+const kill = addr => {
+  delete root.FCL_REGISTRY[addr];
+};
+const fromHandlers = function () {
+  let handlers = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  return async ctx => {
+    if (typeof handlers[INIT] === "function") await handlers[INIT](ctx);
+    __loop: while (1) {
+      const letter = await ctx.receive();
+      try {
+        if (letter.tag === EXIT) {
+          if (typeof handlers[TERMINATE] === "function") {
+            await handlers[TERMINATE](ctx, letter, letter.data || {});
+          }
+          break __loop;
+        }
+        await handlers[letter.tag](ctx, letter, letter.data || {});
+      } catch (error) {
+        console.error(`${ctx.self()} Error`, letter, error);
+      } finally {
+        continue __loop;
+      }
+    }
+  };
+};
+const spawn = function (fn) {
+  let addr = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+  if (addr == null) addr = ++pid;
+  if (root.FCL_REGISTRY[addr] != null) return addr;
+  root.FCL_REGISTRY[addr] = {
+    addr,
+    mailbox: mailbox(),
+    subs: new Set(),
+    kvs: {},
+    error: null
+  };
+  const ctx = {
+    self: () => addr,
+    receive: () => root.FCL_REGISTRY[addr].mailbox.receive(),
+    send: function (to, tag, data) {
+      let opts = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
+      opts.from = addr;
+      return send(to, tag, data, opts);
+    },
+    sendSelf: (tag, data, opts) => {
+      if (root.FCL_REGISTRY[addr]) send(addr, tag, data, opts);
+    },
+    broadcast: function (tag, data) {
+      let opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+      opts.from = addr;
+      for (let to of root.FCL_REGISTRY[addr].subs) send(to, tag, data, opts);
+    },
+    subscribe: sub => sub != null && root.FCL_REGISTRY[addr].subs.add(sub),
+    unsubscribe: sub => sub != null && root.FCL_REGISTRY[addr].subs.delete(sub),
+    subscriberCount: () => root.FCL_REGISTRY[addr].subs.size,
+    hasSubs: () => !!root.FCL_REGISTRY[addr].subs.size,
+    put: (key, value) => {
+      if (key != null) root.FCL_REGISTRY[addr].kvs[key] = value;
+    },
+    get: (key, fallback) => {
+      const value = root.FCL_REGISTRY[addr].kvs[key];
+      return value == null ? fallback : value;
+    },
+    delete: key => {
+      delete root.FCL_REGISTRY[addr].kvs[key];
+    },
+    update: (key, fn) => {
+      if (key != null) root.FCL_REGISTRY[addr].kvs[key] = fn(root.FCL_REGISTRY[addr].kvs[key]);
+    },
+    keys: () => {
+      return Object.keys(root.FCL_REGISTRY[addr].kvs);
+    },
+    all: () => {
+      return root.FCL_REGISTRY[addr].kvs;
+    },
+    where: pattern => {
+      return Object.keys(root.FCL_REGISTRY[addr].kvs).reduce((acc, key) => {
+        return pattern.test(key) ? {
+          ...acc,
+          [key]: root.FCL_REGISTRY[addr].kvs[key]
+        } : acc;
+      }, {});
+    },
+    merge: function () {
+      let data = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+      Object.keys(data).forEach(key => root.FCL_REGISTRY[addr].kvs[key] = data[key]);
+    },
+    fatalError: error => {
+      root.FCL_REGISTRY[addr].error = error;
+      for (let to of root.FCL_REGISTRY[addr].subs) send(to, UPDATED$2);
+    }
+  };
+  if (typeof fn === "object") fn = fromHandlers(fn);
+  queueMicrotask_1(async () => {
+    await fn(ctx);
+    kill(addr);
+  });
+  return addr;
+};
+
+// Returns an unsubscribe function
+// A SUBSCRIBE handler will need to be created to handle the subscription event
+//
+//  [SUBSCRIBE]: (ctx, letter) => {
+//    ctx.subscribe(letter.from)
+//    ctx.send(letter.from, UPDATED, ctx.all())
+//  }
+//
+function subscriber(address, spawnFn, callback) {
+  spawnFn(address);
+  const EXIT = "@EXIT";
+  const self = spawn(async ctx => {
+    ctx.send(address, SUBSCRIBE);
+    while (1) {
+      const letter = await ctx.receive();
+      const error = root.FCL_REGISTRY[address].error;
+      if (letter.tag === EXIT) {
+        ctx.send(address, UNSUBSCRIBE);
+        return;
+      }
+      if (error) {
+        callback(null, error);
+        ctx.send(address, UNSUBSCRIBE);
+        return;
+      }
+      callback(letter.data, null);
+    }
+  });
+  return () => send(self, EXIT);
+}
+
+/**
+ * Asserts fact is true, otherwise throw an error with invariant message
+ * @param {boolean} fact
+ * @param {string} msg
+ * @param {Array} rest
+ * @returns {void}
+ */
+function invariant$1(fact, msg) {
+  if (!fact) {
+    const error = new Error(`INVARIANT ${msg}`);
+    error.stack = error.stack.split("\n").filter(d => !/at invariant/.test(d)).join("\n");
+    for (var _len = arguments.length, rest = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+      rest[_key - 2] = arguments[_key];
+    }
+    console.error("\n\n---\n\n", error, "\n\n", ...rest, "\n\n---\n\n");
+    throw error;
+  }
+}
+const pipe$1 = function () {
+  for (var _len = arguments.length, funcs = new Array(_len), _key = 0; _key < _len; _key++) {
+    funcs[_key] = arguments[_key];
+  }
+  return v => {
+    return funcs.reduce((res, func) => {
+      return func(res);
+    }, v);
+  };
+};
+
+/***
+ * Merge multiple functions returning objects into one object.
+ * @param {...function(*): object} funcs - Functions to merge
+ * @return {object} - Merged object
+ */
+const mergePipe$1 = function () {
+  for (var _len2 = arguments.length, funcs = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+    funcs[_key2] = arguments[_key2];
+  }
+  return v => {
+    return funcs.reduce((res, func) => {
+      return {
+        ...res,
+        ...func(v)
+      };
+    }, {});
+  };
+};
+
+/**
+ * @description Object check
+ * @param {*} value - Value to check
+ * @returns {boolean} - Is object status
+ */
+const isObject$1 = value => value && typeof value === "object" && !Array.isArray(value);
+
+/**
+ * @description Deep merge multiple objects.
+ * @param {object} target - Target object
+ * @param {...object[]} sources - Source objects
+ * @returns {object} - Merged object
+ */
+const mergeDeep$1 = function (target) {
+  for (var _len3 = arguments.length, sources = new Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+    sources[_key3 - 1] = arguments[_key3];
+  }
+  if (!sources.length) return target;
+  const source = sources.shift();
+  if (isObject$1(target) && isObject$1(source)) {
+    for (const key in source) {
+      if (isObject$1(source[key])) {
+        if (!target[key]) Object.assign(target, {
+          [key]: {}
+        });
+        mergeDeep$1(target[key], source[key]);
+      } else {
+        Object.assign(target, {
+          [key]: source[key]
+        });
+      }
+    }
+  }
+  return mergeDeep$1(target, ...sources);
+};
+
+/**
+ * @description Deep merge multiple Flow JSON.
+ * @param {object|object[]} value - Flow JSON or array of Flow JSONs
+ * @returns {object} - Merged Flow JSON
+ */
+const mergeFlowJSONs$1 = value => Array.isArray(value) ? mergeDeep$1({}, ...value) : value;
+
+/**
+ * @description Filter out contracts section of flow.json.
+ * @param {object|object[]} obj - Flow JSON or array of Flow JSONs
+ * @returns {object} - Contracts section of Flow JSON
+ */
+const filterContracts$1 = obj => obj.contracts ? obj.contracts : {};
+
+/**
+ * @description Gathers contract addresses by network
+ * @param {string} network - Network to gather addresses for
+ * @returns {object} - Contract names by addresses mapping e.g { "HelloWorld": "0x123" }
+ */
+const mapContractAliasesToNetworkAddress$1 = network => contracts => {
+  return Object.entries(contracts).reduce((c, _ref) => {
+    let [key, value] = _ref;
+    const networkContractAlias = value?.aliases?.[network];
+    if (networkContractAlias) {
+      c[key] = networkContractAlias;
+    }
+    return c;
+  }, {});
+};
+const mapDeploymentsToNetworkAddress$1 = network => _ref2 => {
+  let {
+    deployments = {},
+    accounts = {}
+  } = _ref2;
+  const networkDeployment = deployments?.[network];
+  if (!networkDeployment) return {};
+  return Object.entries(networkDeployment).reduce((c, _ref3) => {
+    let [key, value] = _ref3;
+    // Resolve account address
+    const accountAddress = accounts[key]?.address;
+    if (!accountAddress) return c;
+
+    // Create an object assigning the address to the contract name.
+    return value.reduce((c, contract) => {
+      return {
+        ...c,
+        [contract]: accountAddress
+      };
+    }, {});
+  }, {});
+};
+
+/**
+ * @description Take in flow.json files and return contract to address mapping by network
+ * @param {object|object[]} jsons - Flow JSON or array of Flow JSONs
+ * @param {string} network - Network to gather addresses for
+ * @returns {object} - Contract names by addresses mapping e.g { "HelloWorld": "0x123" }
+ */
+const getContracts$1 = (jsons, network) => {
+  return pipe$1(mergeFlowJSONs$1, mergePipe$1(mapDeploymentsToNetworkAddress$1(network), pipe$1(filterContracts$1, mapContractAliasesToNetworkAddress$1(network))))(jsons);
+};
+
+/**
+ * @description Checks if string is hexidecimal
+ * @param {string} str - String to check
+ * @returns {boolean} - Is hexidecimal status
+ */
+const isHexidecimal$1 = str => {
+  // Check that it is a string
+  if (typeof str !== "string") return false;
+  return /^[0-9A-Fa-f]+$/.test(str);
+};
+
+/**
+ * @description Checks flow.json file for private keys
+ * @param {object} flowJSON - Flow JSON
+ * @returns {boolean} - Has private keys status
+ */
+const hasPrivateKeys$1 = flowJSON => {
+  return Object.entries(flowJSON?.accounts).reduce((hasPrivateKey, _ref4) => {
+    let [key, value] = _ref4;
+    if (hasPrivateKey) return true;
+    return value?.hasOwnProperty("key") && isHexidecimal$1(value?.key);
+  }, false);
+};
+
+/**
+ * @description Take in flow.json or array of flow.json files and checks for private keys
+ * @param {object|object[]} value - Flow JSON or array of Flow JSONs
+ * @returns {boolean} - Has private keys status
+ */
+const anyHasPrivateKeys$1 = value => {
+  if (isObject$1(value)) return hasPrivateKeys$1(value);
+  return value.some(hasPrivateKeys$1);
+};
+
+/**
+ * @description Format network to always be 'emulator', 'testnet', or 'mainnet'
+ * @param {string} network - Network to format
+ * @returns {string} - Formatted network name (either 'emulator', 'testnet', or 'mainnet')
+ */
+const cleanNetwork$1 = network => network?.toLowerCase() === "local" ? "emulator" : network?.toLowerCase();
+const NAME$1 = "config";
+const PUT$1 = "PUT_CONFIG";
+const GET$1 = "GET_CONFIG";
+const GET_ALL$1 = "GET_ALL_CONFIG";
+const UPDATE$1 = "UPDATE_CONFIG";
+const DELETE$1 = "DELETE_CONFIG";
+const CLEAR$1 = "CLEAR_CONFIG";
+const WHERE$1 = "WHERE_CONFIG";
+const UPDATED$1 = "CONFIG/UPDATED";
+const identity$1 = v => v;
+const HANDLERS$1 = {
+  [PUT$1]: (ctx, _letter, _ref) => {
+    let {
+      key,
+      value
+    } = _ref;
+    if (key == null) throw new Error("Missing 'key' for config/put.");
+    ctx.put(key, value);
+    ctx.broadcast(UPDATED$1, {
+      ...ctx.all()
+    });
+  },
+  [GET$1]: (ctx, letter, _ref2) => {
+    let {
+      key,
+      fallback
+    } = _ref2;
+    if (key == null) throw new Error("Missing 'key' for config/get");
+    letter.reply(ctx.get(key, fallback));
+  },
+  [GET_ALL$1]: (ctx, letter) => {
+    letter.reply({
+      ...ctx.all()
+    });
+  },
+  [UPDATE$1]: (ctx, letter, _ref3) => {
+    let {
+      key,
+      fn
+    } = _ref3;
+    if (key == null) throw new Error("Missing 'key' for config/update");
+    ctx.update(key, fn || identity$1);
+    ctx.broadcast(UPDATED$1, {
+      ...ctx.all()
+    });
+  },
+  [DELETE$1]: (ctx, letter, _ref4) => {
+    let {
+      key
+    } = _ref4;
+    if (key == null) throw new Error("Missing 'key' for config/delete");
+    ctx.delete(key);
+    ctx.broadcast(UPDATED$1, {
+      ...ctx.all()
+    });
+  },
+  [CLEAR$1]: (ctx, letter) => {
+    let keys = Object.keys(ctx.all());
+    for (let key of keys) ctx.delete(key);
+    ctx.broadcast(UPDATED$1, {
+      ...ctx.all()
+    });
+  },
+  [WHERE$1]: (ctx, letter, _ref5) => {
+    let {
+      pattern
+    } = _ref5;
+    if (pattern == null) throw new Error("Missing 'pattern' for config/where");
+    letter.reply(ctx.where(pattern));
+  },
+  [SUBSCRIBE]: (ctx, letter) => {
+    ctx.subscribe(letter.from);
+    ctx.send(letter.from, UPDATED$1, {
+      ...ctx.all()
+    });
+  },
+  [UNSUBSCRIBE]: (ctx, letter) => {
+    ctx.unsubscribe(letter.from);
+  }
+};
+spawn(HANDLERS$1, NAME$1);
+
+/**
+ * @description Adds a key-value pair to the config
+ * @param {string} key - The key to add
+ * @param {*} value - The value to add
+ * @returns {Promise<object>} - The current config
+ */
+function put$1(key, value) {
+  send(NAME$1, PUT$1, {
+    key,
+    value
+  });
+  return config$1();
+}
+
+/**
+ * @description Gets a key-value pair with a fallback from the config
+ * @param {string} key - The key to add
+ * @param {*} [fallback] - The fallback value to return if key is not found
+ * @returns {Promise<*>} - The value found at key or fallback
+ */
+function get$1(key, fallback) {
+  return send(NAME$1, GET$1, {
+    key,
+    fallback
+  }, {
+    expectReply: true,
+    timeout: 10
+  });
+}
+
+/**
+ * @description Returns the first non null config value or the fallback
+ * @param {string[]} wants - The keys to search for
+ * @param {*} fallback - The fallback value to return if key is not found
+ * @returns {Promise<*>} - The value found at key or fallback
+ */
+async function first$1() {
+  let wants = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+  let fallback = arguments.length > 1 ? arguments[1] : undefined;
+  if (!wants.length) return fallback;
+  const [head, ...rest] = wants;
+  const ret = await get$1(head);
+  if (ret == null) return first$1(rest, fallback);
+  return ret;
+}
+
+/**
+ * @description Returns the current config
+ * @returns {Promise<object>} - The current config
+ */
+function all$1() {
+  return send(NAME$1, GET_ALL$1, null, {
+    expectReply: true,
+    timeout: 10
+  });
+}
+
+/**
+ * @description Updates a key-value pair in the config
+ * @param {string} key - The key to update
+ * @param {Function} fn - The function to update the value with
+ * @returns {Promise<object>} - The current config
+ */
+function update$1(key) {
+  let fn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : identity$1;
+  send(NAME$1, UPDATE$1, {
+    key,
+    fn
+  });
+  return config$1();
+}
+
+/**
+ * @description Deletes a key-value pair from the config
+ * @param {string} key - The key to delete
+ * @returns {Promise<object>} - The current config
+ */
+function _delete$1(key) {
+  send(NAME$1, DELETE$1, {
+    key
+  });
+  return config$1();
+}
+
+/**
+ * @description Returns a subset of the config based on a pattern
+ * @param {string} pattern - The pattern to match keys against
+ * @returns {Promise<object>} - The subset of the config
+ */
+function where$1(pattern) {
+  return send(NAME$1, WHERE$1, {
+    pattern
+  }, {
+    expectReply: true,
+    timeout: 10
+  });
+}
+
+/**
+ * @description Subscribes to config updates
+ * @param {Function} callback - The callback to call when config is updated
+ * @returns {Function} - The unsubscribe function
+ */
+function subscribe$1(callback) {
+  return subscriber(NAME$1, () => spawn(HANDLERS$1, NAME$1), callback);
+}
+
+/**
+ * @description Clears the config
+ * @returns {void}
+ */
+function clearConfig$1() {
+  return send(NAME$1, CLEAR$1);
+}
+
+/**
+ * @description Resets the config to a previous state
+ * @param {object} oldConfig - The previous config state
+ * @returns {Promise<object>} - The current config
+ */
+function resetConfig$1(oldConfig) {
+  return clearConfig$1().then(config$1(oldConfig));
+}
+
+/**
+ * @description Takes in flow.json or array of flow.json files and creates contract placeholders
+ * @param {object|object[]} data - The flow.json or array of flow.json files
+ * @returns {void}
+ */
+async function load$1(data) {
+  const network = await get$1("flow.network");
+  const cleanedNetwork = cleanNetwork$1(network);
+  const {
+    flowJSON
+  } = data;
+  invariant$1(Boolean(flowJSON), "config.load -- 'flowJSON' must be defined");
+  invariant$1(cleanedNetwork, `Flow Network Required -- In order for FCL to load your contracts please define "flow.network" to "emulator", "local", "testnet", or "mainnet" in your config. See more here: https://developers.flow.com/tools/fcl-js/reference/configure-fcl`);
+  if (anyHasPrivateKeys$1(flowJSON)) {
+    const isEmulator = cleanedNetwork === "emulator";
+    log$1({
+      title: "Private Keys Detected",
+      message: `Private keys should be stored in a separate flow.json file for security. See more here: https://developers.flow.com/tools/flow-cli/security`,
+      level: isEmulator ? LEVELS$1.warn : LEVELS$1.error
+    });
+    if (!isEmulator) return;
+  }
+  for (const [key, value] of Object.entries(getContracts$1(flowJSON, cleanedNetwork))) {
+    const contractConfigKey = `0x${key}`;
+    const existingContractConfigKey = await get$1(contractConfigKey);
+    if (existingContractConfigKey && existingContractConfigKey !== value) {
+      log$1({
+        title: "Contract Placeholder Conflict Detected",
+        message: `A generated contract placeholder from config.load conflicts with a placeholder you've set manually in config have the same name.`,
+        level: LEVELS$1.warn
+      });
+    } else {
+      put$1(contractConfigKey, value);
+    }
+    const systemContractConfigKey = `system.contracts.${key}`;
+    const systemExistingContractConfigKeyValue = await get$1(systemContractConfigKey);
+    if (systemExistingContractConfigKeyValue && systemExistingContractConfigKeyValue !== value) {
+      log$1({
+        title: "Contract Placeholder Conflict Detected",
+        message: `A generated contract placeholder from config.load conflicts with a placeholder you've set manually in config have the same name.`,
+        level: LEVELS$1.warn
+      });
+    } else {
+      put$1(systemContractConfigKey, value);
+    }
+  }
+}
+
+// eslint-disable-next-line jsdoc/require-returns
+/**
+ * @description Sets the config
+ * @param {object} [values] - The values to set
+ */
+function config$1(values) {
+  if (values != null && typeof values === "object") {
+    Object.keys(values).map(d => put$1(d, values[d]));
+  }
+  return {
+    put: put$1,
+    get: get$1,
+    all: all$1,
+    first: first$1,
+    update: update$1,
+    delete: _delete$1,
+    where: where$1,
+    subscribe: subscribe$1,
+    overload: overload$1,
+    load: load$1
+  };
+}
+config$1.put = put$1;
+config$1.get = get$1;
+config$1.all = all$1;
+config$1.first = first$1;
+config$1.update = update$1;
+config$1.delete = _delete$1;
+config$1.where = where$1;
+config$1.subscribe = subscribe$1;
+config$1.overload = overload$1;
+config$1.load = load$1;
+const noop$1 = v => v;
+function overload$1() {
+  let opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  let callback = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : noop$1;
+  return new Promise(async (resolve, reject) => {
+    const oldConfig = await all$1();
+    try {
+      config$1(opts);
+      var result = await callback(await all$1());
+      await resetConfig$1(oldConfig);
+      resolve(result);
+    } catch (error) {
+      await resetConfig$1(oldConfig);
+      reject(error);
+    }
+  });
+}
+
+/**
+ * The levels of the logger
+ * 
+ * @typedef {Object} LEVELS
+ * @property {number} debug - The debug level
+ * @property {number} info - The info level
+ * @property {number} log - The log level
+ * @property {number} warn - The warn level
+ * @property {number} error - The error level
+ * 
+ */
+const LEVELS$1 = Object.freeze({
+  debug: 5,
+  info: 4,
+  log: 3,
+  warn: 2,
+  error: 1
+});
+
+/**
+ * Builds a message formatted for the logger
+ * 
+ * @param {Object} options - The options for the log
+ * @param {string} options.title - The title of the log
+ * @param {string} options.message - The message of the log
+ * @returns {Array<string>} - The message formatted for the logger
+ * 
+ * @example
+ * buildLoggerMessageArgs({ title: "My Title", message: "My Message" })
+ */
+const buildLoggerMessageArgs$1 = _ref => {
+  let {
+    title,
+    message
+  } = _ref;
+  return [`
+    %c${title}
+    ============================
+
+    ${message}
+
+    ============================
+    `.replace(/\n[^\S\r\n]+/g, "\n").trim(),, "font-weight:bold;font-family:monospace;"];
+};
+
+/**
+ * Logs messages based on the level of the message and the level set in the config
+ * 
+ * @param {Object} options - The options for the log
+ * @param {string} options.title - The title of the log
+ * @param {string} options.message - The message of the log
+ * @param {number} options.level - The level of the log
+ * @param {boolean} options.always - Whether to always show the log
+ * @returns {Promise<void>}
+ * 
+ * @example
+ * log({ title: "My Title", message: "My Message", level: LEVELS.warn, always: false })
+ * 
+ */
+const log$1 = async _ref2 => {
+  let {
+    title,
+    message,
+    level,
+    always = false
+  } = _ref2;
+  const configLoggerLevel = await config$1.get("logger.level", LEVELS$1.warn);
+
+  // If config level is below message level then don't show it
+  if (!always && configLoggerLevel < level) return;
+  const loggerMessageArgs = buildLoggerMessageArgs$1({
+    title,
+    message
+  });
+  switch (level) {
+    case LEVELS$1.debug:
+      console.debug(...loggerMessageArgs);
+      break;
+    case LEVELS$1.info:
+      console.info(...loggerMessageArgs);
+      break;
+    case LEVELS$1.warn:
+      console.warn(...loggerMessageArgs);
+      break;
+    case LEVELS$1.error:
+      console.error(...loggerMessageArgs);
+      break;
+    default:
+      console.log(...loggerMessageArgs);
+  }
+};
+
+/**
+ * Logs a deprecation notice
+ * 
+ * @param {Object} options - The options for the log
+ * @param {string} options.pkg - The package that is being deprecated
+ * @param {string} options.subject - The subject of the deprecation
+ * @param {string} options.transition - The transition path for the deprecation
+ * @param {number} options.level - The level of the log
+ * @param {string} options.message - The message of the log
+ * @param {Function} options.callback - A callback to run after the log
+ * @returns {Promise<void>}
+ * 
+ * @example
+ * log.deprecate({ pkg: "@onflow/fcl", subject: "Some item", transition: "https://github.com/onflow/flow-js-sdk", message: "Descriptive message", level: LEVELS.warn, callback: () => {} })
+ * 
+ */
+log$1.deprecate = _ref3 => {
+  let {
+    pkg,
+    subject,
+    transition,
+    level = LEVELS$1.warn,
+    message = "",
+    callback = null
+  } = _ref3;
+  const capitalizeFirstLetter = string => {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  };
+  const logMessage = () => log$1({
+    title: `${pkg ? pkg + " " : ""}Deprecation Notice`,
+    message: `
+      ${subject ? `${capitalizeFirstLetter(subject)} is deprecated and will cease to work in future releases${pkg ? " of " + pkg : ""}.` : ""}${message ? "\n" + message : ""}${transition ? `\nYou can learn more (including a guide on common transition paths) here: ${transition}` : ""}
+    `.trim(),
+    level
+  });
+  if (typeof callback === "function") {
+    return async function () {
+      await logMessage();
+      return await callback(...arguments);
+    };
+  }
+  return logMessage();
+};
+
+/**
+ * Asserts fact is true, otherwise throw an error with invariant message
+ * @param {boolean} fact
+ * @param {string} msg
+ * @param {Array} rest
+ * @returns {void}
+ */
+function invariant(fact, msg) {
+  if (!fact) {
+    const error = new Error(`INVARIANT ${msg}`);
+    error.stack = error.stack.split("\n").filter(d => !/at invariant/.test(d)).join("\n");
+    for (var _len = arguments.length, rest = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+      rest[_key - 2] = arguments[_key];
+    }
+    console.error("\n\n---\n\n", error, "\n\n", ...rest, "\n\n---\n\n");
+    throw error;
+  }
+}
+const pipe = function () {
+  for (var _len = arguments.length, funcs = new Array(_len), _key = 0; _key < _len; _key++) {
+    funcs[_key] = arguments[_key];
+  }
+  return v => {
+    return funcs.reduce((res, func) => {
+      return func(res);
+    }, v);
+  };
+};
+
+/***
+ * Merge multiple functions returning objects into one object.
+ * @param {...function(*): object} funcs - Functions to merge
+ * @return {object} - Merged object
+ */
+const mergePipe = function () {
+  for (var _len2 = arguments.length, funcs = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+    funcs[_key2] = arguments[_key2];
+  }
+  return v => {
+    return funcs.reduce((res, func) => {
+      return {
+        ...res,
+        ...func(v)
+      };
+    }, {});
+  };
+};
+
+/**
+ * @description Object check
+ * @param {*} value - Value to check
+ * @returns {boolean} - Is object status
+ */
+const isObject = value => value && typeof value === "object" && !Array.isArray(value);
+
+/**
+ * @description Deep merge multiple objects.
+ * @param {object} target - Target object
+ * @param {...object[]} sources - Source objects
+ * @returns {object} - Merged object
+ */
+const mergeDeep = function (target) {
+  for (var _len3 = arguments.length, sources = new Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+    sources[_key3 - 1] = arguments[_key3];
+  }
+  if (!sources.length) return target;
+  const source = sources.shift();
+  if (isObject(target) && isObject(source)) {
+    for (const key in source) {
+      if (isObject(source[key])) {
+        if (!target[key]) Object.assign(target, {
+          [key]: {}
+        });
+        mergeDeep(target[key], source[key]);
+      } else {
+        Object.assign(target, {
+          [key]: source[key]
+        });
+      }
+    }
+  }
+  return mergeDeep(target, ...sources);
+};
+
+/**
+ * @description Deep merge multiple Flow JSON.
+ * @param {object|object[]} value - Flow JSON or array of Flow JSONs
+ * @returns {object} - Merged Flow JSON
+ */
+const mergeFlowJSONs = value => Array.isArray(value) ? mergeDeep({}, ...value) : value;
+
+/**
+ * @description Filter out contracts section of flow.json.
+ * @param {object|object[]} obj - Flow JSON or array of Flow JSONs
+ * @returns {object} - Contracts section of Flow JSON
+ */
+const filterContracts = obj => obj.contracts ? obj.contracts : {};
+
+/**
+ * @description Gathers contract addresses by network
+ * @param {string} network - Network to gather addresses for
+ * @returns {object} - Contract names by addresses mapping e.g { "HelloWorld": "0x123" }
+ */
+const mapContractAliasesToNetworkAddress = network => contracts => {
+  return Object.entries(contracts).reduce((c, _ref) => {
+    let [key, value] = _ref;
+    const networkContractAlias = value?.aliases?.[network];
+    if (networkContractAlias) {
+      c[key] = networkContractAlias;
+    }
+    return c;
+  }, {});
+};
+const mapDeploymentsToNetworkAddress = network => _ref2 => {
+  let {
+    deployments = {},
+    accounts = {}
+  } = _ref2;
+  const networkDeployment = deployments?.[network];
+  if (!networkDeployment) return {};
+  return Object.entries(networkDeployment).reduce((c, _ref3) => {
+    let [key, value] = _ref3;
+    // Resolve account address
+    const accountAddress = accounts[key]?.address;
+    if (!accountAddress) return c;
+
+    // Create an object assigning the address to the contract name.
+    return value.reduce((c, contract) => {
+      return {
+        ...c,
+        [contract]: accountAddress
+      };
+    }, {});
+  }, {});
+};
+
+/**
+ * @description Take in flow.json files and return contract to address mapping by network
+ * @param {object|object[]} jsons - Flow JSON or array of Flow JSONs
+ * @param {string} network - Network to gather addresses for
+ * @returns {object} - Contract names by addresses mapping e.g { "HelloWorld": "0x123" }
+ */
+const getContracts = (jsons, network) => {
+  return pipe(mergeFlowJSONs, mergePipe(mapDeploymentsToNetworkAddress(network), pipe(filterContracts, mapContractAliasesToNetworkAddress(network))))(jsons);
+};
+
+/**
+ * @description Checks if string is hexidecimal
+ * @param {string} str - String to check
+ * @returns {boolean} - Is hexidecimal status
+ */
+const isHexidecimal = str => {
+  // Check that it is a string
+  if (typeof str !== "string") return false;
+  return /^[0-9A-Fa-f]+$/.test(str);
+};
+
+/**
+ * @description Checks flow.json file for private keys
+ * @param {object} flowJSON - Flow JSON
+ * @returns {boolean} - Has private keys status
+ */
+const hasPrivateKeys = flowJSON => {
+  return Object.entries(flowJSON?.accounts).reduce((hasPrivateKey, _ref4) => {
+    let [key, value] = _ref4;
+    if (hasPrivateKey) return true;
+    return value?.hasOwnProperty("key") && isHexidecimal(value?.key);
+  }, false);
+};
+
+/**
+ * @description Take in flow.json or array of flow.json files and checks for private keys
+ * @param {object|object[]} value - Flow JSON or array of Flow JSONs
+ * @returns {boolean} - Has private keys status
+ */
+const anyHasPrivateKeys = value => {
+  if (isObject(value)) return hasPrivateKeys(value);
+  return value.some(hasPrivateKeys);
+};
+
+/**
+ * @description Format network to always be 'emulator', 'testnet', or 'mainnet'
+ * @param {string} network - Network to format
+ * @returns {string} - Formatted network name (either 'emulator', 'testnet', or 'mainnet')
+ */
+const cleanNetwork = network => network?.toLowerCase() === "local" ? "emulator" : network?.toLowerCase();
+const NAME = "config";
+const PUT = "PUT_CONFIG";
+const GET = "GET_CONFIG";
+const GET_ALL = "GET_ALL_CONFIG";
+const UPDATE = "UPDATE_CONFIG";
+const DELETE = "DELETE_CONFIG";
+const CLEAR = "CLEAR_CONFIG";
+const WHERE = "WHERE_CONFIG";
+const UPDATED = "CONFIG/UPDATED";
+const identity = v => v;
+const HANDLERS = {
+  [PUT]: (ctx, _letter, _ref) => {
+    let {
+      key,
+      value
+    } = _ref;
+    if (key == null) throw new Error("Missing 'key' for config/put.");
+    ctx.put(key, value);
+    ctx.broadcast(UPDATED, {
+      ...ctx.all()
+    });
+  },
+  [GET]: (ctx, letter, _ref2) => {
+    let {
+      key,
+      fallback
+    } = _ref2;
+    if (key == null) throw new Error("Missing 'key' for config/get");
+    letter.reply(ctx.get(key, fallback));
+  },
+  [GET_ALL]: (ctx, letter) => {
+    letter.reply({
+      ...ctx.all()
+    });
+  },
+  [UPDATE]: (ctx, letter, _ref3) => {
+    let {
+      key,
+      fn
+    } = _ref3;
+    if (key == null) throw new Error("Missing 'key' for config/update");
+    ctx.update(key, fn || identity);
+    ctx.broadcast(UPDATED, {
+      ...ctx.all()
+    });
+  },
+  [DELETE]: (ctx, letter, _ref4) => {
+    let {
+      key
+    } = _ref4;
+    if (key == null) throw new Error("Missing 'key' for config/delete");
+    ctx.delete(key);
+    ctx.broadcast(UPDATED, {
+      ...ctx.all()
+    });
+  },
+  [CLEAR]: (ctx, letter) => {
+    let keys = Object.keys(ctx.all());
+    for (let key of keys) ctx.delete(key);
+    ctx.broadcast(UPDATED, {
+      ...ctx.all()
+    });
+  },
+  [WHERE]: (ctx, letter, _ref5) => {
+    let {
+      pattern
+    } = _ref5;
+    if (pattern == null) throw new Error("Missing 'pattern' for config/where");
+    letter.reply(ctx.where(pattern));
+  },
+  [SUBSCRIBE]: (ctx, letter) => {
+    ctx.subscribe(letter.from);
+    ctx.send(letter.from, UPDATED, {
+      ...ctx.all()
+    });
+  },
+  [UNSUBSCRIBE]: (ctx, letter) => {
+    ctx.unsubscribe(letter.from);
+  }
+};
+spawn(HANDLERS, NAME);
+
+/**
+ * @description Adds a key-value pair to the config
+ * @param {string} key - The key to add
+ * @param {*} value - The value to add
+ * @returns {Promise<object>} - The current config
+ */
+function put(key, value) {
+  send(NAME, PUT, {
+    key,
+    value
+  });
+  return config();
+}
+
+/**
+ * @description Gets a key-value pair with a fallback from the config
+ * @param {string} key - The key to add
+ * @param {*} [fallback] - The fallback value to return if key is not found
+ * @returns {Promise<*>} - The value found at key or fallback
+ */
+function get(key, fallback) {
+  return send(NAME, GET, {
+    key,
+    fallback
+  }, {
+    expectReply: true,
+    timeout: 10
+  });
+}
+
+/**
+ * @description Returns the first non null config value or the fallback
+ * @param {string[]} wants - The keys to search for
+ * @param {*} fallback - The fallback value to return if key is not found
+ * @returns {Promise<*>} - The value found at key or fallback
+ */
+async function first() {
+  let wants = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+  let fallback = arguments.length > 1 ? arguments[1] : undefined;
+  if (!wants.length) return fallback;
+  const [head, ...rest] = wants;
+  const ret = await get(head);
+  if (ret == null) return first(rest, fallback);
+  return ret;
+}
+
+/**
+ * @description Returns the current config
+ * @returns {Promise<object>} - The current config
+ */
+function all() {
+  return send(NAME, GET_ALL, null, {
+    expectReply: true,
+    timeout: 10
+  });
+}
+
+/**
+ * @description Updates a key-value pair in the config
+ * @param {string} key - The key to update
+ * @param {Function} fn - The function to update the value with
+ * @returns {Promise<object>} - The current config
+ */
+function update(key) {
+  let fn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : identity;
+  send(NAME, UPDATE, {
+    key,
+    fn
+  });
+  return config();
+}
+
+/**
+ * @description Deletes a key-value pair from the config
+ * @param {string} key - The key to delete
+ * @returns {Promise<object>} - The current config
+ */
+function _delete(key) {
+  send(NAME, DELETE, {
+    key
+  });
+  return config();
+}
+
+/**
+ * @description Returns a subset of the config based on a pattern
+ * @param {string} pattern - The pattern to match keys against
+ * @returns {Promise<object>} - The subset of the config
+ */
+function where(pattern) {
+  return send(NAME, WHERE, {
+    pattern
+  }, {
+    expectReply: true,
+    timeout: 10
+  });
+}
+
+/**
+ * @description Subscribes to config updates
+ * @param {Function} callback - The callback to call when config is updated
+ * @returns {Function} - The unsubscribe function
+ */
+function subscribe(callback) {
+  return subscriber(NAME, () => spawn(HANDLERS, NAME), callback);
+}
+
+/**
+ * @description Clears the config
+ * @returns {void}
+ */
+function clearConfig() {
+  return send(NAME, CLEAR);
+}
+
+/**
+ * @description Resets the config to a previous state
+ * @param {object} oldConfig - The previous config state
+ * @returns {Promise<object>} - The current config
+ */
+function resetConfig(oldConfig) {
+  return clearConfig().then(config(oldConfig));
+}
+
+/**
+ * @description Takes in flow.json or array of flow.json files and creates contract placeholders
+ * @param {object|object[]} data - The flow.json or array of flow.json files
+ * @returns {void}
+ */
+async function load(data) {
+  const network = await get("flow.network");
+  const cleanedNetwork = cleanNetwork(network);
+  const {
+    flowJSON
+  } = data;
+  invariant(Boolean(flowJSON), "config.load -- 'flowJSON' must be defined");
+  invariant(cleanedNetwork, `Flow Network Required -- In order for FCL to load your contracts please define "flow.network" to "emulator", "local", "testnet", or "mainnet" in your config. See more here: https://developers.flow.com/tools/fcl-js/reference/configure-fcl`);
+  if (anyHasPrivateKeys(flowJSON)) {
+    const isEmulator = cleanedNetwork === "emulator";
+    log$1({
+      title: "Private Keys Detected",
+      message: `Private keys should be stored in a separate flow.json file for security. See more here: https://developers.flow.com/tools/flow-cli/security`,
+      level: isEmulator ? LEVELS$1.warn : LEVELS$1.error
+    });
+    if (!isEmulator) return;
+  }
+  for (const [key, value] of Object.entries(getContracts(flowJSON, cleanedNetwork))) {
+    const contractConfigKey = `0x${key}`;
+    const existingContractConfigKey = await get(contractConfigKey);
+    if (existingContractConfigKey && existingContractConfigKey !== value) {
+      log$1({
+        title: "Contract Placeholder Conflict Detected",
+        message: `A generated contract placeholder from config.load conflicts with a placeholder you've set manually in config have the same name.`,
+        level: LEVELS$1.warn
+      });
+    } else {
+      put(contractConfigKey, value);
+    }
+    const systemContractConfigKey = `system.contracts.${key}`;
+    const systemExistingContractConfigKeyValue = await get(systemContractConfigKey);
+    if (systemExistingContractConfigKeyValue && systemExistingContractConfigKeyValue !== value) {
+      log$1({
+        title: "Contract Placeholder Conflict Detected",
+        message: `A generated contract placeholder from config.load conflicts with a placeholder you've set manually in config have the same name.`,
+        level: LEVELS$1.warn
+      });
+    } else {
+      put(systemContractConfigKey, value);
+    }
+  }
+}
+
+// eslint-disable-next-line jsdoc/require-returns
+/**
+ * @description Sets the config
+ * @param {object} [values] - The values to set
+ */
+function config(values) {
+  if (values != null && typeof values === "object") {
+    Object.keys(values).map(d => put(d, values[d]));
+  }
+  return {
+    put,
+    get,
+    all,
+    first,
+    update,
+    delete: _delete,
+    where,
+    subscribe,
+    overload,
+    load
+  };
+}
+config.put = put;
+config.get = get;
+config.all = all;
+config.first = first;
+config.update = update;
+config.delete = _delete;
+config.where = where;
+config.subscribe = subscribe;
+config.overload = overload;
+config.load = load;
+const noop = v => v;
+function overload() {
+  let opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  let callback = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : noop;
+  return new Promise(async (resolve, reject) => {
+    const oldConfig = await all();
+    try {
+      config(opts);
+      var result = await callback(await all());
+      await resetConfig(oldConfig);
+      resolve(result);
+    } catch (error) {
+      await resetConfig(oldConfig);
+      reject(error);
+    }
+  });
+}
+
+/**
+ * The levels of the logger
+ * 
+ * @typedef {Object} LEVELS
+ * @property {number} debug - The debug level
+ * @property {number} info - The info level
+ * @property {number} log - The log level
+ * @property {number} warn - The warn level
+ * @property {number} error - The error level
+ * 
+ */
+const LEVELS = Object.freeze({
+  debug: 5,
+  info: 4,
+  log: 3,
+  warn: 2,
+  error: 1
+});
+
+/**
+ * Builds a message formatted for the logger
+ * 
+ * @param {Object} options - The options for the log
+ * @param {string} options.title - The title of the log
+ * @param {string} options.message - The message of the log
+ * @returns {Array<string>} - The message formatted for the logger
+ * 
+ * @example
+ * buildLoggerMessageArgs({ title: "My Title", message: "My Message" })
+ */
+const buildLoggerMessageArgs = _ref => {
+  let {
+    title,
+    message
+  } = _ref;
+  return [`
+    %c${title}
+    ============================
+
+    ${message}
+
+    ============================
+    `.replace(/\n[^\S\r\n]+/g, "\n").trim(),, "font-weight:bold;font-family:monospace;"];
+};
+
+/**
+ * Logs messages based on the level of the message and the level set in the config
+ * 
+ * @param {Object} options - The options for the log
+ * @param {string} options.title - The title of the log
+ * @param {string} options.message - The message of the log
+ * @param {number} options.level - The level of the log
+ * @param {boolean} options.always - Whether to always show the log
+ * @returns {Promise<void>}
+ * 
+ * @example
+ * log({ title: "My Title", message: "My Message", level: LEVELS.warn, always: false })
+ * 
+ */
+const log = async _ref2 => {
+  let {
+    title,
+    message,
+    level,
+    always = false
+  } = _ref2;
+  const configLoggerLevel = await config.get("logger.level", LEVELS.warn);
+
+  // If config level is below message level then don't show it
+  if (!always && configLoggerLevel < level) return;
+  const loggerMessageArgs = buildLoggerMessageArgs({
+    title,
+    message
+  });
+  switch (level) {
+    case LEVELS.debug:
+      console.debug(...loggerMessageArgs);
+      break;
+    case LEVELS.info:
+      console.info(...loggerMessageArgs);
+      break;
+    case LEVELS.warn:
+      console.warn(...loggerMessageArgs);
+      break;
+    case LEVELS.error:
+      console.error(...loggerMessageArgs);
+      break;
+    default:
+      console.log(...loggerMessageArgs);
+  }
+};
+
+/**
+ * Logs a deprecation notice
+ * 
+ * @param {Object} options - The options for the log
+ * @param {string} options.pkg - The package that is being deprecated
+ * @param {string} options.subject - The subject of the deprecation
+ * @param {string} options.transition - The transition path for the deprecation
+ * @param {number} options.level - The level of the log
+ * @param {string} options.message - The message of the log
+ * @param {Function} options.callback - A callback to run after the log
+ * @returns {Promise<void>}
+ * 
+ * @example
+ * log.deprecate({ pkg: "@onflow/fcl", subject: "Some item", transition: "https://github.com/onflow/flow-js-sdk", message: "Descriptive message", level: LEVELS.warn, callback: () => {} })
+ * 
+ */
+log.deprecate = _ref3 => {
+  let {
+    pkg,
+    subject,
+    transition,
+    level = LEVELS.warn,
+    message = "",
+    callback = null
+  } = _ref3;
+  const capitalizeFirstLetter = string => {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  };
+  const logMessage = () => log({
+    title: `${pkg ? pkg + " " : ""}Deprecation Notice`,
+    message: `
+      ${subject ? `${capitalizeFirstLetter(subject)} is deprecated and will cease to work in future releases${pkg ? " of " + pkg : ""}.` : ""}${message ? "\n" + message : ""}${transition ? `\nYou can learn more (including a guide on common transition paths) here: ${transition}` : ""}
+    `.trim(),
+    level
+  });
+  if (typeof callback === "function") {
+    return async function () {
+      await logMessage();
+      return await callback(...arguments);
+    };
+  }
+  return logMessage();
+};
+
+function interleave() {
+  let a = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+  let b = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+  let c = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
+  if (!a.length && !b.length) return c;
+  if (!a.length) return c;
+  if (!b.length) return [...c, a[0]];
+  const [aHead, ...aRest] = a;
+  const [bHead, ...bRest] = b;
+  if (aHead !== undefined) c.push(aHead);
+  if (bHead !== undefined) c.push(bHead);
+  return interleave(aRest, bRest, c);
+}
+function recApply(d) {
+  return function (arg1) {
+    if (typeof arg1 === "function") {
+      log.deprecate({
+        pkg: "FCL/SDK",
+        subject: "Interopolation of functions into template literals",
+        transition: "https://github.com/onflow/flow-js-sdk/blob/master/packages/sdk/TRANSITIONS.md#0001-deprecate-params"
+      });
+      return recApply(d)(arg1(d));
+    }
+    return String(arg1);
+  };
+}
+
+/**
+ * @param {(string|Array.<*>)} head
+ * @param {Array.<*>} rest
+ * @returns {{function(): string}}
+ */
+function template(head) {
+  for (var _len = arguments.length, rest = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    rest[_key - 1] = arguments[_key];
+  }
+  if (typeof head === "string") return () => head;
+  if (Array.isArray(head)) {
+    return d => interleave(head, rest.map(recApply(d))).join("").trim();
+  }
+  return head;
+}
+
+exports.interleave = interleave;
+exports.template = template;
+
+
+}).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],191:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+/**
+ * Generates a unique identifier
+ * @returns {string}
+ */
+var HEX = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+var T = HEX.length;
+function uid() {
+  var str = "",
+    num = 32;
+  while (num--) str += HEX[Math.random() * T | 0];
+  return str;
+}
+
+exports.uid = uid;
+
+
+},{}],192:[function(require,module,exports){
+/*globals self, window */
+"use strict"
+
+/*eslint-disable @mysticatea/prettier */
+const { AbortController, AbortSignal } =
+    typeof self !== "undefined" ? self :
+    typeof window !== "undefined" ? window :
+    /* otherwise */ undefined
+/*eslint-enable @mysticatea/prettier */
+
+module.exports = AbortController
+module.exports.AbortSignal = AbortSignal
+module.exports.default = AbortController
+
+},{}],193:[function(require,module,exports){
 "use strict";
 
 (function(root) {
@@ -24979,7 +39187,7 @@ exports.randomBytes = randomBytes;
 
 })(this);
 
-},{}],162:[function(require,module,exports){
+},{}],194:[function(require,module,exports){
 'use strict'
 var ALPHABET = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l'
 
@@ -25163,7 +39371,7 @@ module.exports = {
   fromWords: fromWords
 }
 
-},{}],163:[function(require,module,exports){
+},{}],195:[function(require,module,exports){
 (function (module, exports) {
   'use strict';
 
@@ -28712,7 +42920,7 @@ module.exports = {
   };
 })(typeof module === 'undefined' || module, this);
 
-},{"buffer":210}],164:[function(require,module,exports){
+},{"buffer":272}],196:[function(require,module,exports){
 var r;
 
 module.exports = function rand(len) {
@@ -28779,7 +42987,563 @@ if (typeof self === 'object') {
   }
 }
 
-},{"crypto":210}],165:[function(require,module,exports){
+},{"crypto":272}],197:[function(require,module,exports){
+var global = typeof self !== 'undefined' ? self : this;
+var __self__ = (function () {
+function F() {
+this.fetch = false;
+this.DOMException = global.DOMException
+}
+F.prototype = global;
+return new F();
+})();
+(function(self) {
+
+var irrelevant = (function (exports) {
+
+  var support = {
+    searchParams: 'URLSearchParams' in self,
+    iterable: 'Symbol' in self && 'iterator' in Symbol,
+    blob:
+      'FileReader' in self &&
+      'Blob' in self &&
+      (function() {
+        try {
+          new Blob();
+          return true
+        } catch (e) {
+          return false
+        }
+      })(),
+    formData: 'FormData' in self,
+    arrayBuffer: 'ArrayBuffer' in self
+  };
+
+  function isDataView(obj) {
+    return obj && DataView.prototype.isPrototypeOf(obj)
+  }
+
+  if (support.arrayBuffer) {
+    var viewClasses = [
+      '[object Int8Array]',
+      '[object Uint8Array]',
+      '[object Uint8ClampedArray]',
+      '[object Int16Array]',
+      '[object Uint16Array]',
+      '[object Int32Array]',
+      '[object Uint32Array]',
+      '[object Float32Array]',
+      '[object Float64Array]'
+    ];
+
+    var isArrayBufferView =
+      ArrayBuffer.isView ||
+      function(obj) {
+        return obj && viewClasses.indexOf(Object.prototype.toString.call(obj)) > -1
+      };
+  }
+
+  function normalizeName(name) {
+    if (typeof name !== 'string') {
+      name = String(name);
+    }
+    if (/[^a-z0-9\-#$%&'*+.^_`|~]/i.test(name)) {
+      throw new TypeError('Invalid character in header field name')
+    }
+    return name.toLowerCase()
+  }
+
+  function normalizeValue(value) {
+    if (typeof value !== 'string') {
+      value = String(value);
+    }
+    return value
+  }
+
+  // Build a destructive iterator for the value list
+  function iteratorFor(items) {
+    var iterator = {
+      next: function() {
+        var value = items.shift();
+        return {done: value === undefined, value: value}
+      }
+    };
+
+    if (support.iterable) {
+      iterator[Symbol.iterator] = function() {
+        return iterator
+      };
+    }
+
+    return iterator
+  }
+
+  function Headers(headers) {
+    this.map = {};
+
+    if (headers instanceof Headers) {
+      headers.forEach(function(value, name) {
+        this.append(name, value);
+      }, this);
+    } else if (Array.isArray(headers)) {
+      headers.forEach(function(header) {
+        this.append(header[0], header[1]);
+      }, this);
+    } else if (headers) {
+      Object.getOwnPropertyNames(headers).forEach(function(name) {
+        this.append(name, headers[name]);
+      }, this);
+    }
+  }
+
+  Headers.prototype.append = function(name, value) {
+    name = normalizeName(name);
+    value = normalizeValue(value);
+    var oldValue = this.map[name];
+    this.map[name] = oldValue ? oldValue + ', ' + value : value;
+  };
+
+  Headers.prototype['delete'] = function(name) {
+    delete this.map[normalizeName(name)];
+  };
+
+  Headers.prototype.get = function(name) {
+    name = normalizeName(name);
+    return this.has(name) ? this.map[name] : null
+  };
+
+  Headers.prototype.has = function(name) {
+    return this.map.hasOwnProperty(normalizeName(name))
+  };
+
+  Headers.prototype.set = function(name, value) {
+    this.map[normalizeName(name)] = normalizeValue(value);
+  };
+
+  Headers.prototype.forEach = function(callback, thisArg) {
+    for (var name in this.map) {
+      if (this.map.hasOwnProperty(name)) {
+        callback.call(thisArg, this.map[name], name, this);
+      }
+    }
+  };
+
+  Headers.prototype.keys = function() {
+    var items = [];
+    this.forEach(function(value, name) {
+      items.push(name);
+    });
+    return iteratorFor(items)
+  };
+
+  Headers.prototype.values = function() {
+    var items = [];
+    this.forEach(function(value) {
+      items.push(value);
+    });
+    return iteratorFor(items)
+  };
+
+  Headers.prototype.entries = function() {
+    var items = [];
+    this.forEach(function(value, name) {
+      items.push([name, value]);
+    });
+    return iteratorFor(items)
+  };
+
+  if (support.iterable) {
+    Headers.prototype[Symbol.iterator] = Headers.prototype.entries;
+  }
+
+  function consumed(body) {
+    if (body.bodyUsed) {
+      return Promise.reject(new TypeError('Already read'))
+    }
+    body.bodyUsed = true;
+  }
+
+  function fileReaderReady(reader) {
+    return new Promise(function(resolve, reject) {
+      reader.onload = function() {
+        resolve(reader.result);
+      };
+      reader.onerror = function() {
+        reject(reader.error);
+      };
+    })
+  }
+
+  function readBlobAsArrayBuffer(blob) {
+    var reader = new FileReader();
+    var promise = fileReaderReady(reader);
+    reader.readAsArrayBuffer(blob);
+    return promise
+  }
+
+  function readBlobAsText(blob) {
+    var reader = new FileReader();
+    var promise = fileReaderReady(reader);
+    reader.readAsText(blob);
+    return promise
+  }
+
+  function readArrayBufferAsText(buf) {
+    var view = new Uint8Array(buf);
+    var chars = new Array(view.length);
+
+    for (var i = 0; i < view.length; i++) {
+      chars[i] = String.fromCharCode(view[i]);
+    }
+    return chars.join('')
+  }
+
+  function bufferClone(buf) {
+    if (buf.slice) {
+      return buf.slice(0)
+    } else {
+      var view = new Uint8Array(buf.byteLength);
+      view.set(new Uint8Array(buf));
+      return view.buffer
+    }
+  }
+
+  function Body() {
+    this.bodyUsed = false;
+
+    this._initBody = function(body) {
+      this._bodyInit = body;
+      if (!body) {
+        this._bodyText = '';
+      } else if (typeof body === 'string') {
+        this._bodyText = body;
+      } else if (support.blob && Blob.prototype.isPrototypeOf(body)) {
+        this._bodyBlob = body;
+      } else if (support.formData && FormData.prototype.isPrototypeOf(body)) {
+        this._bodyFormData = body;
+      } else if (support.searchParams && URLSearchParams.prototype.isPrototypeOf(body)) {
+        this._bodyText = body.toString();
+      } else if (support.arrayBuffer && support.blob && isDataView(body)) {
+        this._bodyArrayBuffer = bufferClone(body.buffer);
+        // IE 10-11 can't handle a DataView body.
+        this._bodyInit = new Blob([this._bodyArrayBuffer]);
+      } else if (support.arrayBuffer && (ArrayBuffer.prototype.isPrototypeOf(body) || isArrayBufferView(body))) {
+        this._bodyArrayBuffer = bufferClone(body);
+      } else {
+        this._bodyText = body = Object.prototype.toString.call(body);
+      }
+
+      if (!this.headers.get('content-type')) {
+        if (typeof body === 'string') {
+          this.headers.set('content-type', 'text/plain;charset=UTF-8');
+        } else if (this._bodyBlob && this._bodyBlob.type) {
+          this.headers.set('content-type', this._bodyBlob.type);
+        } else if (support.searchParams && URLSearchParams.prototype.isPrototypeOf(body)) {
+          this.headers.set('content-type', 'application/x-www-form-urlencoded;charset=UTF-8');
+        }
+      }
+    };
+
+    if (support.blob) {
+      this.blob = function() {
+        var rejected = consumed(this);
+        if (rejected) {
+          return rejected
+        }
+
+        if (this._bodyBlob) {
+          return Promise.resolve(this._bodyBlob)
+        } else if (this._bodyArrayBuffer) {
+          return Promise.resolve(new Blob([this._bodyArrayBuffer]))
+        } else if (this._bodyFormData) {
+          throw new Error('could not read FormData body as blob')
+        } else {
+          return Promise.resolve(new Blob([this._bodyText]))
+        }
+      };
+
+      this.arrayBuffer = function() {
+        if (this._bodyArrayBuffer) {
+          return consumed(this) || Promise.resolve(this._bodyArrayBuffer)
+        } else {
+          return this.blob().then(readBlobAsArrayBuffer)
+        }
+      };
+    }
+
+    this.text = function() {
+      var rejected = consumed(this);
+      if (rejected) {
+        return rejected
+      }
+
+      if (this._bodyBlob) {
+        return readBlobAsText(this._bodyBlob)
+      } else if (this._bodyArrayBuffer) {
+        return Promise.resolve(readArrayBufferAsText(this._bodyArrayBuffer))
+      } else if (this._bodyFormData) {
+        throw new Error('could not read FormData body as text')
+      } else {
+        return Promise.resolve(this._bodyText)
+      }
+    };
+
+    if (support.formData) {
+      this.formData = function() {
+        return this.text().then(decode)
+      };
+    }
+
+    this.json = function() {
+      return this.text().then(JSON.parse)
+    };
+
+    return this
+  }
+
+  // HTTP methods whose capitalization should be normalized
+  var methods = ['DELETE', 'GET', 'HEAD', 'OPTIONS', 'POST', 'PUT'];
+
+  function normalizeMethod(method) {
+    var upcased = method.toUpperCase();
+    return methods.indexOf(upcased) > -1 ? upcased : method
+  }
+
+  function Request(input, options) {
+    options = options || {};
+    var body = options.body;
+
+    if (input instanceof Request) {
+      if (input.bodyUsed) {
+        throw new TypeError('Already read')
+      }
+      this.url = input.url;
+      this.credentials = input.credentials;
+      if (!options.headers) {
+        this.headers = new Headers(input.headers);
+      }
+      this.method = input.method;
+      this.mode = input.mode;
+      this.signal = input.signal;
+      if (!body && input._bodyInit != null) {
+        body = input._bodyInit;
+        input.bodyUsed = true;
+      }
+    } else {
+      this.url = String(input);
+    }
+
+    this.credentials = options.credentials || this.credentials || 'same-origin';
+    if (options.headers || !this.headers) {
+      this.headers = new Headers(options.headers);
+    }
+    this.method = normalizeMethod(options.method || this.method || 'GET');
+    this.mode = options.mode || this.mode || null;
+    this.signal = options.signal || this.signal;
+    this.referrer = null;
+
+    if ((this.method === 'GET' || this.method === 'HEAD') && body) {
+      throw new TypeError('Body not allowed for GET or HEAD requests')
+    }
+    this._initBody(body);
+  }
+
+  Request.prototype.clone = function() {
+    return new Request(this, {body: this._bodyInit})
+  };
+
+  function decode(body) {
+    var form = new FormData();
+    body
+      .trim()
+      .split('&')
+      .forEach(function(bytes) {
+        if (bytes) {
+          var split = bytes.split('=');
+          var name = split.shift().replace(/\+/g, ' ');
+          var value = split.join('=').replace(/\+/g, ' ');
+          form.append(decodeURIComponent(name), decodeURIComponent(value));
+        }
+      });
+    return form
+  }
+
+  function parseHeaders(rawHeaders) {
+    var headers = new Headers();
+    // Replace instances of \r\n and \n followed by at least one space or horizontal tab with a space
+    // https://tools.ietf.org/html/rfc7230#section-3.2
+    var preProcessedHeaders = rawHeaders.replace(/\r?\n[\t ]+/g, ' ');
+    preProcessedHeaders.split(/\r?\n/).forEach(function(line) {
+      var parts = line.split(':');
+      var key = parts.shift().trim();
+      if (key) {
+        var value = parts.join(':').trim();
+        headers.append(key, value);
+      }
+    });
+    return headers
+  }
+
+  Body.call(Request.prototype);
+
+  function Response(bodyInit, options) {
+    if (!options) {
+      options = {};
+    }
+
+    this.type = 'default';
+    this.status = options.status === undefined ? 200 : options.status;
+    this.ok = this.status >= 200 && this.status < 300;
+    this.statusText = 'statusText' in options ? options.statusText : 'OK';
+    this.headers = new Headers(options.headers);
+    this.url = options.url || '';
+    this._initBody(bodyInit);
+  }
+
+  Body.call(Response.prototype);
+
+  Response.prototype.clone = function() {
+    return new Response(this._bodyInit, {
+      status: this.status,
+      statusText: this.statusText,
+      headers: new Headers(this.headers),
+      url: this.url
+    })
+  };
+
+  Response.error = function() {
+    var response = new Response(null, {status: 0, statusText: ''});
+    response.type = 'error';
+    return response
+  };
+
+  var redirectStatuses = [301, 302, 303, 307, 308];
+
+  Response.redirect = function(url, status) {
+    if (redirectStatuses.indexOf(status) === -1) {
+      throw new RangeError('Invalid status code')
+    }
+
+    return new Response(null, {status: status, headers: {location: url}})
+  };
+
+  exports.DOMException = self.DOMException;
+  try {
+    new exports.DOMException();
+  } catch (err) {
+    exports.DOMException = function(message, name) {
+      this.message = message;
+      this.name = name;
+      var error = Error(message);
+      this.stack = error.stack;
+    };
+    exports.DOMException.prototype = Object.create(Error.prototype);
+    exports.DOMException.prototype.constructor = exports.DOMException;
+  }
+
+  function fetch(input, init) {
+    return new Promise(function(resolve, reject) {
+      var request = new Request(input, init);
+
+      if (request.signal && request.signal.aborted) {
+        return reject(new exports.DOMException('Aborted', 'AbortError'))
+      }
+
+      var xhr = new XMLHttpRequest();
+
+      function abortXhr() {
+        xhr.abort();
+      }
+
+      xhr.onload = function() {
+        var options = {
+          status: xhr.status,
+          statusText: xhr.statusText,
+          headers: parseHeaders(xhr.getAllResponseHeaders() || '')
+        };
+        options.url = 'responseURL' in xhr ? xhr.responseURL : options.headers.get('X-Request-URL');
+        var body = 'response' in xhr ? xhr.response : xhr.responseText;
+        resolve(new Response(body, options));
+      };
+
+      xhr.onerror = function() {
+        reject(new TypeError('Network request failed'));
+      };
+
+      xhr.ontimeout = function() {
+        reject(new TypeError('Network request failed'));
+      };
+
+      xhr.onabort = function() {
+        reject(new exports.DOMException('Aborted', 'AbortError'));
+      };
+
+      xhr.open(request.method, request.url, true);
+
+      if (request.credentials === 'include') {
+        xhr.withCredentials = true;
+      } else if (request.credentials === 'omit') {
+        xhr.withCredentials = false;
+      }
+
+      if ('responseType' in xhr && support.blob) {
+        xhr.responseType = 'blob';
+      }
+
+      request.headers.forEach(function(value, name) {
+        xhr.setRequestHeader(name, value);
+      });
+
+      if (request.signal) {
+        request.signal.addEventListener('abort', abortXhr);
+
+        xhr.onreadystatechange = function() {
+          // DONE (success or failure)
+          if (xhr.readyState === 4) {
+            request.signal.removeEventListener('abort', abortXhr);
+          }
+        };
+      }
+
+      xhr.send(typeof request._bodyInit === 'undefined' ? null : request._bodyInit);
+    })
+  }
+
+  fetch.polyfill = true;
+
+  if (!self.fetch) {
+    self.fetch = fetch;
+    self.Headers = Headers;
+    self.Request = Request;
+    self.Response = Response;
+  }
+
+  exports.Headers = Headers;
+  exports.Request = Request;
+  exports.Response = Response;
+  exports.fetch = fetch;
+
+  Object.defineProperty(exports, '__esModule', { value: true });
+
+  return exports;
+
+})({});
+})(__self__);
+__self__.fetch.ponyfill = true;
+// Remove "polyfill" property added by whatwg-fetch
+delete __self__.fetch.polyfill;
+// Choose between native implementation (global) or custom implementation (__self__)
+// var ctx = global.fetch ? global : __self__;
+var ctx = __self__; // this line disable service worker support temporarily
+exports = ctx.fetch // To enable: import fetch from 'cross-fetch'
+exports.default = ctx.fetch // For TypeScript consumers without esModuleInterop.
+exports.fetch = ctx.fetch // To enable: import {fetch} from 'cross-fetch'
+exports.Headers = ctx.Headers
+exports.Request = ctx.Request
+exports.Response = ctx.Response
+module.exports = exports
+
+},{}],198:[function(require,module,exports){
 'use strict';
 
 var elliptic = exports;
@@ -28794,7 +43558,7 @@ elliptic.curves = require('./elliptic/curves');
 elliptic.ec = require('./elliptic/ec');
 elliptic.eddsa = require('./elliptic/eddsa');
 
-},{"../package.json":181,"./elliptic/curve":168,"./elliptic/curves":171,"./elliptic/ec":172,"./elliptic/eddsa":175,"./elliptic/utils":179,"brorand":164}],166:[function(require,module,exports){
+},{"../package.json":214,"./elliptic/curve":201,"./elliptic/curves":204,"./elliptic/ec":205,"./elliptic/eddsa":208,"./elliptic/utils":212,"brorand":196}],199:[function(require,module,exports){
 'use strict';
 
 var BN = require('bn.js');
@@ -29177,7 +43941,7 @@ BasePoint.prototype.dblp = function dblp(k) {
   return r;
 };
 
-},{"../utils":179,"bn.js":180}],167:[function(require,module,exports){
+},{"../utils":212,"bn.js":213}],200:[function(require,module,exports){
 'use strict';
 
 var utils = require('../utils');
@@ -29614,7 +44378,7 @@ Point.prototype.eqXToP = function eqXToP(x) {
 Point.prototype.toP = Point.prototype.normalize;
 Point.prototype.mixedAdd = Point.prototype.add;
 
-},{"../utils":179,"./base":166,"bn.js":180,"inherits":204}],168:[function(require,module,exports){
+},{"../utils":212,"./base":199,"bn.js":213,"inherits":237}],201:[function(require,module,exports){
 'use strict';
 
 var curve = exports;
@@ -29624,7 +44388,7 @@ curve.short = require('./short');
 curve.mont = require('./mont');
 curve.edwards = require('./edwards');
 
-},{"./base":166,"./edwards":167,"./mont":169,"./short":170}],169:[function(require,module,exports){
+},{"./base":199,"./edwards":200,"./mont":202,"./short":203}],202:[function(require,module,exports){
 'use strict';
 
 var BN = require('bn.js');
@@ -29804,7 +44568,7 @@ Point.prototype.getX = function getX() {
   return this.x.fromRed();
 };
 
-},{"../utils":179,"./base":166,"bn.js":180,"inherits":204}],170:[function(require,module,exports){
+},{"../utils":212,"./base":199,"bn.js":213,"inherits":237}],203:[function(require,module,exports){
 'use strict';
 
 var utils = require('../utils');
@@ -30744,7 +45508,7 @@ JPoint.prototype.isInfinity = function isInfinity() {
   return this.z.cmpn(0) === 0;
 };
 
-},{"../utils":179,"./base":166,"bn.js":180,"inherits":204}],171:[function(require,module,exports){
+},{"../utils":212,"./base":199,"bn.js":213,"inherits":237}],204:[function(require,module,exports){
 'use strict';
 
 var curves = exports;
@@ -30952,7 +45716,7 @@ defineCurve('secp256k1', {
   ],
 });
 
-},{"./curve":168,"./precomputed/secp256k1":178,"./utils":179,"hash.js":191}],172:[function(require,module,exports){
+},{"./curve":201,"./precomputed/secp256k1":211,"./utils":212,"hash.js":224}],205:[function(require,module,exports){
 'use strict';
 
 var BN = require('bn.js');
@@ -31197,7 +45961,7 @@ EC.prototype.getKeyRecoveryParam = function(e, signature, Q, enc) {
   throw new Error('Unable to find valid recovery factor');
 };
 
-},{"../curves":171,"../utils":179,"./key":173,"./signature":174,"bn.js":180,"brorand":164,"hmac-drbg":203}],173:[function(require,module,exports){
+},{"../curves":204,"../utils":212,"./key":206,"./signature":207,"bn.js":213,"brorand":196,"hmac-drbg":236}],206:[function(require,module,exports){
 'use strict';
 
 var BN = require('bn.js');
@@ -31320,7 +46084,7 @@ KeyPair.prototype.inspect = function inspect() {
          ' pub: ' + (this.pub && this.pub.inspect()) + ' >';
 };
 
-},{"../utils":179,"bn.js":180}],174:[function(require,module,exports){
+},{"../utils":212,"bn.js":213}],207:[function(require,module,exports){
 'use strict';
 
 var BN = require('bn.js');
@@ -31488,7 +46252,7 @@ Signature.prototype.toDER = function toDER(enc) {
   return utils.encode(res, enc);
 };
 
-},{"../utils":179,"bn.js":180}],175:[function(require,module,exports){
+},{"../utils":212,"bn.js":213}],208:[function(require,module,exports){
 'use strict';
 
 var hash = require('hash.js');
@@ -31608,7 +46372,7 @@ EDDSA.prototype.isPoint = function isPoint(val) {
   return val instanceof this.pointClass;
 };
 
-},{"../curves":171,"../utils":179,"./key":176,"./signature":177,"hash.js":191}],176:[function(require,module,exports){
+},{"../curves":204,"../utils":212,"./key":209,"./signature":210,"hash.js":224}],209:[function(require,module,exports){
 'use strict';
 
 var utils = require('../utils');
@@ -31705,7 +46469,7 @@ KeyPair.prototype.getPublic = function getPublic(enc) {
 
 module.exports = KeyPair;
 
-},{"../utils":179}],177:[function(require,module,exports){
+},{"../utils":212}],210:[function(require,module,exports){
 'use strict';
 
 var BN = require('bn.js');
@@ -31772,7 +46536,7 @@ Signature.prototype.toHex = function toHex() {
 
 module.exports = Signature;
 
-},{"../utils":179,"bn.js":180}],178:[function(require,module,exports){
+},{"../utils":212,"bn.js":213}],211:[function(require,module,exports){
 module.exports = {
   doubles: {
     step: 4,
@@ -32554,7 +47318,7 @@ module.exports = {
   },
 };
 
-},{}],179:[function(require,module,exports){
+},{}],212:[function(require,module,exports){
 'use strict';
 
 var utils = exports;
@@ -32675,7 +47439,7 @@ function intFromLE(bytes) {
 utils.intFromLE = intFromLE;
 
 
-},{"bn.js":180,"minimalistic-assert":206,"minimalistic-crypto-utils":207}],180:[function(require,module,exports){
+},{"bn.js":213,"minimalistic-assert":239,"minimalistic-crypto-utils":240}],213:[function(require,module,exports){
 (function (module, exports) {
   'use strict';
 
@@ -36123,7 +50887,7 @@ utils.intFromLE = intFromLE;
   };
 })(typeof module === 'undefined' || module, this);
 
-},{"buffer":210}],181:[function(require,module,exports){
+},{"buffer":272}],214:[function(require,module,exports){
 module.exports={
   "name": "elliptic",
   "version": "6.5.4",
@@ -36181,7 +50945,7 @@ module.exports={
   }
 }
 
-},{}],182:[function(require,module,exports){
+},{}],215:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.keccak512 = exports.keccak384 = exports.keccak256 = exports.keccak224 = void 0;
@@ -36196,7 +50960,7 @@ exports.keccak256 = (() => {
 exports.keccak384 = (0, utils_js_1.wrapHash)(sha3_1.keccak_384);
 exports.keccak512 = (0, utils_js_1.wrapHash)(sha3_1.keccak_512);
 
-},{"./utils.js":186,"@noble/hashes/sha3":159}],183:[function(require,module,exports){
+},{"./utils.js":219,"@noble/hashes/sha3":178}],216:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getRandomBytes = exports.getRandomBytesSync = void 0;
@@ -36210,14 +50974,14 @@ async function getRandomBytes(bytes) {
 }
 exports.getRandomBytes = getRandomBytes;
 
-},{"@noble/hashes/utils":160}],184:[function(require,module,exports){
+},{"@noble/hashes/utils":179}],217:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.secp256k1 = void 0;
 var secp256k1_1 = require("@noble/curves/secp256k1");
 Object.defineProperty(exports, "secp256k1", { enumerable: true, get: function () { return secp256k1_1.secp256k1; } });
 
-},{"@noble/curves/secp256k1":152}],185:[function(require,module,exports){
+},{"@noble/curves/secp256k1":171}],218:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sha256 = void 0;
@@ -36225,7 +50989,7 @@ const sha256_1 = require("@noble/hashes/sha256");
 const utils_js_1 = require("./utils.js");
 exports.sha256 = (0, utils_js_1.wrapHash)(sha256_1.sha256);
 
-},{"./utils.js":186,"@noble/hashes/sha256":158}],186:[function(require,module,exports){
+},{"./utils.js":219,"@noble/hashes/sha256":177}],219:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -36290,13 +51054,13 @@ exports.crypto = (() => {
     };
 })();
 
-},{"@noble/hashes/_assert":153,"@noble/hashes/utils":160}],187:[function(require,module,exports){
+},{"@noble/hashes/_assert":172,"@noble/hashes/utils":179}],220:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "ethers/5.7.2";
 
-},{}],188:[function(require,module,exports){
+},{}],221:[function(require,module,exports){
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -36352,7 +51116,7 @@ Object.defineProperty(exports, "version", { enumerable: true, get: function () {
 var logger = new logger_1.Logger(_version_1.version);
 exports.logger = logger;
 
-},{"./_version":187,"./utils":190,"@ethersproject/abstract-signer":41,"@ethersproject/bignumber":50,"@ethersproject/constants":56,"@ethersproject/contracts":59,"@ethersproject/logger":79,"@ethersproject/providers":96,"@ethersproject/wallet":130,"@ethersproject/wordlists":135}],189:[function(require,module,exports){
+},{"./_version":220,"./utils":223,"@ethersproject/abstract-signer":60,"@ethersproject/bignumber":69,"@ethersproject/constants":75,"@ethersproject/contracts":78,"@ethersproject/logger":98,"@ethersproject/providers":115,"@ethersproject/wallet":149,"@ethersproject/wordlists":154}],222:[function(require,module,exports){
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -36406,7 +51170,7 @@ Object.defineProperty(exports, "wordlists", { enumerable: true, get: function ()
 Object.defineProperty(exports, "version", { enumerable: true, get: function () { return ethers_1.version; } });
 Object.defineProperty(exports, "Wordlist", { enumerable: true, get: function () { return ethers_1.Wordlist; } });
 
-},{"./ethers":188}],190:[function(require,module,exports){
+},{"./ethers":221}],223:[function(require,module,exports){
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -36555,7 +51319,7 @@ var strings_2 = require("@ethersproject/strings");
 Object.defineProperty(exports, "UnicodeNormalizationForm", { enumerable: true, get: function () { return strings_2.UnicodeNormalizationForm; } });
 Object.defineProperty(exports, "Utf8ErrorReason", { enumerable: true, get: function () { return strings_2.Utf8ErrorReason; } });
 
-},{"@ethersproject/abi":36,"@ethersproject/address":43,"@ethersproject/base64":45,"@ethersproject/basex":46,"@ethersproject/bytes":52,"@ethersproject/hash":65,"@ethersproject/hdnode":70,"@ethersproject/json-wallets":73,"@ethersproject/keccak256":77,"@ethersproject/logger":79,"@ethersproject/properties":85,"@ethersproject/random":107,"@ethersproject/rlp":110,"@ethersproject/sha2":113,"@ethersproject/signing-key":117,"@ethersproject/solidity":119,"@ethersproject/strings":123,"@ethersproject/transactions":126,"@ethersproject/units":128,"@ethersproject/wallet":130,"@ethersproject/web":133}],191:[function(require,module,exports){
+},{"@ethersproject/abi":55,"@ethersproject/address":62,"@ethersproject/base64":64,"@ethersproject/basex":65,"@ethersproject/bytes":71,"@ethersproject/hash":84,"@ethersproject/hdnode":89,"@ethersproject/json-wallets":92,"@ethersproject/keccak256":96,"@ethersproject/logger":98,"@ethersproject/properties":104,"@ethersproject/random":126,"@ethersproject/rlp":129,"@ethersproject/sha2":132,"@ethersproject/signing-key":136,"@ethersproject/solidity":138,"@ethersproject/strings":142,"@ethersproject/transactions":145,"@ethersproject/units":147,"@ethersproject/wallet":149,"@ethersproject/web":152}],224:[function(require,module,exports){
 var hash = exports;
 
 hash.utils = require('./hash/utils');
@@ -36572,7 +51336,7 @@ hash.sha384 = hash.sha.sha384;
 hash.sha512 = hash.sha.sha512;
 hash.ripemd160 = hash.ripemd.ripemd160;
 
-},{"./hash/common":192,"./hash/hmac":193,"./hash/ripemd":194,"./hash/sha":195,"./hash/utils":202}],192:[function(require,module,exports){
+},{"./hash/common":225,"./hash/hmac":226,"./hash/ripemd":227,"./hash/sha":228,"./hash/utils":235}],225:[function(require,module,exports){
 'use strict';
 
 var utils = require('./utils');
@@ -36666,7 +51430,7 @@ BlockHash.prototype._pad = function pad() {
   return res;
 };
 
-},{"./utils":202,"minimalistic-assert":206}],193:[function(require,module,exports){
+},{"./utils":235,"minimalistic-assert":239}],226:[function(require,module,exports){
 'use strict';
 
 var utils = require('./utils');
@@ -36715,7 +51479,7 @@ Hmac.prototype.digest = function digest(enc) {
   return this.outer.digest(enc);
 };
 
-},{"./utils":202,"minimalistic-assert":206}],194:[function(require,module,exports){
+},{"./utils":235,"minimalistic-assert":239}],227:[function(require,module,exports){
 'use strict';
 
 var utils = require('./utils');
@@ -36863,7 +51627,7 @@ var sh = [
   8, 5, 12, 9, 12, 5, 14, 6, 8, 13, 6, 5, 15, 13, 11, 11
 ];
 
-},{"./common":192,"./utils":202}],195:[function(require,module,exports){
+},{"./common":225,"./utils":235}],228:[function(require,module,exports){
 'use strict';
 
 exports.sha1 = require('./sha/1');
@@ -36872,7 +51636,7 @@ exports.sha256 = require('./sha/256');
 exports.sha384 = require('./sha/384');
 exports.sha512 = require('./sha/512');
 
-},{"./sha/1":196,"./sha/224":197,"./sha/256":198,"./sha/384":199,"./sha/512":200}],196:[function(require,module,exports){
+},{"./sha/1":229,"./sha/224":230,"./sha/256":231,"./sha/384":232,"./sha/512":233}],229:[function(require,module,exports){
 'use strict';
 
 var utils = require('../utils');
@@ -36948,7 +51712,7 @@ SHA1.prototype._digest = function digest(enc) {
     return utils.split32(this.h, 'big');
 };
 
-},{"../common":192,"../utils":202,"./common":201}],197:[function(require,module,exports){
+},{"../common":225,"../utils":235,"./common":234}],230:[function(require,module,exports){
 'use strict';
 
 var utils = require('../utils');
@@ -36980,7 +51744,7 @@ SHA224.prototype._digest = function digest(enc) {
 };
 
 
-},{"../utils":202,"./256":198}],198:[function(require,module,exports){
+},{"../utils":235,"./256":231}],231:[function(require,module,exports){
 'use strict';
 
 var utils = require('../utils');
@@ -37087,7 +51851,7 @@ SHA256.prototype._digest = function digest(enc) {
     return utils.split32(this.h, 'big');
 };
 
-},{"../common":192,"../utils":202,"./common":201,"minimalistic-assert":206}],199:[function(require,module,exports){
+},{"../common":225,"../utils":235,"./common":234,"minimalistic-assert":239}],232:[function(require,module,exports){
 'use strict';
 
 var utils = require('../utils');
@@ -37124,7 +51888,7 @@ SHA384.prototype._digest = function digest(enc) {
     return utils.split32(this.h.slice(0, 12), 'big');
 };
 
-},{"../utils":202,"./512":200}],200:[function(require,module,exports){
+},{"../utils":235,"./512":233}],233:[function(require,module,exports){
 'use strict';
 
 var utils = require('../utils');
@@ -37456,7 +52220,7 @@ function g1_512_lo(xh, xl) {
   return r;
 }
 
-},{"../common":192,"../utils":202,"minimalistic-assert":206}],201:[function(require,module,exports){
+},{"../common":225,"../utils":235,"minimalistic-assert":239}],234:[function(require,module,exports){
 'use strict';
 
 var utils = require('../utils');
@@ -37507,7 +52271,7 @@ function g1_256(x) {
 }
 exports.g1_256 = g1_256;
 
-},{"../utils":202}],202:[function(require,module,exports){
+},{"../utils":235}],235:[function(require,module,exports){
 'use strict';
 
 var assert = require('minimalistic-assert');
@@ -37787,7 +52551,7 @@ function shr64_lo(ah, al, num) {
 }
 exports.shr64_lo = shr64_lo;
 
-},{"inherits":204,"minimalistic-assert":206}],203:[function(require,module,exports){
+},{"inherits":237,"minimalistic-assert":239}],236:[function(require,module,exports){
 'use strict';
 
 var hash = require('hash.js');
@@ -37902,7 +52666,7 @@ HmacDRBG.prototype.generate = function generate(len, enc, add, addEnc) {
   return utils.encode(res, enc);
 };
 
-},{"hash.js":191,"minimalistic-assert":206,"minimalistic-crypto-utils":207}],204:[function(require,module,exports){
+},{"hash.js":224,"minimalistic-assert":239,"minimalistic-crypto-utils":240}],237:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -37931,7 +52695,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],205:[function(require,module,exports){
+},{}],238:[function(require,module,exports){
 (function (process,global){(function (){
 /**
  * [js-sha3]{@link https://github.com/emn178/js-sha3}
@@ -38591,7 +53355,7 @@ if (typeof Object.create === 'function') {
 })();
 
 }).call(this)}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":214}],206:[function(require,module,exports){
+},{"_process":276}],239:[function(require,module,exports){
 module.exports = assert;
 
 function assert(val, msg) {
@@ -38604,7 +53368,7 @@ assert.equal = function assertEqual(l, r, msg) {
     throw new Error(msg || ('Assertion failed: ' + l + ' != ' + r));
 };
 
-},{}],207:[function(require,module,exports){
+},{}],240:[function(require,module,exports){
 'use strict';
 
 var utils = exports;
@@ -38664,7 +53428,49 @@ utils.encode = function encode(arr, enc) {
     return arr;
 };
 
-},{}],208:[function(require,module,exports){
+},{}],241:[function(require,module,exports){
+(function (global){(function (){
+"use strict";
+
+// ref: https://github.com/tc39/proposal-global
+var getGlobal = function () {
+	// the only reliable means to get the global object is
+	// `Function('return this')()`
+	// However, this causes CSP violations in Chrome apps.
+	if (typeof self !== 'undefined') { return self; }
+	if (typeof window !== 'undefined') { return window; }
+	if (typeof global !== 'undefined') { return global; }
+	throw new Error('unable to locate global object');
+}
+
+var globalObject = getGlobal();
+
+module.exports = exports = globalObject.fetch;
+
+// Needed for TypeScript and Webpack.
+if (globalObject.fetch) {
+	exports.default = globalObject.fetch.bind(globalObject);
+}
+
+exports.Headers = globalObject.Headers;
+exports.Request = globalObject.Request;
+exports.Response = globalObject.Response;
+
+}).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],242:[function(require,module,exports){
+(function (global){(function (){
+/*! queue-microtask. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> */
+let promise
+
+module.exports = typeof queueMicrotask === 'function'
+  ? queueMicrotask.bind(typeof window !== 'undefined' ? window : global)
+  // reuse resolved promise, and allocate it lazily
+  : cb => (promise || (promise = Promise.resolve()))
+    .then(cb)
+    .catch(err => setTimeout(() => { throw err }, 0))
+
+}).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],243:[function(require,module,exports){
 (function (setImmediate){(function (){
 "use strict";
 
@@ -39156,7 +53962,892 @@ utils.encode = function encode(arr, enc) {
 })(this);
 
 }).call(this)}).call(this,require("timers").setImmediate)
-},{"timers":215}],209:[function(require,module,exports){
+},{"timers":277}],244:[function(require,module,exports){
+"use strict";Object.defineProperty(exports,"__esModule",{value:true});exports["default"]=exports.SHAKE=exports.SHA3Hash=exports.SHA3=exports.Keccak=void 0;var _buffer=require("buffer");var _sponge=_interopRequireDefault(require("./sponge"));function _interopRequireDefault(obj){return obj&&obj.__esModule?obj:{"default":obj}}var createHash=function createHash(_ref){var allowedSizes=_ref.allowedSizes,defaultSize=_ref.defaultSize,padding=_ref.padding;return function Hash(){var _this=this;var size=arguments.length>0&&arguments[0]!==undefined?arguments[0]:defaultSize;if(!this||this.constructor!==Hash){return new Hash(size)}if(allowedSizes&&!allowedSizes.includes(size)){throw new Error("Unsupported hash length")}var sponge=new _sponge["default"]({capacity:size});this.update=function(input){var encoding=arguments.length>1&&arguments[1]!==undefined?arguments[1]:"utf8";if(_buffer.Buffer.isBuffer(input)){sponge.absorb(input);return _this}if(typeof input==="string"){return _this.update(_buffer.Buffer.from(input,encoding))}throw new TypeError("Not a string or buffer")};this.digest=function(){var formatOrOptions=arguments.length>0&&arguments[0]!==undefined?arguments[0]:"binary";var options=typeof formatOrOptions==="string"?{format:formatOrOptions}:formatOrOptions;var buffer=sponge.squeeze({buffer:options.buffer,padding:options.padding||padding});if(options.format&&options.format!=="binary"){return buffer.toString(options.format)}return buffer};this.reset=function(){sponge.reset();return _this};return this}};var Keccak=createHash({allowedSizes:[224,256,384,512],defaultSize:512,padding:1});exports.Keccak=Keccak;var SHA3=createHash({allowedSizes:[224,256,384,512],defaultSize:512,padding:6});exports.SHA3=SHA3;var SHAKE=createHash({allowedSizes:[128,256],defaultSize:256,padding:31});exports.SHAKE=SHAKE;var SHA3Hash=Keccak;exports.SHA3Hash=SHA3Hash;SHA3.SHA3Hash=SHA3Hash;var _default=SHA3;exports["default"]=_default;
+},{"./sponge":245,"buffer":273}],245:[function(require,module,exports){
+"use strict";Object.defineProperty(exports,"__esModule",{value:true});exports["default"]=void 0;var _buffer=require("buffer");var _permute=_interopRequireDefault(require("./permute"));function _interopRequireDefault(obj){return obj&&obj.__esModule?obj:{"default":obj}}var xorWords=function xorWords(I,O){for(var i=0;i<I.length;i+=8){var o=i/4;O[o]^=I[i+7]<<24|I[i+6]<<16|I[i+5]<<8|I[i+4];O[o+1]^=I[i+3]<<24|I[i+2]<<16|I[i+1]<<8|I[i]}return O};var readWords=function readWords(I,O){for(var o=0;o<O.length;o+=8){var i=o/4;O[o]=I[i+1];O[o+1]=I[i+1]>>>8;O[o+2]=I[i+1]>>>16;O[o+3]=I[i+1]>>>24;O[o+4]=I[i];O[o+5]=I[i]>>>8;O[o+6]=I[i]>>>16;O[o+7]=I[i]>>>24}return O};var Sponge=function Sponge(_ref){var _this=this;var capacity=_ref.capacity,padding=_ref.padding;var keccak=(0,_permute["default"])();var stateSize=200;var blockSize=capacity/8;var queueSize=stateSize-capacity/4;var queueOffset=0;var state=new Uint32Array(stateSize/4);var queue=_buffer.Buffer.allocUnsafe(queueSize);this.absorb=function(buffer){for(var i=0;i<buffer.length;i++){queue[queueOffset]=buffer[i];queueOffset+=1;if(queueOffset>=queueSize){xorWords(queue,state);keccak(state);queueOffset=0}}return _this};this.squeeze=function(){var options=arguments.length>0&&arguments[0]!==undefined?arguments[0]:{};var output={buffer:options.buffer||_buffer.Buffer.allocUnsafe(blockSize),padding:options.padding||padding,queue:_buffer.Buffer.allocUnsafe(queue.length),state:new Uint32Array(state.length)};queue.copy(output.queue);for(var i=0;i<state.length;i++){output.state[i]=state[i]}output.queue.fill(0,queueOffset);output.queue[queueOffset]|=output.padding;output.queue[queueSize-1]|=128;xorWords(output.queue,output.state);for(var offset=0;offset<output.buffer.length;offset+=queueSize){keccak(output.state);readWords(output.state,output.buffer.slice(offset,offset+queueSize))}return output.buffer};this.reset=function(){queue.fill(0);state.fill(0);queueOffset=0;return _this};return this};var _default=Sponge;exports["default"]=_default;
+},{"./permute":248,"buffer":273}],246:[function(require,module,exports){
+"use strict";Object.defineProperty(exports,"__esModule",{value:true});exports["default"]=void 0;var _copy=_interopRequireDefault(require("../copy"));function _interopRequireDefault(obj){return obj&&obj.__esModule?obj:{"default":obj}}var chi=function chi(_ref){var A=_ref.A,C=_ref.C;for(var y=0;y<25;y+=5){for(var x=0;x<5;x++){(0,_copy["default"])(A,y+x)(C,x)}for(var _x=0;_x<5;_x++){var xy=(y+_x)*2;var x1=(_x+1)%5*2;var x2=(_x+2)%5*2;A[xy]^=~C[x1]&C[x2];A[xy+1]^=~C[x1+1]&C[x2+1]}}};var _default=chi;exports["default"]=_default;
+},{"../copy":247}],247:[function(require,module,exports){
+"use strict";var copy=function copy(I,i){return function(O,o){var oi=o*2;var ii=i*2;O[oi]=I[ii];O[oi+1]=I[ii+1]}};module.exports=copy;
+},{}],248:[function(require,module,exports){
+"use strict";Object.defineProperty(exports,"__esModule",{value:true});exports["default"]=void 0;var _chi=_interopRequireDefault(require("./chi"));var _iota=_interopRequireDefault(require("./iota"));var _rhoPi=_interopRequireDefault(require("./rho-pi"));var _theta=_interopRequireDefault(require("./theta"));function _interopRequireDefault(obj){return obj&&obj.__esModule?obj:{"default":obj}}var permute=function permute(){var C=new Uint32Array(10);var D=new Uint32Array(10);var W=new Uint32Array(2);return function(A){for(var roundIndex=0;roundIndex<24;roundIndex++){(0,_theta["default"])({A:A,C:C,D:D,W:W});(0,_rhoPi["default"])({A:A,C:C,W:W});(0,_chi["default"])({A:A,C:C});(0,_iota["default"])({A:A,roundIndex:roundIndex})}C.fill(0);D.fill(0);W.fill(0)}};var _default=permute;exports["default"]=_default;
+},{"./chi":246,"./iota":249,"./rho-pi":251,"./theta":254}],249:[function(require,module,exports){
+"use strict";Object.defineProperty(exports,"__esModule",{value:true});exports["default"]=void 0;var _roundConstants=_interopRequireDefault(require("./round-constants"));function _interopRequireDefault(obj){return obj&&obj.__esModule?obj:{"default":obj}}var iota=function iota(_ref){var A=_ref.A,roundIndex=_ref.roundIndex;var i=roundIndex*2;A[0]^=_roundConstants["default"][i];A[1]^=_roundConstants["default"][i+1]};var _default=iota;exports["default"]=_default;
+},{"./round-constants":250}],250:[function(require,module,exports){
+"use strict";Object.defineProperty(exports,"__esModule",{value:true});exports["default"]=void 0;var ROUND_CONSTANTS=new Uint32Array([0,1,0,32898,2147483648,32906,2147483648,2147516416,0,32907,0,2147483649,2147483648,2147516545,2147483648,32777,0,138,0,136,0,2147516425,0,2147483658,0,2147516555,2147483648,139,2147483648,32905,2147483648,32771,2147483648,32770,2147483648,128,0,32778,2147483648,2147483658,2147483648,2147516545,2147483648,32896,0,2147483649,2147483648,2147516424]);var _default=ROUND_CONSTANTS;exports["default"]=_default;
+},{}],251:[function(require,module,exports){
+"use strict";Object.defineProperty(exports,"__esModule",{value:true});exports["default"]=void 0;var _piShuffles=_interopRequireDefault(require("./pi-shuffles"));var _rhoOffsets=_interopRequireDefault(require("./rho-offsets"));var _copy=_interopRequireDefault(require("../copy"));function _interopRequireDefault(obj){return obj&&obj.__esModule?obj:{"default":obj}}var rhoPi=function rhoPi(_ref){var A=_ref.A,C=_ref.C,W=_ref.W;(0,_copy["default"])(A,1)(W,0);var H=0;var L=0;var Wi=0;var ri=32;for(var i=0;i<24;i++){var j=_piShuffles["default"][i];var r=_rhoOffsets["default"][i];(0,_copy["default"])(A,j)(C,0);H=W[0];L=W[1];ri=32-r;Wi=r<32?0:1;W[Wi]=H<<r|L>>>ri;W[(Wi+1)%2]=L<<r|H>>>ri;(0,_copy["default"])(W,0)(A,j);(0,_copy["default"])(C,0)(W,0)}};var _default=rhoPi;exports["default"]=_default;
+},{"../copy":247,"./pi-shuffles":252,"./rho-offsets":253}],252:[function(require,module,exports){
+"use strict";Object.defineProperty(exports,"__esModule",{value:true});exports["default"]=void 0;var PI_SHUFFLES=[10,7,11,17,18,3,5,16,8,21,24,4,15,23,19,13,12,2,20,14,22,9,6,1];var _default=PI_SHUFFLES;exports["default"]=_default;
+},{}],253:[function(require,module,exports){
+"use strict";Object.defineProperty(exports,"__esModule",{value:true});exports["default"]=void 0;var RHO_OFFSETS=[1,3,6,10,15,21,28,36,45,55,2,14,27,41,56,8,25,43,62,18,39,61,20,44];var _default=RHO_OFFSETS;exports["default"]=_default;
+},{}],254:[function(require,module,exports){
+"use strict";Object.defineProperty(exports,"__esModule",{value:true});exports["default"]=void 0;var _copy=_interopRequireDefault(require("../copy"));function _interopRequireDefault(obj){return obj&&obj.__esModule?obj:{"default":obj}}var theta=function theta(_ref){var A=_ref.A,C=_ref.C,D=_ref.D,W=_ref.W;var H=0;var L=0;for(var x=0;x<5;x++){var x20=x*2;var x21=(x+5)*2;var x22=(x+10)*2;var x23=(x+15)*2;var x24=(x+20)*2;C[x20]=A[x20]^A[x21]^A[x22]^A[x23]^A[x24];C[x20+1]=A[x20+1]^A[x21+1]^A[x22+1]^A[x23+1]^A[x24+1]}for(var _x=0;_x<5;_x++){(0,_copy["default"])(C,(_x+1)%5)(W,0);H=W[0];L=W[1];W[0]=H<<1|L>>>31;W[1]=L<<1|H>>>31;D[_x*2]=C[(_x+4)%5*2]^W[0];D[_x*2+1]=C[(_x+4)%5*2+1]^W[1];for(var y=0;y<25;y+=5){A[(y+_x)*2]^=D[_x*2];A[(y+_x)*2+1]^=D[_x*2+1]}}};var _default=theta;exports["default"]=_default;
+},{"../copy":247}],255:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+Object.defineProperty(exports, "NIL", {
+  enumerable: true,
+  get: function () {
+    return _nil.default;
+  }
+});
+Object.defineProperty(exports, "parse", {
+  enumerable: true,
+  get: function () {
+    return _parse.default;
+  }
+});
+Object.defineProperty(exports, "stringify", {
+  enumerable: true,
+  get: function () {
+    return _stringify.default;
+  }
+});
+Object.defineProperty(exports, "v1", {
+  enumerable: true,
+  get: function () {
+    return _v.default;
+  }
+});
+Object.defineProperty(exports, "v3", {
+  enumerable: true,
+  get: function () {
+    return _v2.default;
+  }
+});
+Object.defineProperty(exports, "v4", {
+  enumerable: true,
+  get: function () {
+    return _v3.default;
+  }
+});
+Object.defineProperty(exports, "v5", {
+  enumerable: true,
+  get: function () {
+    return _v4.default;
+  }
+});
+Object.defineProperty(exports, "validate", {
+  enumerable: true,
+  get: function () {
+    return _validate.default;
+  }
+});
+Object.defineProperty(exports, "version", {
+  enumerable: true,
+  get: function () {
+    return _version.default;
+  }
+});
+
+var _v = _interopRequireDefault(require("./v1.js"));
+
+var _v2 = _interopRequireDefault(require("./v3.js"));
+
+var _v3 = _interopRequireDefault(require("./v4.js"));
+
+var _v4 = _interopRequireDefault(require("./v5.js"));
+
+var _nil = _interopRequireDefault(require("./nil.js"));
+
+var _version = _interopRequireDefault(require("./version.js"));
+
+var _validate = _interopRequireDefault(require("./validate.js"));
+
+var _stringify = _interopRequireDefault(require("./stringify.js"));
+
+var _parse = _interopRequireDefault(require("./parse.js"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+},{"./nil.js":258,"./parse.js":259,"./stringify.js":263,"./v1.js":264,"./v3.js":265,"./v4.js":267,"./v5.js":268,"./validate.js":269,"./version.js":270}],256:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+/*
+ * Browser-compatible JavaScript MD5
+ *
+ * Modification of JavaScript MD5
+ * https://github.com/blueimp/JavaScript-MD5
+ *
+ * Copyright 2011, Sebastian Tschan
+ * https://blueimp.net
+ *
+ * Licensed under the MIT license:
+ * https://opensource.org/licenses/MIT
+ *
+ * Based on
+ * A JavaScript implementation of the RSA Data Security, Inc. MD5 Message
+ * Digest Algorithm, as defined in RFC 1321.
+ * Version 2.2 Copyright (C) Paul Johnston 1999 - 2009
+ * Other contributors: Greg Holt, Andrew Kepert, Ydnar, Lostinet
+ * Distributed under the BSD License
+ * See http://pajhome.org.uk/crypt/md5 for more info.
+ */
+function md5(bytes) {
+  if (typeof bytes === 'string') {
+    const msg = unescape(encodeURIComponent(bytes)); // UTF8 escape
+
+    bytes = new Uint8Array(msg.length);
+
+    for (let i = 0; i < msg.length; ++i) {
+      bytes[i] = msg.charCodeAt(i);
+    }
+  }
+
+  return md5ToHexEncodedArray(wordsToMd5(bytesToWords(bytes), bytes.length * 8));
+}
+/*
+ * Convert an array of little-endian words to an array of bytes
+ */
+
+
+function md5ToHexEncodedArray(input) {
+  const output = [];
+  const length32 = input.length * 32;
+  const hexTab = '0123456789abcdef';
+
+  for (let i = 0; i < length32; i += 8) {
+    const x = input[i >> 5] >>> i % 32 & 0xff;
+    const hex = parseInt(hexTab.charAt(x >>> 4 & 0x0f) + hexTab.charAt(x & 0x0f), 16);
+    output.push(hex);
+  }
+
+  return output;
+}
+/**
+ * Calculate output length with padding and bit length
+ */
+
+
+function getOutputLength(inputLength8) {
+  return (inputLength8 + 64 >>> 9 << 4) + 14 + 1;
+}
+/*
+ * Calculate the MD5 of an array of little-endian words, and a bit length.
+ */
+
+
+function wordsToMd5(x, len) {
+  /* append padding */
+  x[len >> 5] |= 0x80 << len % 32;
+  x[getOutputLength(len) - 1] = len;
+  let a = 1732584193;
+  let b = -271733879;
+  let c = -1732584194;
+  let d = 271733878;
+
+  for (let i = 0; i < x.length; i += 16) {
+    const olda = a;
+    const oldb = b;
+    const oldc = c;
+    const oldd = d;
+    a = md5ff(a, b, c, d, x[i], 7, -680876936);
+    d = md5ff(d, a, b, c, x[i + 1], 12, -389564586);
+    c = md5ff(c, d, a, b, x[i + 2], 17, 606105819);
+    b = md5ff(b, c, d, a, x[i + 3], 22, -1044525330);
+    a = md5ff(a, b, c, d, x[i + 4], 7, -176418897);
+    d = md5ff(d, a, b, c, x[i + 5], 12, 1200080426);
+    c = md5ff(c, d, a, b, x[i + 6], 17, -1473231341);
+    b = md5ff(b, c, d, a, x[i + 7], 22, -45705983);
+    a = md5ff(a, b, c, d, x[i + 8], 7, 1770035416);
+    d = md5ff(d, a, b, c, x[i + 9], 12, -1958414417);
+    c = md5ff(c, d, a, b, x[i + 10], 17, -42063);
+    b = md5ff(b, c, d, a, x[i + 11], 22, -1990404162);
+    a = md5ff(a, b, c, d, x[i + 12], 7, 1804603682);
+    d = md5ff(d, a, b, c, x[i + 13], 12, -40341101);
+    c = md5ff(c, d, a, b, x[i + 14], 17, -1502002290);
+    b = md5ff(b, c, d, a, x[i + 15], 22, 1236535329);
+    a = md5gg(a, b, c, d, x[i + 1], 5, -165796510);
+    d = md5gg(d, a, b, c, x[i + 6], 9, -1069501632);
+    c = md5gg(c, d, a, b, x[i + 11], 14, 643717713);
+    b = md5gg(b, c, d, a, x[i], 20, -373897302);
+    a = md5gg(a, b, c, d, x[i + 5], 5, -701558691);
+    d = md5gg(d, a, b, c, x[i + 10], 9, 38016083);
+    c = md5gg(c, d, a, b, x[i + 15], 14, -660478335);
+    b = md5gg(b, c, d, a, x[i + 4], 20, -405537848);
+    a = md5gg(a, b, c, d, x[i + 9], 5, 568446438);
+    d = md5gg(d, a, b, c, x[i + 14], 9, -1019803690);
+    c = md5gg(c, d, a, b, x[i + 3], 14, -187363961);
+    b = md5gg(b, c, d, a, x[i + 8], 20, 1163531501);
+    a = md5gg(a, b, c, d, x[i + 13], 5, -1444681467);
+    d = md5gg(d, a, b, c, x[i + 2], 9, -51403784);
+    c = md5gg(c, d, a, b, x[i + 7], 14, 1735328473);
+    b = md5gg(b, c, d, a, x[i + 12], 20, -1926607734);
+    a = md5hh(a, b, c, d, x[i + 5], 4, -378558);
+    d = md5hh(d, a, b, c, x[i + 8], 11, -2022574463);
+    c = md5hh(c, d, a, b, x[i + 11], 16, 1839030562);
+    b = md5hh(b, c, d, a, x[i + 14], 23, -35309556);
+    a = md5hh(a, b, c, d, x[i + 1], 4, -1530992060);
+    d = md5hh(d, a, b, c, x[i + 4], 11, 1272893353);
+    c = md5hh(c, d, a, b, x[i + 7], 16, -155497632);
+    b = md5hh(b, c, d, a, x[i + 10], 23, -1094730640);
+    a = md5hh(a, b, c, d, x[i + 13], 4, 681279174);
+    d = md5hh(d, a, b, c, x[i], 11, -358537222);
+    c = md5hh(c, d, a, b, x[i + 3], 16, -722521979);
+    b = md5hh(b, c, d, a, x[i + 6], 23, 76029189);
+    a = md5hh(a, b, c, d, x[i + 9], 4, -640364487);
+    d = md5hh(d, a, b, c, x[i + 12], 11, -421815835);
+    c = md5hh(c, d, a, b, x[i + 15], 16, 530742520);
+    b = md5hh(b, c, d, a, x[i + 2], 23, -995338651);
+    a = md5ii(a, b, c, d, x[i], 6, -198630844);
+    d = md5ii(d, a, b, c, x[i + 7], 10, 1126891415);
+    c = md5ii(c, d, a, b, x[i + 14], 15, -1416354905);
+    b = md5ii(b, c, d, a, x[i + 5], 21, -57434055);
+    a = md5ii(a, b, c, d, x[i + 12], 6, 1700485571);
+    d = md5ii(d, a, b, c, x[i + 3], 10, -1894986606);
+    c = md5ii(c, d, a, b, x[i + 10], 15, -1051523);
+    b = md5ii(b, c, d, a, x[i + 1], 21, -2054922799);
+    a = md5ii(a, b, c, d, x[i + 8], 6, 1873313359);
+    d = md5ii(d, a, b, c, x[i + 15], 10, -30611744);
+    c = md5ii(c, d, a, b, x[i + 6], 15, -1560198380);
+    b = md5ii(b, c, d, a, x[i + 13], 21, 1309151649);
+    a = md5ii(a, b, c, d, x[i + 4], 6, -145523070);
+    d = md5ii(d, a, b, c, x[i + 11], 10, -1120210379);
+    c = md5ii(c, d, a, b, x[i + 2], 15, 718787259);
+    b = md5ii(b, c, d, a, x[i + 9], 21, -343485551);
+    a = safeAdd(a, olda);
+    b = safeAdd(b, oldb);
+    c = safeAdd(c, oldc);
+    d = safeAdd(d, oldd);
+  }
+
+  return [a, b, c, d];
+}
+/*
+ * Convert an array bytes to an array of little-endian words
+ * Characters >255 have their high-byte silently ignored.
+ */
+
+
+function bytesToWords(input) {
+  if (input.length === 0) {
+    return [];
+  }
+
+  const length8 = input.length * 8;
+  const output = new Uint32Array(getOutputLength(length8));
+
+  for (let i = 0; i < length8; i += 8) {
+    output[i >> 5] |= (input[i / 8] & 0xff) << i % 32;
+  }
+
+  return output;
+}
+/*
+ * Add integers, wrapping at 2^32. This uses 16-bit operations internally
+ * to work around bugs in some JS interpreters.
+ */
+
+
+function safeAdd(x, y) {
+  const lsw = (x & 0xffff) + (y & 0xffff);
+  const msw = (x >> 16) + (y >> 16) + (lsw >> 16);
+  return msw << 16 | lsw & 0xffff;
+}
+/*
+ * Bitwise rotate a 32-bit number to the left.
+ */
+
+
+function bitRotateLeft(num, cnt) {
+  return num << cnt | num >>> 32 - cnt;
+}
+/*
+ * These functions implement the four basic operations the algorithm uses.
+ */
+
+
+function md5cmn(q, a, b, x, s, t) {
+  return safeAdd(bitRotateLeft(safeAdd(safeAdd(a, q), safeAdd(x, t)), s), b);
+}
+
+function md5ff(a, b, c, d, x, s, t) {
+  return md5cmn(b & c | ~b & d, a, b, x, s, t);
+}
+
+function md5gg(a, b, c, d, x, s, t) {
+  return md5cmn(b & d | c & ~d, a, b, x, s, t);
+}
+
+function md5hh(a, b, c, d, x, s, t) {
+  return md5cmn(b ^ c ^ d, a, b, x, s, t);
+}
+
+function md5ii(a, b, c, d, x, s, t) {
+  return md5cmn(c ^ (b | ~d), a, b, x, s, t);
+}
+
+var _default = md5;
+exports.default = _default;
+},{}],257:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+const randomUUID = typeof crypto !== 'undefined' && crypto.randomUUID && crypto.randomUUID.bind(crypto);
+var _default = {
+  randomUUID
+};
+exports.default = _default;
+},{}],258:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+var _default = '00000000-0000-0000-0000-000000000000';
+exports.default = _default;
+},{}],259:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _validate = _interopRequireDefault(require("./validate.js"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function parse(uuid) {
+  if (!(0, _validate.default)(uuid)) {
+    throw TypeError('Invalid UUID');
+  }
+
+  let v;
+  const arr = new Uint8Array(16); // Parse ########-....-....-....-............
+
+  arr[0] = (v = parseInt(uuid.slice(0, 8), 16)) >>> 24;
+  arr[1] = v >>> 16 & 0xff;
+  arr[2] = v >>> 8 & 0xff;
+  arr[3] = v & 0xff; // Parse ........-####-....-....-............
+
+  arr[4] = (v = parseInt(uuid.slice(9, 13), 16)) >>> 8;
+  arr[5] = v & 0xff; // Parse ........-....-####-....-............
+
+  arr[6] = (v = parseInt(uuid.slice(14, 18), 16)) >>> 8;
+  arr[7] = v & 0xff; // Parse ........-....-....-####-............
+
+  arr[8] = (v = parseInt(uuid.slice(19, 23), 16)) >>> 8;
+  arr[9] = v & 0xff; // Parse ........-....-....-....-############
+  // (Use "/" to avoid 32-bit truncation when bit-shifting high-order bytes)
+
+  arr[10] = (v = parseInt(uuid.slice(24, 36), 16)) / 0x10000000000 & 0xff;
+  arr[11] = v / 0x100000000 & 0xff;
+  arr[12] = v >>> 24 & 0xff;
+  arr[13] = v >>> 16 & 0xff;
+  arr[14] = v >>> 8 & 0xff;
+  arr[15] = v & 0xff;
+  return arr;
+}
+
+var _default = parse;
+exports.default = _default;
+},{"./validate.js":269}],260:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+var _default = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|00000000-0000-0000-0000-000000000000)$/i;
+exports.default = _default;
+},{}],261:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = rng;
+// Unique ID creation requires a high quality random # generator. In the browser we therefore
+// require the crypto API and do not support built-in fallback to lower quality random number
+// generators (like Math.random()).
+let getRandomValues;
+const rnds8 = new Uint8Array(16);
+
+function rng() {
+  // lazy load so that environments that need to polyfill have a chance to do so
+  if (!getRandomValues) {
+    // getRandomValues needs to be invoked in a context where "this" is a Crypto implementation.
+    getRandomValues = typeof crypto !== 'undefined' && crypto.getRandomValues && crypto.getRandomValues.bind(crypto);
+
+    if (!getRandomValues) {
+      throw new Error('crypto.getRandomValues() not supported. See https://github.com/uuidjs/uuid#getrandomvalues-not-supported');
+    }
+  }
+
+  return getRandomValues(rnds8);
+}
+},{}],262:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+// Adapted from Chris Veness' SHA1 code at
+// http://www.movable-type.co.uk/scripts/sha1.html
+function f(s, x, y, z) {
+  switch (s) {
+    case 0:
+      return x & y ^ ~x & z;
+
+    case 1:
+      return x ^ y ^ z;
+
+    case 2:
+      return x & y ^ x & z ^ y & z;
+
+    case 3:
+      return x ^ y ^ z;
+  }
+}
+
+function ROTL(x, n) {
+  return x << n | x >>> 32 - n;
+}
+
+function sha1(bytes) {
+  const K = [0x5a827999, 0x6ed9eba1, 0x8f1bbcdc, 0xca62c1d6];
+  const H = [0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, 0xc3d2e1f0];
+
+  if (typeof bytes === 'string') {
+    const msg = unescape(encodeURIComponent(bytes)); // UTF8 escape
+
+    bytes = [];
+
+    for (let i = 0; i < msg.length; ++i) {
+      bytes.push(msg.charCodeAt(i));
+    }
+  } else if (!Array.isArray(bytes)) {
+    // Convert Array-like to Array
+    bytes = Array.prototype.slice.call(bytes);
+  }
+
+  bytes.push(0x80);
+  const l = bytes.length / 4 + 2;
+  const N = Math.ceil(l / 16);
+  const M = new Array(N);
+
+  for (let i = 0; i < N; ++i) {
+    const arr = new Uint32Array(16);
+
+    for (let j = 0; j < 16; ++j) {
+      arr[j] = bytes[i * 64 + j * 4] << 24 | bytes[i * 64 + j * 4 + 1] << 16 | bytes[i * 64 + j * 4 + 2] << 8 | bytes[i * 64 + j * 4 + 3];
+    }
+
+    M[i] = arr;
+  }
+
+  M[N - 1][14] = (bytes.length - 1) * 8 / Math.pow(2, 32);
+  M[N - 1][14] = Math.floor(M[N - 1][14]);
+  M[N - 1][15] = (bytes.length - 1) * 8 & 0xffffffff;
+
+  for (let i = 0; i < N; ++i) {
+    const W = new Uint32Array(80);
+
+    for (let t = 0; t < 16; ++t) {
+      W[t] = M[i][t];
+    }
+
+    for (let t = 16; t < 80; ++t) {
+      W[t] = ROTL(W[t - 3] ^ W[t - 8] ^ W[t - 14] ^ W[t - 16], 1);
+    }
+
+    let a = H[0];
+    let b = H[1];
+    let c = H[2];
+    let d = H[3];
+    let e = H[4];
+
+    for (let t = 0; t < 80; ++t) {
+      const s = Math.floor(t / 20);
+      const T = ROTL(a, 5) + f(s, b, c, d) + e + K[s] + W[t] >>> 0;
+      e = d;
+      d = c;
+      c = ROTL(b, 30) >>> 0;
+      b = a;
+      a = T;
+    }
+
+    H[0] = H[0] + a >>> 0;
+    H[1] = H[1] + b >>> 0;
+    H[2] = H[2] + c >>> 0;
+    H[3] = H[3] + d >>> 0;
+    H[4] = H[4] + e >>> 0;
+  }
+
+  return [H[0] >> 24 & 0xff, H[0] >> 16 & 0xff, H[0] >> 8 & 0xff, H[0] & 0xff, H[1] >> 24 & 0xff, H[1] >> 16 & 0xff, H[1] >> 8 & 0xff, H[1] & 0xff, H[2] >> 24 & 0xff, H[2] >> 16 & 0xff, H[2] >> 8 & 0xff, H[2] & 0xff, H[3] >> 24 & 0xff, H[3] >> 16 & 0xff, H[3] >> 8 & 0xff, H[3] & 0xff, H[4] >> 24 & 0xff, H[4] >> 16 & 0xff, H[4] >> 8 & 0xff, H[4] & 0xff];
+}
+
+var _default = sha1;
+exports.default = _default;
+},{}],263:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+exports.unsafeStringify = unsafeStringify;
+
+var _validate = _interopRequireDefault(require("./validate.js"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/**
+ * Convert array of 16 byte values to UUID string format of the form:
+ * XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+ */
+const byteToHex = [];
+
+for (let i = 0; i < 256; ++i) {
+  byteToHex.push((i + 0x100).toString(16).slice(1));
+}
+
+function unsafeStringify(arr, offset = 0) {
+  // Note: Be careful editing this code!  It's been tuned for performance
+  // and works in ways you may not expect. See https://github.com/uuidjs/uuid/pull/434
+  return byteToHex[arr[offset + 0]] + byteToHex[arr[offset + 1]] + byteToHex[arr[offset + 2]] + byteToHex[arr[offset + 3]] + '-' + byteToHex[arr[offset + 4]] + byteToHex[arr[offset + 5]] + '-' + byteToHex[arr[offset + 6]] + byteToHex[arr[offset + 7]] + '-' + byteToHex[arr[offset + 8]] + byteToHex[arr[offset + 9]] + '-' + byteToHex[arr[offset + 10]] + byteToHex[arr[offset + 11]] + byteToHex[arr[offset + 12]] + byteToHex[arr[offset + 13]] + byteToHex[arr[offset + 14]] + byteToHex[arr[offset + 15]];
+}
+
+function stringify(arr, offset = 0) {
+  const uuid = unsafeStringify(arr, offset); // Consistency check for valid UUID.  If this throws, it's likely due to one
+  // of the following:
+  // - One or more input array values don't map to a hex octet (leading to
+  // "undefined" in the uuid)
+  // - Invalid input values for the RFC `version` or `variant` fields
+
+  if (!(0, _validate.default)(uuid)) {
+    throw TypeError('Stringified UUID is invalid');
+  }
+
+  return uuid;
+}
+
+var _default = stringify;
+exports.default = _default;
+},{"./validate.js":269}],264:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _rng = _interopRequireDefault(require("./rng.js"));
+
+var _stringify = require("./stringify.js");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+// **`v1()` - Generate time-based UUID**
+//
+// Inspired by https://github.com/LiosK/UUID.js
+// and http://docs.python.org/library/uuid.html
+let _nodeId;
+
+let _clockseq; // Previous uuid creation time
+
+
+let _lastMSecs = 0;
+let _lastNSecs = 0; // See https://github.com/uuidjs/uuid for API details
+
+function v1(options, buf, offset) {
+  let i = buf && offset || 0;
+  const b = buf || new Array(16);
+  options = options || {};
+  let node = options.node || _nodeId;
+  let clockseq = options.clockseq !== undefined ? options.clockseq : _clockseq; // node and clockseq need to be initialized to random values if they're not
+  // specified.  We do this lazily to minimize issues related to insufficient
+  // system entropy.  See #189
+
+  if (node == null || clockseq == null) {
+    const seedBytes = options.random || (options.rng || _rng.default)();
+
+    if (node == null) {
+      // Per 4.5, create and 48-bit node id, (47 random bits + multicast bit = 1)
+      node = _nodeId = [seedBytes[0] | 0x01, seedBytes[1], seedBytes[2], seedBytes[3], seedBytes[4], seedBytes[5]];
+    }
+
+    if (clockseq == null) {
+      // Per 4.2.2, randomize (14 bit) clockseq
+      clockseq = _clockseq = (seedBytes[6] << 8 | seedBytes[7]) & 0x3fff;
+    }
+  } // UUID timestamps are 100 nano-second units since the Gregorian epoch,
+  // (1582-10-15 00:00).  JSNumbers aren't precise enough for this, so
+  // time is handled internally as 'msecs' (integer milliseconds) and 'nsecs'
+  // (100-nanoseconds offset from msecs) since unix epoch, 1970-01-01 00:00.
+
+
+  let msecs = options.msecs !== undefined ? options.msecs : Date.now(); // Per 4.2.1.2, use count of uuid's generated during the current clock
+  // cycle to simulate higher resolution clock
+
+  let nsecs = options.nsecs !== undefined ? options.nsecs : _lastNSecs + 1; // Time since last uuid creation (in msecs)
+
+  const dt = msecs - _lastMSecs + (nsecs - _lastNSecs) / 10000; // Per 4.2.1.2, Bump clockseq on clock regression
+
+  if (dt < 0 && options.clockseq === undefined) {
+    clockseq = clockseq + 1 & 0x3fff;
+  } // Reset nsecs if clock regresses (new clockseq) or we've moved onto a new
+  // time interval
+
+
+  if ((dt < 0 || msecs > _lastMSecs) && options.nsecs === undefined) {
+    nsecs = 0;
+  } // Per 4.2.1.2 Throw error if too many uuids are requested
+
+
+  if (nsecs >= 10000) {
+    throw new Error("uuid.v1(): Can't create more than 10M uuids/sec");
+  }
+
+  _lastMSecs = msecs;
+  _lastNSecs = nsecs;
+  _clockseq = clockseq; // Per 4.1.4 - Convert from unix epoch to Gregorian epoch
+
+  msecs += 12219292800000; // `time_low`
+
+  const tl = ((msecs & 0xfffffff) * 10000 + nsecs) % 0x100000000;
+  b[i++] = tl >>> 24 & 0xff;
+  b[i++] = tl >>> 16 & 0xff;
+  b[i++] = tl >>> 8 & 0xff;
+  b[i++] = tl & 0xff; // `time_mid`
+
+  const tmh = msecs / 0x100000000 * 10000 & 0xfffffff;
+  b[i++] = tmh >>> 8 & 0xff;
+  b[i++] = tmh & 0xff; // `time_high_and_version`
+
+  b[i++] = tmh >>> 24 & 0xf | 0x10; // include version
+
+  b[i++] = tmh >>> 16 & 0xff; // `clock_seq_hi_and_reserved` (Per 4.2.2 - include variant)
+
+  b[i++] = clockseq >>> 8 | 0x80; // `clock_seq_low`
+
+  b[i++] = clockseq & 0xff; // `node`
+
+  for (let n = 0; n < 6; ++n) {
+    b[i + n] = node[n];
+  }
+
+  return buf || (0, _stringify.unsafeStringify)(b);
+}
+
+var _default = v1;
+exports.default = _default;
+},{"./rng.js":261,"./stringify.js":263}],265:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _v = _interopRequireDefault(require("./v35.js"));
+
+var _md = _interopRequireDefault(require("./md5.js"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+const v3 = (0, _v.default)('v3', 0x30, _md.default);
+var _default = v3;
+exports.default = _default;
+},{"./md5.js":256,"./v35.js":266}],266:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.URL = exports.DNS = void 0;
+exports.default = v35;
+
+var _stringify = require("./stringify.js");
+
+var _parse = _interopRequireDefault(require("./parse.js"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function stringToBytes(str) {
+  str = unescape(encodeURIComponent(str)); // UTF8 escape
+
+  const bytes = [];
+
+  for (let i = 0; i < str.length; ++i) {
+    bytes.push(str.charCodeAt(i));
+  }
+
+  return bytes;
+}
+
+const DNS = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
+exports.DNS = DNS;
+const URL = '6ba7b811-9dad-11d1-80b4-00c04fd430c8';
+exports.URL = URL;
+
+function v35(name, version, hashfunc) {
+  function generateUUID(value, namespace, buf, offset) {
+    var _namespace;
+
+    if (typeof value === 'string') {
+      value = stringToBytes(value);
+    }
+
+    if (typeof namespace === 'string') {
+      namespace = (0, _parse.default)(namespace);
+    }
+
+    if (((_namespace = namespace) === null || _namespace === void 0 ? void 0 : _namespace.length) !== 16) {
+      throw TypeError('Namespace must be array-like (16 iterable integer values, 0-255)');
+    } // Compute hash of namespace and value, Per 4.3
+    // Future: Use spread syntax when supported on all platforms, e.g. `bytes =
+    // hashfunc([...namespace, ... value])`
+
+
+    let bytes = new Uint8Array(16 + value.length);
+    bytes.set(namespace);
+    bytes.set(value, namespace.length);
+    bytes = hashfunc(bytes);
+    bytes[6] = bytes[6] & 0x0f | version;
+    bytes[8] = bytes[8] & 0x3f | 0x80;
+
+    if (buf) {
+      offset = offset || 0;
+
+      for (let i = 0; i < 16; ++i) {
+        buf[offset + i] = bytes[i];
+      }
+
+      return buf;
+    }
+
+    return (0, _stringify.unsafeStringify)(bytes);
+  } // Function#name is not settable on some platforms (#270)
+
+
+  try {
+    generateUUID.name = name; // eslint-disable-next-line no-empty
+  } catch (err) {} // For CommonJS default export support
+
+
+  generateUUID.DNS = DNS;
+  generateUUID.URL = URL;
+  return generateUUID;
+}
+},{"./parse.js":259,"./stringify.js":263}],267:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _native = _interopRequireDefault(require("./native.js"));
+
+var _rng = _interopRequireDefault(require("./rng.js"));
+
+var _stringify = require("./stringify.js");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function v4(options, buf, offset) {
+  if (_native.default.randomUUID && !buf && !options) {
+    return _native.default.randomUUID();
+  }
+
+  options = options || {};
+
+  const rnds = options.random || (options.rng || _rng.default)(); // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
+
+
+  rnds[6] = rnds[6] & 0x0f | 0x40;
+  rnds[8] = rnds[8] & 0x3f | 0x80; // Copy bytes to buffer, if provided
+
+  if (buf) {
+    offset = offset || 0;
+
+    for (let i = 0; i < 16; ++i) {
+      buf[offset + i] = rnds[i];
+    }
+
+    return buf;
+  }
+
+  return (0, _stringify.unsafeStringify)(rnds);
+}
+
+var _default = v4;
+exports.default = _default;
+},{"./native.js":257,"./rng.js":261,"./stringify.js":263}],268:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _v = _interopRequireDefault(require("./v35.js"));
+
+var _sha = _interopRequireDefault(require("./sha1.js"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+const v5 = (0, _v.default)('v5', 0x50, _sha.default);
+var _default = v5;
+exports.default = _default;
+},{"./sha1.js":262,"./v35.js":266}],269:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _regex = _interopRequireDefault(require("./regex.js"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function validate(uuid) {
+  return typeof uuid === 'string' && _regex.default.test(uuid);
+}
+
+var _default = validate;
+exports.default = _default;
+},{"./regex.js":260}],270:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _validate = _interopRequireDefault(require("./validate.js"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function version(uuid) {
+  if (!(0, _validate.default)(uuid)) {
+    throw TypeError('Invalid UUID');
+  }
+
+  return parseInt(uuid.slice(14, 15), 16);
+}
+
+var _default = version;
+exports.default = _default;
+},{"./validate.js":269}],271:[function(require,module,exports){
 'use strict'
 
 exports.byteLength = byteLength
@@ -39308,9 +54999,9 @@ function fromByteArray (uint8) {
   return parts.join('')
 }
 
-},{}],210:[function(require,module,exports){
+},{}],272:[function(require,module,exports){
 
-},{}],211:[function(require,module,exports){
+},{}],273:[function(require,module,exports){
 (function (Buffer){(function (){
 /*!
  * The buffer module from node.js, for the browser.
@@ -41091,7 +56782,7 @@ function numberIsNaN (obj) {
 }
 
 }).call(this)}).call(this,require("buffer").Buffer)
-},{"base64-js":209,"buffer":211,"ieee754":213}],212:[function(require,module,exports){
+},{"base64-js":271,"buffer":273,"ieee754":275}],274:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -41590,7 +57281,7 @@ function eventTargetAgnosticAddListener(emitter, name, listener, flags) {
   }
 }
 
-},{}],213:[function(require,module,exports){
+},{}],275:[function(require,module,exports){
 /*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> */
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
@@ -41677,7 +57368,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128
 }
 
-},{}],214:[function(require,module,exports){
+},{}],276:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -41863,7 +57554,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],215:[function(require,module,exports){
+},{}],277:[function(require,module,exports){
 (function (setImmediate,clearImmediate){(function (){
 var nextTick = require('process/browser.js').nextTick;
 var apply = Function.prototype.apply;
@@ -41942,4 +57633,4 @@ exports.clearImmediate = typeof clearImmediate === "function" ? clearImmediate :
   delete immediateIds[id];
 };
 }).call(this)}).call(this,require("timers").setImmediate,require("timers").clearImmediate)
-},{"process/browser.js":214,"timers":215}]},{},[1]);
+},{"process/browser.js":276,"timers":277}]},{},[1]);

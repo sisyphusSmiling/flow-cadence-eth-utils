@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Ethereum Notary Service</title>
+    <title>Flow Affiliated Accounts</title>
 
     <style>
         body {
@@ -17,19 +17,16 @@
             height: 100vh;
             margin: 0;
             padding-top: 50px;
-            /* Added padding to ensure the title is visible */
         }
 
         .title {
             color: #4CAF50;
             margin-bottom: 10px;
-            /* Space between title and subheading */
         }
 
         .subheading {
             color: #ccc;
             margin-bottom: 30px;
-            /* Space between subheading and container */
         }
 
         .container {
@@ -45,10 +42,9 @@
         input,
         button {
             width: calc(100% - 20px);
-            /* Adjust width to match the button */
             padding: 10px;
+            margin-top: 10px;
             margin-bottom: 10px;
-            /* Even margin below the input field */
             border: none;
             border-radius: 5px;
         }
@@ -57,7 +53,6 @@
             background-color: #fff;
             color: #333;
             margin-top: 10px;
-            /* Even margin above the input field */
         }
 
         button {
@@ -95,31 +90,18 @@
 
 <body>
 
-    <h1 class="title">Ethereum Notary Service</h1>
-
-    <!-- Signature Creation Section -->
-    <h2 class="subheading">Sign verifiable messages using Metamask</h2>
-   
-    <div class="container">
-        <input type="text" id="messageInput" placeholder="Type your message here" />
-        <button id="signButton">Sign Message with MetaMask</button>
-        <p>Signer Address: <span id="address"></span></p>
-        <p>Message: <span id="message"></span></p>
-        <p>Public Key: <span id="publicKey"></span></p>
-        <p>Signature: <span id="signature"></span></p>
+    <div style="position: absolute; top: 10px; right: 10px;">
+        <button id="loginButton" style="background-color: green; color: white;">Authenticate with Flow</button>
+        <button id="logoutButton" style="display: none;">Logout</button>
+        <p id="userAddress"></p>
     </div>
 
-    <!-- Signature Verification Section -->
+    <h1 class="title">Flow Affiliated Accounts</h1>
 
-    <h2 class="subheading">Verify signed messages</h2>
-    
+    <h3 class="subheading">Verify your Ethereum account ownership on your Flow account</h3>
+   
     <div class="container">
-        <h2>Verify Signature</h2>
-        <input type="text" id="verifyAddressInput" placeholder="Signer's Address" />
-        <input type="text" id="verifyMessageInput" placeholder="Original Message" />
-        <input type="text" id="verifySignatureInput" placeholder="Signature to Verify" />
-        <button id="verifyButton">Verify Signature</button>
-        <p id="verificationResult"></p>
+        <button id="signButton">Affiliate your ETH Account with MetaMask</button>
     </div>
 
     <script src="bundle.js"></script>
