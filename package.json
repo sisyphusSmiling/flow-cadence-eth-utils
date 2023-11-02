@@ -4,7 +4,9 @@
   "description": "",
   "scripts": {
     "test": "jest --runInBand",
-    "dev": "lite-server"
+    "build": "browserify src/main.js -o public/bundle.js",
+    "dev": "lite-server",
+    "watch": "watchify src/main.js -o public/bundle.js -v"
   },
   "author": "",
   "license": "ISC",
@@ -16,7 +18,8 @@
     "ethers": "^5.1.0",
     "i": "^0.3.7",
     "npm": "^10.2.2",
-    "secp256k1": "^5.0.0"
+    "secp256k1": "^5.0.0",
+    "watchify": "^4.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.22.8",
