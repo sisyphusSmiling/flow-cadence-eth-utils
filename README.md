@@ -9,6 +9,26 @@ This function depends on the following libraries:
 - `@onflow/fcl`: Flow's JavaScript library used for interacting with Flow's network and its smart contracts.
 
 
+## Fork Commands
+
+Install packages
+
+```sh
+npm i
+```
+
+Run the server
+
+```sh
+npm run dev
+```
+
+Continue to locally hosted signature util where you can sign messages with MetaMask. Upon signing, you'll be met with all pertinent signature, signer and message information which can be verified with this repo's contracts.
+
+![Notary Frontend Screenshot](./images/notary_frontend.png)
+
+> :information_source: If you make any changes to [`main.js`](./main.js), you'll want to run `browserify main.js -o bundle.js` and restart the server.
+
 ## Example
 
 ```js
