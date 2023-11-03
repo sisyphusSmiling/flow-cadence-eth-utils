@@ -7,10 +7,10 @@ const {
 } = require('./utils.js');
 const {
     CREATE_ATTESTATION,
-    GET_ATTESTED_ADDRESSES_WITH_STATUS
+    GET_ATTESTED_ADDRESSES_WITH_STATUS,
+    REMOVE_ATTESTATIONS
 } = require('./cadence.js')
 const flowJSON = require('../flow.json');
-const provider = ethers.getDefaultProvider(); // This defaults to 'homestead' (mainnet)
 
 document.addEventListener('DOMContentLoaded', async (event) => {
 
@@ -83,17 +83,10 @@ async function getAttestedAddresses(address) {
     renderAttestedAddresses(result);
 };
 
-async function renderAttestedAddresses(addressStatuses) {
-    const tableDiv = document.getElementById('attestedAddressesTable');
-    if (Object.keys(addressStatuses).length === 0) {
-        tableDiv.innerHTML = '<p>No attested addresses found.</p>';
-        return;
-    }
-
+function generateTableHTML(addressStatuses) {
     let tableHTML = '<table>';
-    tableHTML += '<tr><th>Remove</th><th>Attested Address</th><th>Verified</th></tr>';
+    tableHTML += '<tr><th class="remove-header">Remove</th><th>Attested Address</th><th>Verified</th></tr>';
 
-    // Add rows to the table with placeholders
     for (const [address, isVerified] of Object.entries(addressStatuses)) {
         const etherscanUrl = `https://etherscan.io/address/${address}`;
         tableHTML += `
@@ -105,19 +98,72 @@ async function renderAttestedAddresses(addressStatuses) {
         `;
     }
     tableHTML += '</table>';
-    tableDiv.innerHTML = tableHTML;
-};
+    return tableHTML;
+}
 
-function clearAttestedAddresses() {
-    console.log('Clearing attested addresses table...');
-    const tableDiv = document.getElementById('attestedAddressesTable');
-    if (tableDiv) {
-        tableDiv.innerHTML = ''; // Clear the table contents
-        console.log('Table cleared.');
+function bindTableEvents() {
+    const removeHeader = document.querySelector('.remove-header');
+    const checkboxes = document.querySelectorAll('.address-checkbox');
+
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', () => toggleRemoveHeaderActiveState(checkboxes, removeHeader));
+    });
+
+    removeHeader.addEventListener('click', () => removeSelectedAddresses(checkboxes, removeHeader));
+}
+
+function toggleRemoveHeaderActiveState(checkboxes, removeHeader) {
+    const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
+    if (anyChecked) {
+        removeHeader.classList.add('active');
     } else {
-        console.log('Table div not found.');
+        removeHeader.classList.remove('active');
     }
-};
+}
+
+async function removeSelectedAddresses(checkboxes, removeHeader) {
+    if (removeHeader.classList.contains('active')) {
+        const checkedAddresses = getCheckedAddresses(checkboxes);
+        await sendRemoveTransaction(checkedAddresses);
+    }
+}
+
+function getCheckedAddresses(checkboxes) {
+    return Array.from(checkboxes)
+        .filter(checkbox => checkbox.checked)
+        .map(checkbox => checkbox.getAttribute('data-address'));
+}
+
+async function sendRemoveTransaction(checkedAddresses) {
+    try {
+        const txId = await fcl.mutate({
+            cadence: REMOVE_ATTESTATIONS,
+            args: (arg, t) => [arg(checkedAddresses, t.Array(t.String))],
+            proposer: fcl.currentUser,
+            payer: fcl.currentUser,
+            authorizations: [fcl.currentUser],
+            limit: 9999
+        });
+
+        const transaction = await fcl.tx(txId).onceExecuted();
+        console.log('Transaction confirmed:', transaction);
+
+        await getAttestedAddresses(user.addr);
+    } catch (error) {
+        console.error('Error sending transaction:', error);
+    }
+}
+
+async function renderAttestedAddresses(addressStatuses) {
+    const tableDiv = document.getElementById('attestedAddressesTable');
+    if (Object.keys(addressStatuses).length === 0) {
+        tableDiv.innerHTML = '<p>No attested addresses found.</p>';
+        return;
+    }
+
+    tableDiv.innerHTML = generateTableHTML(addressStatuses);
+    bindTableEvents();
+}
 
 async function attestAsAffiliate() {
     // Check if MetaMask is installed

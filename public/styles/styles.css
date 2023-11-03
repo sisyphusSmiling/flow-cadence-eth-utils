@@ -1,5 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@400;700&display=swap');
 
+.logo {
+    width: 150px;
+    height: auto;
+}
+
 .title {
     font-family: 'Montserrat', sans-serif;
     color: #4CAF50;
@@ -187,14 +192,20 @@ td {
     transition: background-color 0.3s ease;
 }
 
-#removeButton:hover:not([disabled]) {
-    background-color: #F44336;
-    /* Red color on hover */
+/* Normal state */
+.remove-header {
+    cursor: default;
+    background-color: #555;
+    /* Normal background color */
+    color: white;
 }
 
-#removeButton:disabled {
-    cursor: default;
-    opacity: 0.5;
+/* Active state */
+.remove-header.active {
+    cursor: pointer;
+    background-color: red;
+    /* Active background color */
+    color: white;
 }
 
 /* Responsive Table */

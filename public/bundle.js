@@ -48729,8 +48729,9 @@ function version(uuid) {
 var _default = version;
 exports.default = _default;
 },{"./validate.js":216}],218:[function(require,module,exports){
-// Replace with import alias
-module.exports.CREATE_ATTESTATION = `
+/*** Transactions ***/
+
+const CREATE_ATTESTATION = `
 import "ETHAffiliatedAccount"
 
 transaction(hexPublicKey: String, signature: String, ethAddress: String) {
@@ -48764,8 +48765,32 @@ transaction(hexPublicKey: String, signature: String, ethAddress: String) {
 }
 `;
 
-// Replace with import alias
-module.exports.GET_ATTESTED_ADDRESSES = `
+const REMOVE_ATTESTATIONS = `
+import "ETHAffiliatedAccount"
+
+transaction(ethAddresses: [String]) {
+
+    let manager: &ETHAffiliatedAccount.AttestationManager
+
+    prepare(signer: AuthAccount) {
+
+        self.manager = signer.borrow<&ETHAffiliatedAccount.AttestationManager>(from: ETHAffiliatedAccount.STORAGE_PATH)
+            ?? panic("Could not borrow a reference to the AttestationManager")
+
+    }
+
+    execute {
+        for ethAddress in ethAddresses {
+            if let attestation: @ETHAffiliatedAccount.Attestation <- self.manager.removeAttestation(ethAddress: ethAddress) {
+                destroy attestation
+            }
+        }
+    }
+}
+`;
+
+/*** Scripts ***/
+const GET_ATTESTED_ADDRESSES = `
 import "ETHAffiliatedAccount"
 
 access(all) fun main(address: Address): [String] {
@@ -48776,8 +48801,7 @@ access(all) fun main(address: Address): [String] {
 }
 `;
 
-// Replace with import alias
-module.exports.GET_ATTESTED_ADDRESSES_WITH_STATUS = `
+const GET_ATTESTED_ADDRESSES_WITH_STATUS = `
 import "ETHAffiliatedAccount"
 
 access(all) fun main(address: Address): {String: Bool} {
@@ -48796,6 +48820,13 @@ access(all) fun main(address: Address): {String: Bool} {
     return {}
 }
 `;
+
+module.exports = {  
+    CREATE_ATTESTATION,
+    REMOVE_ATTESTATIONS,
+    GET_ATTESTED_ADDRESSES,
+    GET_ATTESTED_ADDRESSES_WITH_STATUS
+};
 },{}],219:[function(require,module,exports){
 const ethers = require('ethers');
 const fcl = require('@onflow/fcl');
@@ -48806,13 +48837,13 @@ const {
 } = require('./utils.js');
 const {
     CREATE_ATTESTATION,
-    GET_ATTESTED_ADDRESSES_WITH_STATUS
+    GET_ATTESTED_ADDRESSES_WITH_STATUS,
+    REMOVE_ATTESTATIONS
 } = require('./cadence.js')
 const flowJSON = require('../flow.json');
 const provider = ethers.getDefaultProvider(); // This defaults to 'homestead' (mainnet)
 
 document.addEventListener('DOMContentLoaded', async (event) => {
-    // initializeFCL();
 
     // Subscribe to user state changes
     fcl.currentUser().subscribe(async (currentUser) => {
@@ -48830,29 +48861,6 @@ document.addEventListener('DOMContentLoaded', async (event) => {
     document.getElementById('logoutButton').addEventListener('click', unauthenticateWithFlow);
 });
 
-// function initializeFCL() {
-//     fcl.config({
-//         "app.detail.title": "Flow Affiliated Accounts", // the name of your DApp
-//         "app.detail.icon": "https://assets-global.website-files.com/5f734f4dbd95382f4fdfa0ea/63ce603ae36f46f6bb67e51e_flow-logo.svg", // your DApps icon
-//         "flow.network": network,
-//         "accessNode.api": fclConfigInfo[network].accessNode,
-//         "discovery.wallet": fclConfigInfo[network].discoveryWallet,
-//         "discovery.authn.endpoint": fclConfigInfo[network].discoveryAuthnEndpoint,
-//         // adds in opt-in wallets like Dapper and Ledger
-//         "discovery.authn.include": fclConfigInfo[network].discoveryAuthInclude
-//     }).load({ flowJSON });
-
-//     // Check if the user is already logged in when the page loads
-//     fcl.currentUser().snapshot().then(user => {
-//         if (user.loggedIn) {
-//             // User is logged in, update the UI accordingly
-//             updateAuthUI(user);
-//             // Fetch attested addresses for the logged-in user
-//             getAttestedAddresses(user.addr);
-//         }
-//     });
-// };
-
 fcl.config({
     "app.detail.title": "Flow Affiliated Accounts", // the name of your DApp
     "app.detail.icon": "https://assets-global.website-files.com/5f734f4dbd95382f4fdfa0ea/63ce603ae36f46f6bb67e51e_flow-logo.svg", // your DApps icon
@@ -48864,12 +48872,10 @@ fcl.config({
     "discovery.authn.include": fclConfigInfo[network].discoveryAuthInclude
 }).load({ flowJSON });
 
-// Initialize user state
 let user = { loggedIn: false, addr: "" };
 
 async function authenticateWithFlow() {
     const user = await fcl.authenticate();
-    // initializeFCL();
     await getAttestedAddresses(user.addr);
     return user;
 };
@@ -48908,17 +48914,10 @@ async function getAttestedAddresses(address) {
     renderAttestedAddresses(result);
 };
 
-async function renderAttestedAddresses(addressStatuses) {
-    const tableDiv = document.getElementById('attestedAddressesTable');
-    if (Object.keys(addressStatuses).length === 0) {
-        tableDiv.innerHTML = '<p>No attested addresses found.</p>';
-        return;
-    }
-
+function generateTableHTML(addressStatuses) {
     let tableHTML = '<table>';
-    tableHTML += '<tr><th>Remove</th><th>Attested Address</th><th>Verified</th></tr>';
+    tableHTML += '<tr><th class="remove-header">Remove</th><th>Attested Address</th><th>Verified</th></tr>';
 
-    // Add rows to the table with placeholders
     for (const [address, isVerified] of Object.entries(addressStatuses)) {
         const etherscanUrl = `https://etherscan.io/address/${address}`;
         tableHTML += `
@@ -48930,8 +48929,143 @@ async function renderAttestedAddresses(addressStatuses) {
         `;
     }
     tableHTML += '</table>';
-    tableDiv.innerHTML = tableHTML;
-};
+    return tableHTML;
+}
+
+function bindTableEvents() {
+    const removeHeader = document.querySelector('.remove-header');
+    const checkboxes = document.querySelectorAll('.address-checkbox');
+
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', () => toggleRemoveHeaderActiveState(checkboxes, removeHeader));
+    });
+
+    removeHeader.addEventListener('click', () => removeSelectedAddresses(checkboxes, removeHeader));
+}
+
+function toggleRemoveHeaderActiveState(checkboxes, removeHeader) {
+    const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
+    if (anyChecked) {
+        removeHeader.classList.add('active');
+    } else {
+        removeHeader.classList.remove('active');
+    }
+}
+
+async function removeSelectedAddresses(checkboxes, removeHeader) {
+    if (removeHeader.classList.contains('active')) {
+        const checkedAddresses = getCheckedAddresses(checkboxes);
+        await sendRemoveTransaction(checkedAddresses);
+    }
+}
+
+function getCheckedAddresses(checkboxes) {
+    return Array.from(checkboxes)
+        .filter(checkbox => checkbox.checked)
+        .map(checkbox => checkbox.getAttribute('data-address'));
+}
+
+async function sendRemoveTransaction(checkedAddresses) {
+    try {
+        const txId = await fcl.mutate({
+            cadence: REMOVE_ATTESTATIONS,
+            args: (arg, t) => [arg(checkedAddresses, t.Array(t.String))],
+            proposer: fcl.currentUser,
+            payer: fcl.currentUser,
+            authorizations: [fcl.currentUser],
+            limit: 9999
+        });
+
+        const transaction = await fcl.tx(txId).onceExecuted();
+        console.log('Transaction confirmed:', transaction);
+
+        await getAttestedAddresses(user.addr);
+    } catch (error) {
+        console.error('Error sending transaction:', error);
+    }
+}
+
+async function renderAttestedAddresses(addressStatuses) {
+    const tableDiv = document.getElementById('attestedAddressesTable');
+    if (Object.keys(addressStatuses).length === 0) {
+        tableDiv.innerHTML = '<p>No attested addresses found.</p>';
+        return;
+    }
+
+    tableDiv.innerHTML = generateTableHTML(addressStatuses);
+    bindTableEvents();
+}
+
+// async function renderAttestedAddresses(addressStatuses) {
+//     const tableDiv = document.getElementById('attestedAddressesTable');
+//     if (Object.keys(addressStatuses).length === 0) {
+//         tableDiv.innerHTML = '<p>No attested addresses found.</p>';
+//         return;
+//     }
+
+//     let tableHTML = '<table>';
+//     tableHTML += '<tr><th class="remove-header">Remove</th><th>Attested Address</th><th>Verified</th></tr>';
+
+//     // Add rows to the table with placeholders
+//     for (const [address, isVerified] of Object.entries(addressStatuses)) {
+//         const etherscanUrl = `https://etherscan.io/address/${address}`;
+//         tableHTML += `
+//             <tr>
+//                 <td><input type="checkbox" class="address-checkbox" data-address="${address}"></td>
+//                 <td><a href="${etherscanUrl}" target="_blank">${address}</a></td>
+//                 <td>${isVerified ? '✅' : '❌'}</td>
+//             </tr>
+//         `;
+//     }
+//     tableHTML += '</table>';
+//     tableDiv.innerHTML = tableHTML;
+
+//     // After rendering the table and adding it to the DOM
+//     const removeHeader = document.querySelector('.remove-header');
+//     const checkboxes = document.querySelectorAll('.address-checkbox');
+
+//     checkboxes.forEach(checkbox => {
+//         checkbox.addEventListener('change', function () {
+//             const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
+//             if (anyChecked) {
+//                 removeHeader.classList.add('active');
+//             } else {
+//                 removeHeader.classList.remove('active');
+//             }
+//         });
+//     });
+
+//     // Add a click event listener to the remove header
+//     removeHeader.addEventListener('click', async function () {
+//         if (removeHeader.classList.contains('active')) {
+//             // Get all checked addresses
+//             const checkedAddresses = Array.from(checkboxes)
+//                 .filter(checkbox => checkbox.checked)
+//                 .map(checkbox => checkbox.getAttribute('data-address'));
+
+//             // Send the transaction
+//             try {
+//                 const txId = await fcl.mutate({
+//                     cadence: REMOVE_ATTESTATIONS,
+//                     args: (arg, t) => [arg(checkedAddresses, t.Array(t.String))],
+//                     proposer: fcl.currentUser,
+//                     payer: fcl.currentUser,
+//                     authorizations: [fcl.currentUser],
+//                     limit: 9999
+//                 });
+
+//                 // Wait for the transaction to be confirmed
+//                 const transaction = await fcl.tx(txId).onceExecuted();
+//                 console.log('Transaction confirmed:', transaction);
+
+//                 // Re-render the table
+//                 await getAttestedAddresses(user.addr);
+//             } catch (error) {
+//                 console.error('Error sending transaction:', error);
+//             }
+//         }
+//     });
+// };
 
 function clearAttestedAddresses() {
     console.log('Clearing attested addresses table...');
