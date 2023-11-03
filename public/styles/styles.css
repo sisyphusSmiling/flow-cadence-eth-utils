@@ -81,9 +81,9 @@ button:hover {
     background-color: #45a049;
 }
 
-#attestButton {s
+#attestButton {
     font-family: 'Montserrat', sans-serif;
-    font-weight: 400;
+    font-weight: 500;
 }
 
 p {
@@ -114,11 +114,10 @@ table {
     /* Slight transparency */
     backdrop-filter: blur(10px);
     /* Frosted glass effect */
-    border-radius: 8px;
+    border-radius: 2px;
     overflow: hidden;
     /* Ensures the border-radius clips the content */
     margin-top: 20px;
-    /* Spacing from other elements */
 }
 
 th,
@@ -130,7 +129,6 @@ td {
 
 th {
     background-color: rgba(76, 175, 80, 0.85);
-    /* Slightly transparent green */
     color: #fff;
     font-weight: 500;
     text-transform: uppercase;
@@ -163,6 +161,19 @@ table a:hover {
 .subheading,
 th {
     font-family: 'Montserrat', sans-serif;
+}
+
+/* Add this to your CSS file */
+th,
+.verification-result {
+    text-align: center;
+}
+
+/* Existing table styles */
+table,
+th,
+td {
+    padding: 8px;
 }
 
 #removeButton {
@@ -233,4 +244,5 @@ th {
 .user-link:hover {
     color: #66ff66;
     text-decoration: underline;
+    transition: color 0.3s ease;
 }
