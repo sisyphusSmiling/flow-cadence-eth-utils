@@ -12,33 +12,54 @@ const {
 const flowJSON = require('../flow.json');
 const provider = ethers.getDefaultProvider(); // This defaults to 'homestead' (mainnet)
 
-document.addEventListener('DOMContentLoaded', (event) => {
+document.addEventListener('DOMContentLoaded', async (event) => {
+    initializeFCL();
+
+    // Subscribe to user state changes
+    fcl.currentUser().subscribe(async (currentUser) => {
+        user = currentUser;
+        updateAuthUI(user);
+
+        // If the user is logged in, fetch their attested addresses
+        if (user.loggedIn) {
+            await getAttestedAddresses(user.addr);
+        }
+    });
+
     document.getElementById('attestButton').addEventListener('click', attestAsAffiliate);
     document.getElementById('loginButton').addEventListener('click', authenticateWithFlow);
     document.getElementById('logoutButton').addEventListener('click', unauthenticateWithFlow);
 });
 
-fcl.config({
-    "app.detail.title": "Flow Affiliated Accounts", // the name of your DApp
-    "app.detail.icon": "https://assets-global.website-files.com/5f734f4dbd95382f4fdfa0ea/63ce603ae36f46f6bb67e51e_flow-logo.svg", // your DApps icon
-    "flow.network": network,
-    "accessNode.api": fclConfigInfo[network].accessNode,
-    "discovery.wallet": fclConfigInfo[network].discoveryWallet,
-    "discovery.authn.endpoint": fclConfigInfo[network].discoveryAuthnEndpoint,
-    // adds in opt-in wallets like Dapper and Ledger
-    "discovery.authn.include": fclConfigInfo[network].discoveryAuthInclude
-}).load({ flowJSON });
+function initializeFCL() {
+    fcl.config({
+        "app.detail.title": "Flow Affiliated Accounts", // the name of your DApp
+        "app.detail.icon": "https://assets-global.website-files.com/5f734f4dbd95382f4fdfa0ea/63ce603ae36f46f6bb67e51e_flow-logo.svg", // your DApps icon
+        "flow.network": network,
+        "accessNode.api": fclConfigInfo[network].accessNode,
+        "discovery.wallet": fclConfigInfo[network].discoveryWallet,
+        "discovery.authn.endpoint": fclConfigInfo[network].discoveryAuthnEndpoint,
+        // adds in opt-in wallets like Dapper and Ledger
+        "discovery.authn.include": fclConfigInfo[network].discoveryAuthInclude
+    }).load({ flowJSON });
+
+    // Check if the user is already logged in when the page loads
+    fcl.currentUser().snapshot().then(user => {
+        if (user.loggedIn) {
+            // User is logged in, update the UI accordingly
+            updateAuthUI(user);
+            // Fetch attested addresses for the logged-in user
+            getAttestedAddresses(user.addr);
+        }
+    });
+};
 
 // Initialize user state
 let user = { loggedIn: false, addr: "" };
 
-fcl.currentUser().subscribe((currentUser) => {
-    user = currentUser;
-    updateAuthUI(user);
-});
-
 async function authenticateWithFlow() {
     const user = await fcl.authenticate();
+    initializeFCL();
     await getAttestedAddresses(user.addr);
     return user;
 };
@@ -46,7 +67,7 @@ async function authenticateWithFlow() {
 function unauthenticateWithFlow() {
     console.log('Logging out...');
     fcl.unauthenticate();
-    clearAttestedAddresses();
+    window.location.reload();
 };
 
 async function createAttestation(hexPublicKey, signature, ethAddress) {
@@ -77,19 +98,6 @@ async function getAttestedAddresses(address) {
     renderAttestedAddresses(result);
 };
 
-async function getEthereumBalance(address) {
-    try {
-        const balanceWei = await provider.getBalance(address);
-        const balanceEther = ethers.utils.formatEther(balanceWei);
-        // Round the balance to 4 decimal places
-        const roundedBalance = parseFloat(balanceEther).toFixed(4);
-        return roundedBalance;
-    } catch (error) {
-        console.error(`Error fetching balance for address ${address}:`, error);
-        return "Error";
-    }
-}
-
 async function renderAttestedAddresses(addressStatuses) {
     const tableDiv = document.getElementById('attestedAddressesTable');
     if (Object.keys(addressStatuses).length === 0) {
@@ -98,27 +106,20 @@ async function renderAttestedAddresses(addressStatuses) {
     }
 
     let tableHTML = '<table>';
-    tableHTML += '<tr><th>Verified</th><th>Attested Address</th><th>Ethereum Balance</th></tr>';
+    tableHTML += '<tr><th>Attested Address</th><th>Verified</th></tr>';
 
     // Add rows to the table with placeholders
     for (const [address, isVerified] of Object.entries(addressStatuses)) {
         const etherscanUrl = `https://etherscan.io/address/${address}`;
         tableHTML += `
             <tr>
-                <td>${isVerified ? '✅' : '❌'}</td>
                 <td><a href="${etherscanUrl}" target="_blank">${address}</a></td>
-                <td id="balance-${address}">Loading...</td>
+                <td>${isVerified ? '✅' : '❌'}</td>
             </tr>
         `;
     }
     tableHTML += '</table>';
     tableDiv.innerHTML = tableHTML;
-
-    // Fetch and display the balances
-    for (const address of Object.keys(addressStatuses)) {
-        const balance = await getEthereumBalance(address);
-        document.getElementById(`balance-${address}`).textContent = `${balance} ETH`;
-    }
 };
 
 function clearAttestedAddresses() {
