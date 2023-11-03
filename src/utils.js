@@ -43,6 +43,7 @@ function updateAuthUI(user) {
     } else {
         loginButton.style.display = 'block';
         logoutButton.style.display = 'none';
+        userAddress.textContent = 'Please log in.';
     }
 };
 

@@ -48806,10 +48806,10 @@ const {
 } = require('./utils.js');
 const {
     CREATE_ATTESTATION,
-    GET_ATTESTED_ADDRESSES,
     GET_ATTESTED_ADDRESSES_WITH_STATUS
 } = require('./cadence.js')
-const flowJSON = require('../flow.json')
+const flowJSON = require('../flow.json');
+const provider = ethers.getDefaultProvider(); // This defaults to 'homestead' (mainnet)
 
 document.addEventListener('DOMContentLoaded', (event) => {
     document.getElementById('attestButton').addEventListener('click', attestAsAffiliate);
@@ -48876,7 +48876,18 @@ async function getAttestedAddresses(address) {
     renderAttestedAddresses(result);
 };
 
-function renderAttestedAddresses(addressStatuses) {
+async function getEthereumBalance(address) {
+    try {
+        const balanceWei = await provider.getBalance(address);
+        const balanceEther = ethers.utils.formatEther(balanceWei);
+        return balanceEther;
+    } catch (error) {
+        console.error(`Error fetching balance for address ${address}:`, error);
+        return "Error";
+    }
+}
+
+async function renderAttestedAddresses(addressStatuses) {
     const tableDiv = document.getElementById('attestedAddressesTable');
     if (Object.keys(addressStatuses).length === 0) {
         tableDiv.innerHTML = '<p>No attested addresses found.</p>';
@@ -48884,23 +48895,28 @@ function renderAttestedAddresses(addressStatuses) {
     }
 
     let tableHTML = '<table>';
-    tableHTML += '<tr><th>Attested Address</th><th>Verified</th></tr>';
+    tableHTML += '<tr><th>Verified</th><th>Attested Address</th><th>Ethereum Balance</th></tr>';
 
-    // Iterate over the addressStatuses object
+    // Add rows to the table with placeholders
     for (const [address, isVerified] of Object.entries(addressStatuses)) {
         const etherscanUrl = `https://etherscan.io/address/${address}`;
-        const verificationStatus = isVerified ? '✅' : '❌'; // Green checkmark for true, red X for false
         tableHTML += `
             <tr>
+                <td>${isVerified ? '✅' : '❌'}</td>
                 <td><a href="${etherscanUrl}" target="_blank">${address}</a></td>
-                <td>${verificationStatus}</td>
+                <td id="balance-${address}">Loading...</td>
             </tr>
         `;
     }
     tableHTML += '</table>';
-
     tableDiv.innerHTML = tableHTML;
-}
+
+    // Fetch and display the balances
+    for (const address of Object.keys(addressStatuses)) {
+        const balance = await getEthereumBalance(address);
+        document.getElementById(`balance-${address}`).textContent = `${balance} ETH`;
+    }
+};
 
 function clearAttestedAddresses() {
     console.log('Clearing attested addresses table...');
@@ -48911,7 +48927,7 @@ function clearAttestedAddresses() {
     } else {
         console.log('Table div not found.');
     }
-}
+};
 
 async function attestAsAffiliate() {
     // Check if MetaMask is installed
@@ -48972,7 +48988,7 @@ async function attestAsAffiliate() {
     } catch (err) {
         console.error(err);  // Log any errors
     }
-}
+};
 },{"../flow.json":1,"./cadence.js":218,"./utils.js":220,"@onflow/fcl":127,"ethers":167}],220:[function(require,module,exports){
 const network = 'emulator';
 
@@ -49019,6 +49035,7 @@ function updateAuthUI(user) {
     } else {
         loginButton.style.display = 'block';
         logoutButton.style.display = 'none';
+        userAddress.textContent = 'Please log in.';
     }
 };
 
