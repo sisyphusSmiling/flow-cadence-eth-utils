@@ -63,7 +63,7 @@ async function createAttestation(hexPublicKey, signature, ethAddress) {
             ],
             limit: 9999
         })
-    const tx = await fcl.tx(txId).onceSealed();
+    const tx = await fcl.tx(txId).onceExecuted();
     console.log(tx);
     await getAttestedAddresses(user.addr)
 };

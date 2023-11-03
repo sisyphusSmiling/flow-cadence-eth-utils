@@ -1,6 +1,15 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@400;700&display=swap');
+
+.title {
+    font-family: 'Montserrat', sans-serif;
+    color: #4CAF50;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
 body {
-    font-family: 'Arial', sans-serif;
-    background-color: #333;
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(315deg, #111 20%, #1f4a1d 100%);
     color: #fff;
     display: flex;
     flex-direction: column;
@@ -17,15 +26,14 @@ body {
 }
 
 .subheading {
-    color: #ccc;
+    font-weight: 400;
+    color: #e9e9e9;
     margin-bottom: 30px;
 }
 
 .container {
-    background-color: #555;
     padding: 20px;
     border-radius: 15px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     text-align: center;
     width: 300px;
     margin: 20px;
@@ -33,6 +41,8 @@ body {
 
 input,
 button {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 400;
     width: calc(100% - 20px);
     padding: 10px;
     margin-top: 10px;
@@ -58,6 +68,24 @@ button:hover {
     background-color: #45a049;
 }
 
+#loginButton {
+    background-color: #4CAF50;
+    font-weight: 800;
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 400;
+    transition: background-color 0.3s;
+}
+
+#loginButton:hover {
+    background-color: #45a049;
+}
+
+#attestButton {s
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 400;
+}
+
 p {
     word-wrap: break-word;
 }
@@ -78,48 +106,131 @@ p {
     background-color: #F44336;
 }
 
+/* Table Styles */
 table {
     width: 100%;
     border-collapse: collapse;
+    background-color: rgba(255, 255, 255, 0.05);
+    /* Slight transparency */
+    backdrop-filter: blur(10px);
+    /* Frosted glass effect */
+    border-radius: 8px;
+    overflow: hidden;
+    /* Ensures the border-radius clips the content */
+    margin-top: 20px;
+    /* Spacing from other elements */
 }
 
+th,
+td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+th {
+    background-color: rgba(76, 175, 80, 0.85);
+    /* Slightly transparent green */
+    color: #fff;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+td {
+    color: #ddd;
+    /* Lighter text color for contrast */
+}
+
+/* Link Styles */
 table a {
     color: #4CAF50;
-    /* This is a bright green color, you can choose any color that contrasts well with your background */
     text-decoration: none;
-    /* Optional: removes the underline from links */
+    transition: color 0.3s ease;
 }
 
 table a:hover {
     color: #66ff66;
-    /* Slightly lighter green color for hover effect */
     text-decoration: underline;
-    /* Optional: adds underline on hover */
 }
 
-table,
-th,
-td {
-    border: 1px solid #fff;
-    padding: 8px;
-    text-align: left;
+/* Checkbox and Button Styles */
+.remove-checkbox {
+    /* Custom checkbox styles can go here */
 }
 
+.title,
+.subheading,
 th {
-    background-color: #4CAF50;
+    font-family: 'Montserrat', sans-serif;
+}
+
+#removeButton {
+    background-color: #555;
+    /* Darker background for the button */
     color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#removeButton:hover:not([disabled]) {
+    background-color: #F44336;
+    /* Red color on hover */
+}
+
+#removeButton:disabled {
+    cursor: default;
+    opacity: 0.5;
+}
+
+/* Responsive Table */
+@media screen and (max-width: 600px) {
+    table {
+        display: block;
+        width: 100%;
+    }
+
+    thead,
+    tbody,
+    th,
+    td,
+    tr {
+        display: block;
+    }
+
+    th,
+    td {
+        text-align: right;
+    }
+
+    td {
+        position: relative;
+        padding-left: 50%;
+    }
+
+    td:before {
+        /* Now like a table header */
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+        content: attr(data-label);
+        text-align: left;
+        color: #ddd;
+    }
 }
 
 .user-link {
-    color: #4CAF50;
-    /* This is a bright green color, you can choose any color that contrasts well with your background */
+    color: #ffffff;
     text-decoration: none;
-    /* Optional: removes the underline from links */
 }
 
 .user-link:hover {
     color: #66ff66;
-    /* Slightly lighter green color for hover effect */
     text-decoration: underline;
-    /* Optional: adds underline on hover */
 }

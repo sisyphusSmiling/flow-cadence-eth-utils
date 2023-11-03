@@ -48772,8 +48772,7 @@ access(all) fun main(address: Address): [String] {
     return getAccount(address).getCapability<&{ETHAffiliatedAccount.AttestationManagerPublic}>(
             ETHAffiliatedAccount.PUBLIC_PATH
         ).borrow()
-        ?.getAttestedAddresses()
-        ?? panic("Could not borrow reference to AttestationManagerPublic from the provided account")
+        ?.getAttestedAddresses() ?? []
 }
 `;
 
@@ -48782,18 +48781,19 @@ module.exports.GET_ATTESTED_ADDRESSES_WITH_STATUS = `
 import "ETHAffiliatedAccount"
 
 access(all) fun main(address: Address): {String: Bool} {
-    let manager = getAccount(address).getCapability<&{ETHAffiliatedAccount.AttestationManagerPublic}>(
+    if let manager = getAccount(address).getCapability<&{ETHAffiliatedAccount.AttestationManagerPublic}>(
             ETHAffiliatedAccount.PUBLIC_PATH
-        ).borrow()
-        ?? panic("Could not borrow reference to AttestationManagerPublic from the provided account")
-    let attestedAffiliates: [String] = manager.getAttestedAddresses()
+        ).borrow() {
+        let attestedAffiliates: [String] = manager.getAttestedAddresses()
 
-    let response: {String: Bool} = {}
-    for affiliate in attestedAffiliates {
-        response.insert(key: affiliate, manager.borrowAttestation(ethAddress: affiliate)!.verify())
+        let response: {String: Bool} = {}
+        for affiliate in attestedAffiliates {
+            response.insert(key: affiliate, manager.borrowAttestation(ethAddress: affiliate)!.verify())
+        }
+
+        return response
     }
-
-    return response
+    return {}
 }
 `;
 },{}],219:[function(require,module,exports){
@@ -48862,7 +48862,7 @@ async function createAttestation(hexPublicKey, signature, ethAddress) {
             ],
             limit: 9999
         })
-    const tx = await fcl.tx(txId).onceSealed();
+    const tx = await fcl.tx(txId).onceExecuted();
     console.log(tx);
     await getAttestedAddresses(user.addr)
 };
@@ -48880,7 +48880,9 @@ async function getEthereumBalance(address) {
     try {
         const balanceWei = await provider.getBalance(address);
         const balanceEther = ethers.utils.formatEther(balanceWei);
-        return balanceEther;
+        // Round the balance to 4 decimal places
+        const roundedBalance = parseFloat(balanceEther).toFixed(4);
+        return roundedBalance;
     } catch (error) {
         console.error(`Error fetching balance for address ${address}:`, error);
         return "Error";
@@ -49035,7 +49037,7 @@ function updateAuthUI(user) {
     } else {
         loginButton.style.display = 'block';
         logoutButton.style.display = 'none';
-        userAddress.textContent = 'Please log in.';
+        userAddress.textContent = '';
     }
 };
 

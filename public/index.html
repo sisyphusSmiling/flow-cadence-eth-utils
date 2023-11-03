@@ -3,6 +3,8 @@
 
 <head>
     <link rel="stylesheet" type="text/css" href="styles/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@400;700&display=swap"
+        rel="stylesheet">
     <meta charset="UTF-8">
     <title>Flow Affiliated Accounts</title>
 </head>
@@ -10,14 +12,14 @@
 <body>
 
     <div style="position: absolute; top: 10px; right: 10px;">
-        <button id="loginButton" style="background-color: green; color: white;">Authenticate with Flow</button>
+        <button id="loginButton">Authenticate with Flow</button>
         <button id="logoutButton" style="display: none;">Logout</button>
         <p id="userAddress"></p>
     </div>
 
     <h1 class="title">Flow Affiliated Accounts</h1>
 
-    <h3 class="subheading">Verify your Ethereum account ownership on your Flow account</h3>
+    <h3 class="subheading">Verify Ethereum account ownership on your Flow account</h3>
     <div id="attestedAddressesTable"></div> <!-- Placeholder for the table -->
     <div class="container">
         <button id="attestButton">Affiliate ETH Account</button>
