@@ -15,7 +15,7 @@ access(all) contract ETHAffiliatedAccount {
     access(all) let MESSAGE_DELIMETER: String
 
     /* Events */
-    access(all) event AffiliationAttested(id: UInt64, flowAddress: Address, ethAddress: String)
+    access(all) event AccountAffiliationUpdated(id: UInt64, flowAddress: Address?, ethAddress: String, active: Bool)
 
     /* AttestationMessage */
     //
@@ -79,13 +79,10 @@ access(all) contract ETHAffiliatedAccount {
                 hexSignature: self.signature,
                 message: self.message.toString()
             )
-            assert(validSignature, message: "invalid signature of message: ".concat(self.message.toString()))
             // Valid Flow address
             let validFlowAddress: Bool = self.verifyFlowMessageAddressMatchesOwner()
-            assert(validFlowAddress, message: "invalid flow address")
             // Valid ETH address
             let validETHAddress = self.verifyETHAddressMatchesPublicKey()
-            assert(validETHAddress, message: "invalid eth address")
 
             return validSignature && validFlowAddress && validETHAddress
         }
@@ -155,7 +152,26 @@ access(all) contract ETHAffiliatedAccount {
                 ?? panic("Problem adding attestation to account")
             assert(attestationRef.verify(), message: "Invalid signature provided for attested ETH account")
 
-            emit AffiliationAttested(id: attestationRef.uuid, flowAddress: self.owner!.address, ethAddress: ethAddress)
+            emit AccountAffiliationUpdated(
+                id: attestationRef.uuid,
+                flowAddress: self.owner!.address,
+                ethAddress: ethAddress,
+                active: true
+            )
+        }
+
+        access(all) fun removeAttestation(ethAddress: String): @Attestation? {
+            if self.attestations[ethAddress] == nil {
+                return nil
+            }
+            let attesation <- self.attestations.remove(key: ethAddress)!
+            emit AccountAffiliationUpdated(
+                id: attesation.uuid,
+                flowAddress: self.owner?.address,
+                ethAddress: ethAddress,
+                active: false
+            )
+            return <- attesation
         }
 
         //--- Public ---\\
