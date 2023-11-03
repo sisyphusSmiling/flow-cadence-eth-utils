@@ -41,19 +41,19 @@ fcl.config({
     "discovery.authn.include": fclConfigInfo[network].discoveryAuthInclude
 }).load({ flowJSON });
 
-let user = { loggedIn: false, addr: "" };
+let user = { loggedIn: false, addr: "" }
 
 async function authenticateWithFlow() {
     const user = await fcl.authenticate();
     await getAttestedAddresses(user.addr);
     return user;
-};
+}
 
 function unauthenticateWithFlow() {
     console.log('Logging out...');
     fcl.unauthenticate();
     window.location.reload();
-};
+}
 
 async function createAttestation(hexPublicKey, signature, ethAddress) {
     const txId =
@@ -72,7 +72,7 @@ async function createAttestation(hexPublicKey, signature, ethAddress) {
     const tx = await fcl.tx(txId).onceExecuted();
     console.log(tx);
     await getAttestedAddresses(user.addr)
-};
+}
 
 async function getAttestedAddresses(address) {
     const result = await fcl.query({
@@ -81,7 +81,7 @@ async function getAttestedAddresses(address) {
     });
     console.log(result);
     renderAttestedAddresses(result);
-};
+}
 
 function generateTableHTML(addressStatuses) {
     let tableHTML = '<table>';
@@ -166,62 +166,69 @@ async function renderAttestedAddresses(addressStatuses) {
 }
 
 async function attestAsAffiliate() {
-    // Check if MetaMask is installed
-    if (!window.ethereum) {
-        alert('Please install MetaMask first.');
-        return;
-    }
+    if (!checkMetaMaskInstalled()) return;
 
     try {
-        const provider = new ethers.providers.Web3Provider(window.ethereum, "any");
-
-        // Send a request to access the user's Ethereum accounts
-        await provider.send("eth_requestAccounts", []);
-
+        const provider = await setupProvider();
         const signer = provider.getSigner();
-        const signerAddress = (await signer.getAddress()).toLowerCase();
+        const signerAddress = await getSignerAddress(signer);
 
-        // Define a string message to be signed
-        const user = await authenticateWithFlow()
-        const message = `${user.addr}:${signerAddress}`
+        const user = await authenticateWithFlow();
+        const message = constructMessage(user.addr, signerAddress);
+        const ethSig = await signMessage(signer, message);
+        const signature = processSignature(ethSig);
+        const publicKey = recoverPublicKey(message, ethSig);
 
-        const ethSig = await signer.signMessage(message);
-
-        // Remove the '0x' prefix from the signature string
-        const removedPrefix = ethSig.replace(/^0x/, '');
-
-        // Construct the sigObj object that consists of the following parts
-        let sigObj = {
-            r: removedPrefix.slice(0, 64),  // first 32 bytes of the signature
-            s: removedPrefix.slice(64, 128),  // next 32 bytes of the signature
-            recoveryParam: parseInt(removedPrefix.slice(128, 130), 16),  // the final byte (called v), used for recovering the public key
-        };
-
-        // Combine the 'r' and 's' parts to form the full signature
-        const signature = sigObj.r + sigObj.s;
-
-        // Construct the Ethereum signed message, following Ethereum's \x19Ethereum Signed Message:\n<length of message><message> convention.
-        // The purpose of this convention is to prevent the signed data from being a valid Ethereum transaction
-        const ethMessageVersion = `\x19Ethereum Signed Message:\n${message.length}${message}`;
-
-        // Compute the Keccak-256 hash of the message, which is used to recover the public key
-        const messageHash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(ethMessageVersion));
-
-        const pubKeyWithPrefix = ethers.utils.recoverPublicKey(messageHash, ethSig);
-
-        // Remove the prefix of the recovered public key
-        const publicKey = pubKeyWithPrefix.slice(4);
-
-        // The pubKey, toSign, and signature can now be used to interact with Cadence
-        // Display the results on the webpage
         console.log(`Signed message: ${message}`);
         console.log(`Signature: ${signature}`);
         console.log(`Signer address: ${signerAddress}`);
         console.log(`Signer public key: ${publicKey}`);
 
         await createAttestation(publicKey, signature, signerAddress);
-
     } catch (err) {
-        console.error(err);  // Log any errors
+        console.error(err);
     }
-};
+}
+
+function checkMetaMaskInstalled() {
+    if (!window.ethereum) {
+        alert('Please install MetaMask first.');
+        return false;
+    }
+    return true;
+}
+
+async function setupProvider() {
+    const provider = new ethers.providers.Web3Provider(window.ethereum, "any");
+    await provider.send("eth_requestAccounts", []);
+    return provider;
+}
+
+async function getSignerAddress(signer) {
+    return (await signer.getAddress()).toLowerCase();
+}
+
+function constructMessage(userAddress, signerAddress) {
+    return `${userAddress}:${signerAddress}`;
+}
+
+async function signMessage(signer, message) {
+    return await signer.signMessage(message);
+}
+
+function processSignature(ethSig) {
+    const removedPrefix = ethSig.replace(/^0x/, '');
+    let sigObj = {
+        r: removedPrefix.slice(0, 64),
+        s: removedPrefix.slice(64, 128),
+        recoveryParam: parseInt(removedPrefix.slice(128, 130), 16),
+    }
+    return sigObj.r + sigObj.s;
+}
+
+function recoverPublicKey(message, ethSig) {
+    const ethMessageVersion = `\x19Ethereum Signed Message:\n${message.length}${message}`;
+    const messageHash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(ethMessageVersion));
+    const pubKeyWithPrefix = ethers.utils.recoverPublicKey(messageHash, ethSig);
+    return pubKeyWithPrefix.slice(4); // Remove the prefix
+}
