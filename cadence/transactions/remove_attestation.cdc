@@ -1,6 +1,6 @@
 import "ETHAffiliatedAccount"
 
-transaction(ethAddress: String) {
+transaction(ethAddresses: [String]) {
 
     let manager: &ETHAffiliatedAccount.AttestationManager
 
@@ -12,8 +12,10 @@ transaction(ethAddress: String) {
     }
 
     execute {
-        if let attestation: @ETHAffiliatedAccount.Attestation <- self.manager.removeAttestation(ethAddress: ethAddress) {
-            destroy attestation
+        for ethAddress in ethAddresses {
+            if let attestation: @ETHAffiliatedAccount.Attestation <- self.manager.removeAttestation(ethAddress: ethAddress) {
+                destroy attestation
+            }
         }
     }
 }

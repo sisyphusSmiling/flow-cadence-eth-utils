@@ -1,5 +1,6 @@
-// Replace with import alias
-module.exports.CREATE_ATTESTATION = `
+/*** Transactions ***/
+
+const CREATE_ATTESTATION = `
 import "ETHAffiliatedAccount"
 
 transaction(hexPublicKey: String, signature: String, ethAddress: String) {
@@ -33,8 +34,33 @@ transaction(hexPublicKey: String, signature: String, ethAddress: String) {
 }
 `;
 
-// Replace with import alias
-module.exports.GET_ATTESTED_ADDRESSES = `
+const REMOVE_ATTESTATIONS = `
+import "ETHAffiliatedAccount"
+
+transaction(ethAddresses: [String]) {
+
+    let manager: &ETHAffiliatedAccount.AttestationManager
+
+    prepare(signer: AuthAccount) {
+
+        self.manager = signer.borrow<&ETHAffiliatedAccount.AttestationManager>(from: ETHAffiliatedAccount.STORAGE_PATH)
+            ?? panic("Could not borrow a reference to the AttestationManager")
+
+    }
+
+    execute {
+        for ethAddress in ethAddresses {
+            if let attestation: @ETHAffiliatedAccount.Attestation <- self.manager.removeAttestation(ethAddress: ethAddress) {
+                destroy attestation
+            }
+        }
+    }
+}
+`;
+
+/*** Scripts ***/
+
+const GET_ATTESTED_ADDRESSES = `
 import "ETHAffiliatedAccount"
 
 access(all) fun main(address: Address): [String] {
@@ -45,8 +71,7 @@ access(all) fun main(address: Address): [String] {
 }
 `;
 
-// Replace with import alias
-module.exports.GET_ATTESTED_ADDRESSES_WITH_STATUS = `
+const GET_ATTESTED_ADDRESSES_WITH_STATUS = `
 import "ETHAffiliatedAccount"
 
 access(all) fun main(address: Address): {String: Bool} {
@@ -65,3 +90,10 @@ access(all) fun main(address: Address): {String: Bool} {
     return {}
 }
 `;
+
+module.exports = {  
+    CREATE_ATTESTATION,
+    REMOVE_ATTESTATIONS,
+    GET_ATTESTED_ADDRESSES,
+    GET_ATTESTED_ADDRESSES_WITH_STATUS
+};
