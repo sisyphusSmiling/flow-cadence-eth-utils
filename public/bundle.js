@@ -1,2833 +1,10 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-function _arrayLikeToArray(arr, len) {
-  if (len == null || len > arr.length) len = arr.length;
-  for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i];
-  return arr2;
-}
-module.exports = _arrayLikeToArray, module.exports.__esModule = true, module.exports["default"] = module.exports;
-},{}],2:[function(require,module,exports){
-function _arrayWithHoles(arr) {
-  if (Array.isArray(arr)) return arr;
-}
-module.exports = _arrayWithHoles, module.exports.__esModule = true, module.exports["default"] = module.exports;
-},{}],3:[function(require,module,exports){
-var arrayLikeToArray = require("./arrayLikeToArray.js");
-function _arrayWithoutHoles(arr) {
-  if (Array.isArray(arr)) return arrayLikeToArray(arr);
-}
-module.exports = _arrayWithoutHoles, module.exports.__esModule = true, module.exports["default"] = module.exports;
-},{"./arrayLikeToArray.js":1}],4:[function(require,module,exports){
-function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {
-  try {
-    var info = gen[key](arg);
-    var value = info.value;
-  } catch (error) {
-    reject(error);
-    return;
-  }
-  if (info.done) {
-    resolve(value);
-  } else {
-    Promise.resolve(value).then(_next, _throw);
-  }
-}
-function _asyncToGenerator(fn) {
-  return function () {
-    var self = this,
-      args = arguments;
-    return new Promise(function (resolve, reject) {
-      var gen = fn.apply(self, args);
-      function _next(value) {
-        asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);
-      }
-      function _throw(err) {
-        asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);
-      }
-      _next(undefined);
-    });
-  };
-}
-module.exports = _asyncToGenerator, module.exports.__esModule = true, module.exports["default"] = module.exports;
-},{}],5:[function(require,module,exports){
-var unsupportedIterableToArray = require("./unsupportedIterableToArray.js");
-function _createForOfIteratorHelper(o, allowArrayLike) {
-  var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"];
-  if (!it) {
-    if (Array.isArray(o) || (it = unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") {
-      if (it) o = it;
-      var i = 0;
-      var F = function F() {};
-      return {
-        s: F,
-        n: function n() {
-          if (i >= o.length) return {
-            done: true
-          };
-          return {
-            done: false,
-            value: o[i++]
-          };
-        },
-        e: function e(_e) {
-          throw _e;
-        },
-        f: F
-      };
-    }
-    throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
-  }
-  var normalCompletion = true,
-    didErr = false,
-    err;
-  return {
-    s: function s() {
-      it = it.call(o);
-    },
-    n: function n() {
-      var step = it.next();
-      normalCompletion = step.done;
-      return step;
-    },
-    e: function e(_e2) {
-      didErr = true;
-      err = _e2;
-    },
-    f: function f() {
-      try {
-        if (!normalCompletion && it["return"] != null) it["return"]();
-      } finally {
-        if (didErr) throw err;
-      }
-    }
-  };
-}
-module.exports = _createForOfIteratorHelper, module.exports.__esModule = true, module.exports["default"] = module.exports;
-},{"./unsupportedIterableToArray.js":18}],6:[function(require,module,exports){
-var toPropertyKey = require("./toPropertyKey.js");
-function _defineProperty(obj, key, value) {
-  key = toPropertyKey(key);
-  if (key in obj) {
-    Object.defineProperty(obj, key, {
-      value: value,
-      enumerable: true,
-      configurable: true,
-      writable: true
-    });
-  } else {
-    obj[key] = value;
-  }
-  return obj;
-}
-module.exports = _defineProperty, module.exports.__esModule = true, module.exports["default"] = module.exports;
-},{"./toPropertyKey.js":16}],7:[function(require,module,exports){
-function _iterableToArray(iter) {
-  if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
-}
-module.exports = _iterableToArray, module.exports.__esModule = true, module.exports["default"] = module.exports;
-},{}],8:[function(require,module,exports){
-function _iterableToArrayLimit(r, l) {
-  var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"];
-  if (null != t) {
-    var e,
-      n,
-      i,
-      u,
-      a = [],
-      f = !0,
-      o = !1;
-    try {
-      if (i = (t = t.call(r)).next, 0 === l) {
-        if (Object(t) !== t) return;
-        f = !1;
-      } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0);
-    } catch (r) {
-      o = !0, n = r;
-    } finally {
-      try {
-        if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return;
-      } finally {
-        if (o) throw n;
-      }
-    }
-    return a;
-  }
-}
-module.exports = _iterableToArrayLimit, module.exports.__esModule = true, module.exports["default"] = module.exports;
-},{}],9:[function(require,module,exports){
-function _nonIterableRest() {
-  throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
-}
-module.exports = _nonIterableRest, module.exports.__esModule = true, module.exports["default"] = module.exports;
-},{}],10:[function(require,module,exports){
-function _nonIterableSpread() {
-  throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
-}
-module.exports = _nonIterableSpread, module.exports.__esModule = true, module.exports["default"] = module.exports;
-},{}],11:[function(require,module,exports){
-var defineProperty = require("./defineProperty.js");
-function ownKeys(e, r) {
-  var t = Object.keys(e);
-  if (Object.getOwnPropertySymbols) {
-    var o = Object.getOwnPropertySymbols(e);
-    r && (o = o.filter(function (r) {
-      return Object.getOwnPropertyDescriptor(e, r).enumerable;
-    })), t.push.apply(t, o);
-  }
-  return t;
-}
-function _objectSpread2(e) {
-  for (var r = 1; r < arguments.length; r++) {
-    var t = null != arguments[r] ? arguments[r] : {};
-    r % 2 ? ownKeys(Object(t), !0).forEach(function (r) {
-      defineProperty(e, r, t[r]);
-    }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) {
-      Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r));
-    });
-  }
-  return e;
-}
-module.exports = _objectSpread2, module.exports.__esModule = true, module.exports["default"] = module.exports;
-},{"./defineProperty.js":6}],12:[function(require,module,exports){
-var _typeof = require("./typeof.js")["default"];
-function _regeneratorRuntime() {
-  "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */
-  module.exports = _regeneratorRuntime = function _regeneratorRuntime() {
-    return e;
-  }, module.exports.__esModule = true, module.exports["default"] = module.exports;
-  var t,
-    e = {},
-    r = Object.prototype,
-    n = r.hasOwnProperty,
-    o = Object.defineProperty || function (t, e, r) {
-      t[e] = r.value;
-    },
-    i = "function" == typeof Symbol ? Symbol : {},
-    a = i.iterator || "@@iterator",
-    c = i.asyncIterator || "@@asyncIterator",
-    u = i.toStringTag || "@@toStringTag";
-  function define(t, e, r) {
-    return Object.defineProperty(t, e, {
-      value: r,
-      enumerable: !0,
-      configurable: !0,
-      writable: !0
-    }), t[e];
-  }
-  try {
-    define({}, "");
-  } catch (t) {
-    define = function define(t, e, r) {
-      return t[e] = r;
-    };
-  }
-  function wrap(t, e, r, n) {
-    var i = e && e.prototype instanceof Generator ? e : Generator,
-      a = Object.create(i.prototype),
-      c = new Context(n || []);
-    return o(a, "_invoke", {
-      value: makeInvokeMethod(t, r, c)
-    }), a;
-  }
-  function tryCatch(t, e, r) {
-    try {
-      return {
-        type: "normal",
-        arg: t.call(e, r)
-      };
-    } catch (t) {
-      return {
-        type: "throw",
-        arg: t
-      };
-    }
-  }
-  e.wrap = wrap;
-  var h = "suspendedStart",
-    l = "suspendedYield",
-    f = "executing",
-    s = "completed",
-    y = {};
-  function Generator() {}
-  function GeneratorFunction() {}
-  function GeneratorFunctionPrototype() {}
-  var p = {};
-  define(p, a, function () {
-    return this;
-  });
-  var d = Object.getPrototypeOf,
-    v = d && d(d(values([])));
-  v && v !== r && n.call(v, a) && (p = v);
-  var g = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(p);
-  function defineIteratorMethods(t) {
-    ["next", "throw", "return"].forEach(function (e) {
-      define(t, e, function (t) {
-        return this._invoke(e, t);
-      });
-    });
-  }
-  function AsyncIterator(t, e) {
-    function invoke(r, o, i, a) {
-      var c = tryCatch(t[r], t, o);
-      if ("throw" !== c.type) {
-        var u = c.arg,
-          h = u.value;
-        return h && "object" == _typeof(h) && n.call(h, "__await") ? e.resolve(h.__await).then(function (t) {
-          invoke("next", t, i, a);
-        }, function (t) {
-          invoke("throw", t, i, a);
-        }) : e.resolve(h).then(function (t) {
-          u.value = t, i(u);
-        }, function (t) {
-          return invoke("throw", t, i, a);
-        });
-      }
-      a(c.arg);
-    }
-    var r;
-    o(this, "_invoke", {
-      value: function value(t, n) {
-        function callInvokeWithMethodAndArg() {
-          return new e(function (e, r) {
-            invoke(t, n, e, r);
-          });
-        }
-        return r = r ? r.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg();
-      }
-    });
-  }
-  function makeInvokeMethod(e, r, n) {
-    var o = h;
-    return function (i, a) {
-      if (o === f) throw new Error("Generator is already running");
-      if (o === s) {
-        if ("throw" === i) throw a;
-        return {
-          value: t,
-          done: !0
-        };
-      }
-      for (n.method = i, n.arg = a;;) {
-        var c = n.delegate;
-        if (c) {
-          var u = maybeInvokeDelegate(c, n);
-          if (u) {
-            if (u === y) continue;
-            return u;
-          }
-        }
-        if ("next" === n.method) n.sent = n._sent = n.arg;else if ("throw" === n.method) {
-          if (o === h) throw o = s, n.arg;
-          n.dispatchException(n.arg);
-        } else "return" === n.method && n.abrupt("return", n.arg);
-        o = f;
-        var p = tryCatch(e, r, n);
-        if ("normal" === p.type) {
-          if (o = n.done ? s : l, p.arg === y) continue;
-          return {
-            value: p.arg,
-            done: n.done
-          };
-        }
-        "throw" === p.type && (o = s, n.method = "throw", n.arg = p.arg);
-      }
-    };
-  }
-  function maybeInvokeDelegate(e, r) {
-    var n = r.method,
-      o = e.iterator[n];
-    if (o === t) return r.delegate = null, "throw" === n && e.iterator["return"] && (r.method = "return", r.arg = t, maybeInvokeDelegate(e, r), "throw" === r.method) || "return" !== n && (r.method = "throw", r.arg = new TypeError("The iterator does not provide a '" + n + "' method")), y;
-    var i = tryCatch(o, e.iterator, r.arg);
-    if ("throw" === i.type) return r.method = "throw", r.arg = i.arg, r.delegate = null, y;
-    var a = i.arg;
-    return a ? a.done ? (r[e.resultName] = a.value, r.next = e.nextLoc, "return" !== r.method && (r.method = "next", r.arg = t), r.delegate = null, y) : a : (r.method = "throw", r.arg = new TypeError("iterator result is not an object"), r.delegate = null, y);
-  }
-  function pushTryEntry(t) {
-    var e = {
-      tryLoc: t[0]
-    };
-    1 in t && (e.catchLoc = t[1]), 2 in t && (e.finallyLoc = t[2], e.afterLoc = t[3]), this.tryEntries.push(e);
-  }
-  function resetTryEntry(t) {
-    var e = t.completion || {};
-    e.type = "normal", delete e.arg, t.completion = e;
-  }
-  function Context(t) {
-    this.tryEntries = [{
-      tryLoc: "root"
-    }], t.forEach(pushTryEntry, this), this.reset(!0);
-  }
-  function values(e) {
-    if (e || "" === e) {
-      var r = e[a];
-      if (r) return r.call(e);
-      if ("function" == typeof e.next) return e;
-      if (!isNaN(e.length)) {
-        var o = -1,
-          i = function next() {
-            for (; ++o < e.length;) if (n.call(e, o)) return next.value = e[o], next.done = !1, next;
-            return next.value = t, next.done = !0, next;
-          };
-        return i.next = i;
-      }
-    }
-    throw new TypeError(_typeof(e) + " is not iterable");
-  }
-  return GeneratorFunction.prototype = GeneratorFunctionPrototype, o(g, "constructor", {
-    value: GeneratorFunctionPrototype,
-    configurable: !0
-  }), o(GeneratorFunctionPrototype, "constructor", {
-    value: GeneratorFunction,
-    configurable: !0
-  }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, u, "GeneratorFunction"), e.isGeneratorFunction = function (t) {
-    var e = "function" == typeof t && t.constructor;
-    return !!e && (e === GeneratorFunction || "GeneratorFunction" === (e.displayName || e.name));
-  }, e.mark = function (t) {
-    return Object.setPrototypeOf ? Object.setPrototypeOf(t, GeneratorFunctionPrototype) : (t.__proto__ = GeneratorFunctionPrototype, define(t, u, "GeneratorFunction")), t.prototype = Object.create(g), t;
-  }, e.awrap = function (t) {
-    return {
-      __await: t
-    };
-  }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, c, function () {
-    return this;
-  }), e.AsyncIterator = AsyncIterator, e.async = function (t, r, n, o, i) {
-    void 0 === i && (i = Promise);
-    var a = new AsyncIterator(wrap(t, r, n, o), i);
-    return e.isGeneratorFunction(r) ? a : a.next().then(function (t) {
-      return t.done ? t.value : a.next();
-    });
-  }, defineIteratorMethods(g), define(g, u, "Generator"), define(g, a, function () {
-    return this;
-  }), define(g, "toString", function () {
-    return "[object Generator]";
-  }), e.keys = function (t) {
-    var e = Object(t),
-      r = [];
-    for (var n in e) r.push(n);
-    return r.reverse(), function next() {
-      for (; r.length;) {
-        var t = r.pop();
-        if (t in e) return next.value = t, next.done = !1, next;
-      }
-      return next.done = !0, next;
-    };
-  }, e.values = values, Context.prototype = {
-    constructor: Context,
-    reset: function reset(e) {
-      if (this.prev = 0, this.next = 0, this.sent = this._sent = t, this.done = !1, this.delegate = null, this.method = "next", this.arg = t, this.tryEntries.forEach(resetTryEntry), !e) for (var r in this) "t" === r.charAt(0) && n.call(this, r) && !isNaN(+r.slice(1)) && (this[r] = t);
-    },
-    stop: function stop() {
-      this.done = !0;
-      var t = this.tryEntries[0].completion;
-      if ("throw" === t.type) throw t.arg;
-      return this.rval;
-    },
-    dispatchException: function dispatchException(e) {
-      if (this.done) throw e;
-      var r = this;
-      function handle(n, o) {
-        return a.type = "throw", a.arg = e, r.next = n, o && (r.method = "next", r.arg = t), !!o;
-      }
-      for (var o = this.tryEntries.length - 1; o >= 0; --o) {
-        var i = this.tryEntries[o],
-          a = i.completion;
-        if ("root" === i.tryLoc) return handle("end");
-        if (i.tryLoc <= this.prev) {
-          var c = n.call(i, "catchLoc"),
-            u = n.call(i, "finallyLoc");
-          if (c && u) {
-            if (this.prev < i.catchLoc) return handle(i.catchLoc, !0);
-            if (this.prev < i.finallyLoc) return handle(i.finallyLoc);
-          } else if (c) {
-            if (this.prev < i.catchLoc) return handle(i.catchLoc, !0);
-          } else {
-            if (!u) throw new Error("try statement without catch or finally");
-            if (this.prev < i.finallyLoc) return handle(i.finallyLoc);
-          }
-        }
-      }
-    },
-    abrupt: function abrupt(t, e) {
-      for (var r = this.tryEntries.length - 1; r >= 0; --r) {
-        var o = this.tryEntries[r];
-        if (o.tryLoc <= this.prev && n.call(o, "finallyLoc") && this.prev < o.finallyLoc) {
-          var i = o;
-          break;
-        }
-      }
-      i && ("break" === t || "continue" === t) && i.tryLoc <= e && e <= i.finallyLoc && (i = null);
-      var a = i ? i.completion : {};
-      return a.type = t, a.arg = e, i ? (this.method = "next", this.next = i.finallyLoc, y) : this.complete(a);
-    },
-    complete: function complete(t, e) {
-      if ("throw" === t.type) throw t.arg;
-      return "break" === t.type || "continue" === t.type ? this.next = t.arg : "return" === t.type ? (this.rval = this.arg = t.arg, this.method = "return", this.next = "end") : "normal" === t.type && e && (this.next = e), y;
-    },
-    finish: function finish(t) {
-      for (var e = this.tryEntries.length - 1; e >= 0; --e) {
-        var r = this.tryEntries[e];
-        if (r.finallyLoc === t) return this.complete(r.completion, r.afterLoc), resetTryEntry(r), y;
-      }
-    },
-    "catch": function _catch(t) {
-      for (var e = this.tryEntries.length - 1; e >= 0; --e) {
-        var r = this.tryEntries[e];
-        if (r.tryLoc === t) {
-          var n = r.completion;
-          if ("throw" === n.type) {
-            var o = n.arg;
-            resetTryEntry(r);
-          }
-          return o;
-        }
-      }
-      throw new Error("illegal catch attempt");
-    },
-    delegateYield: function delegateYield(e, r, n) {
-      return this.delegate = {
-        iterator: values(e),
-        resultName: r,
-        nextLoc: n
-      }, "next" === this.method && (this.arg = t), y;
-    }
-  }, e;
-}
-module.exports = _regeneratorRuntime, module.exports.__esModule = true, module.exports["default"] = module.exports;
-},{"./typeof.js":17}],13:[function(require,module,exports){
-var arrayWithHoles = require("./arrayWithHoles.js");
-var iterableToArrayLimit = require("./iterableToArrayLimit.js");
-var unsupportedIterableToArray = require("./unsupportedIterableToArray.js");
-var nonIterableRest = require("./nonIterableRest.js");
-function _slicedToArray(arr, i) {
-  return arrayWithHoles(arr) || iterableToArrayLimit(arr, i) || unsupportedIterableToArray(arr, i) || nonIterableRest();
-}
-module.exports = _slicedToArray, module.exports.__esModule = true, module.exports["default"] = module.exports;
-},{"./arrayWithHoles.js":2,"./iterableToArrayLimit.js":8,"./nonIterableRest.js":9,"./unsupportedIterableToArray.js":18}],14:[function(require,module,exports){
-var arrayWithoutHoles = require("./arrayWithoutHoles.js");
-var iterableToArray = require("./iterableToArray.js");
-var unsupportedIterableToArray = require("./unsupportedIterableToArray.js");
-var nonIterableSpread = require("./nonIterableSpread.js");
-function _toConsumableArray(arr) {
-  return arrayWithoutHoles(arr) || iterableToArray(arr) || unsupportedIterableToArray(arr) || nonIterableSpread();
-}
-module.exports = _toConsumableArray, module.exports.__esModule = true, module.exports["default"] = module.exports;
-},{"./arrayWithoutHoles.js":3,"./iterableToArray.js":7,"./nonIterableSpread.js":10,"./unsupportedIterableToArray.js":18}],15:[function(require,module,exports){
-var _typeof = require("./typeof.js")["default"];
-function _toPrimitive(input, hint) {
-  if (_typeof(input) !== "object" || input === null) return input;
-  var prim = input[Symbol.toPrimitive];
-  if (prim !== undefined) {
-    var res = prim.call(input, hint || "default");
-    if (_typeof(res) !== "object") return res;
-    throw new TypeError("@@toPrimitive must return a primitive value.");
-  }
-  return (hint === "string" ? String : Number)(input);
-}
-module.exports = _toPrimitive, module.exports.__esModule = true, module.exports["default"] = module.exports;
-},{"./typeof.js":17}],16:[function(require,module,exports){
-var _typeof = require("./typeof.js")["default"];
-var toPrimitive = require("./toPrimitive.js");
-function _toPropertyKey(arg) {
-  var key = toPrimitive(arg, "string");
-  return _typeof(key) === "symbol" ? key : String(key);
-}
-module.exports = _toPropertyKey, module.exports.__esModule = true, module.exports["default"] = module.exports;
-},{"./toPrimitive.js":15,"./typeof.js":17}],17:[function(require,module,exports){
-function _typeof(o) {
-  "@babel/helpers - typeof";
-
-  return (module.exports = _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) {
-    return typeof o;
-  } : function (o) {
-    return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o;
-  }, module.exports.__esModule = true, module.exports["default"] = module.exports), _typeof(o);
-}
-module.exports = _typeof, module.exports.__esModule = true, module.exports["default"] = module.exports;
-},{}],18:[function(require,module,exports){
-var arrayLikeToArray = require("./arrayLikeToArray.js");
-function _unsupportedIterableToArray(o, minLen) {
-  if (!o) return;
-  if (typeof o === "string") return arrayLikeToArray(o, minLen);
-  var n = Object.prototype.toString.call(o).slice(8, -1);
-  if (n === "Object" && o.constructor) n = o.constructor.name;
-  if (n === "Map" || n === "Set") return Array.from(o);
-  if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return arrayLikeToArray(o, minLen);
-}
-module.exports = _unsupportedIterableToArray, module.exports.__esModule = true, module.exports["default"] = module.exports;
-},{"./arrayLikeToArray.js":1}],19:[function(require,module,exports){
-// TODO(Babel 8): Remove this file.
-
-var runtime = require("../helpers/regeneratorRuntime")();
-module.exports = runtime;
-
-// Copied from https://github.com/facebook/regenerator/blob/main/packages/runtime/runtime.js#L736=
-try {
-  regeneratorRuntime = runtime;
-} catch (accidentalStrictMode) {
-  if (typeof globalThis === "object") {
-    globalThis.regeneratorRuntime = runtime;
-  } else {
-    Function("r", "regeneratorRuntime = r")(runtime);
-  }
-}
-
-},{"../helpers/regeneratorRuntime":12}],20:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.RLP = exports.utils = exports.decode = exports.encode = void 0;
-/**
- * RLP Encoding based on https://ethereum.org/en/developers/docs/data-structures-and-encoding/rlp/
- * This function takes in data, converts it to Uint8Array if not,
- * and adds a length for recursion.
- * @param input Will be converted to Uint8Array
- * @returns Uint8Array of encoded data
- **/
-function encode(input) {
-    if (Array.isArray(input)) {
-        const output = [];
-        let outputLength = 0;
-        for (let i = 0; i < input.length; i++) {
-            const encoded = encode(input[i]);
-            output.push(encoded);
-            outputLength += encoded.length;
-        }
-        return concatBytes(encodeLength(outputLength, 192), ...output);
-    }
-    const inputBuf = toBytes(input);
-    if (inputBuf.length === 1 && inputBuf[0] < 128) {
-        return inputBuf;
-    }
-    return concatBytes(encodeLength(inputBuf.length, 128), inputBuf);
-}
-exports.encode = encode;
-/**
- * Slices a Uint8Array, throws if the slice goes out-of-bounds of the Uint8Array.
- * E.g. `safeSlice(hexToBytes('aa'), 1, 2)` will throw.
- * @param input
- * @param start
- * @param end
- */
-function safeSlice(input, start, end) {
-    if (end > input.length) {
-        throw new Error('invalid RLP (safeSlice): end slice of Uint8Array out-of-bounds');
-    }
-    return input.slice(start, end);
-}
-/**
- * Parse integers. Check if there is no leading zeros
- * @param v The value to parse
- */
-function decodeLength(v) {
-    if (v[0] === 0) {
-        throw new Error('invalid RLP: extra zeros');
-    }
-    return parseHexByte(bytesToHex(v));
-}
-function encodeLength(len, offset) {
-    if (len < 56) {
-        return Uint8Array.from([len + offset]);
-    }
-    const hexLength = numberToHex(len);
-    const lLength = hexLength.length / 2;
-    const firstByte = numberToHex(offset + 55 + lLength);
-    return Uint8Array.from(hexToBytes(firstByte + hexLength));
-}
-function decode(input, stream = false) {
-    if (typeof input === 'undefined' || input === null || input.length === 0) {
-        return Uint8Array.from([]);
-    }
-    const inputBytes = toBytes(input);
-    const decoded = _decode(inputBytes);
-    if (stream) {
-        return decoded;
-    }
-    if (decoded.remainder.length !== 0) {
-        throw new Error('invalid RLP: remainder must be zero');
-    }
-    return decoded.data;
-}
-exports.decode = decode;
-/** Decode an input with RLP */
-function _decode(input) {
-    let length, llength, data, innerRemainder, d;
-    const decoded = [];
-    const firstByte = input[0];
-    if (firstByte <= 0x7f) {
-        // a single byte whose value is in the [0x00, 0x7f] range, that byte is its own RLP encoding.
-        return {
-            data: input.slice(0, 1),
-            remainder: input.slice(1),
-        };
-    }
-    else if (firstByte <= 0xb7) {
-        // string is 0-55 bytes long. A single byte with value 0x80 plus the length of the string followed by the string
-        // The range of the first byte is [0x80, 0xb7]
-        length = firstByte - 0x7f;
-        // set 0x80 null to 0
-        if (firstByte === 0x80) {
-            data = Uint8Array.from([]);
-        }
-        else {
-            data = safeSlice(input, 1, length);
-        }
-        if (length === 2 && data[0] < 0x80) {
-            throw new Error('invalid RLP encoding: invalid prefix, single byte < 0x80 are not prefixed');
-        }
-        return {
-            data,
-            remainder: input.slice(length),
-        };
-    }
-    else if (firstByte <= 0xbf) {
-        // string is greater than 55 bytes long. A single byte with the value (0xb7 plus the length of the length),
-        // followed by the length, followed by the string
-        llength = firstByte - 0xb6;
-        if (input.length - 1 < llength) {
-            throw new Error('invalid RLP: not enough bytes for string length');
-        }
-        length = decodeLength(safeSlice(input, 1, llength));
-        if (length <= 55) {
-            throw new Error('invalid RLP: expected string length to be greater than 55');
-        }
-        data = safeSlice(input, llength, length + llength);
-        return {
-            data,
-            remainder: input.slice(length + llength),
-        };
-    }
-    else if (firstByte <= 0xf7) {
-        // a list between 0-55 bytes long
-        length = firstByte - 0xbf;
-        innerRemainder = safeSlice(input, 1, length);
-        while (innerRemainder.length) {
-            d = _decode(innerRemainder);
-            decoded.push(d.data);
-            innerRemainder = d.remainder;
-        }
-        return {
-            data: decoded,
-            remainder: input.slice(length),
-        };
-    }
-    else {
-        // a list over 55 bytes long
-        llength = firstByte - 0xf6;
-        length = decodeLength(safeSlice(input, 1, llength));
-        if (length < 56) {
-            throw new Error('invalid RLP: encoded list too short');
-        }
-        const totalLength = llength + length;
-        if (totalLength > input.length) {
-            throw new Error('invalid RLP: total length is larger than the data');
-        }
-        innerRemainder = safeSlice(input, llength, totalLength);
-        while (innerRemainder.length) {
-            d = _decode(innerRemainder);
-            decoded.push(d.data);
-            innerRemainder = d.remainder;
-        }
-        return {
-            data: decoded,
-            remainder: input.slice(totalLength),
-        };
-    }
-}
-const cachedHexes = Array.from({ length: 256 }, (_v, i) => i.toString(16).padStart(2, '0'));
-function bytesToHex(uint8a) {
-    // Pre-caching chars with `cachedHexes` speeds this up 6x
-    let hex = '';
-    for (let i = 0; i < uint8a.length; i++) {
-        hex += cachedHexes[uint8a[i]];
-    }
-    return hex;
-}
-function parseHexByte(hexByte) {
-    const byte = Number.parseInt(hexByte, 16);
-    if (Number.isNaN(byte))
-        throw new Error('Invalid byte sequence');
-    return byte;
-}
-// Caching slows it down 2-3x
-function hexToBytes(hex) {
-    if (typeof hex !== 'string') {
-        throw new TypeError('hexToBytes: expected string, got ' + typeof hex);
-    }
-    if (hex.length % 2)
-        throw new Error('hexToBytes: received invalid unpadded hex');
-    const array = new Uint8Array(hex.length / 2);
-    for (let i = 0; i < array.length; i++) {
-        const j = i * 2;
-        array[i] = parseHexByte(hex.slice(j, j + 2));
-    }
-    return array;
-}
-/** Concatenates two Uint8Arrays into one. */
-function concatBytes(...arrays) {
-    if (arrays.length === 1)
-        return arrays[0];
-    const length = arrays.reduce((a, arr) => a + arr.length, 0);
-    const result = new Uint8Array(length);
-    for (let i = 0, pad = 0; i < arrays.length; i++) {
-        const arr = arrays[i];
-        result.set(arr, pad);
-        pad += arr.length;
-    }
-    return result;
-}
-function utf8ToBytes(utf) {
-    return new TextEncoder().encode(utf);
-}
-/** Transform an integer into its hexadecimal value */
-function numberToHex(integer) {
-    if (integer < 0) {
-        throw new Error('Invalid integer as argument, must be unsigned!');
-    }
-    const hex = integer.toString(16);
-    return hex.length % 2 ? `0${hex}` : hex;
-}
-/** Pad a string to be even */
-function padToEven(a) {
-    return a.length % 2 ? `0${a}` : a;
-}
-/** Check if a string is prefixed by 0x */
-function isHexPrefixed(str) {
-    return str.length >= 2 && str[0] === '0' && str[1] === 'x';
-}
-/** Removes 0x from a given String */
-function stripHexPrefix(str) {
-    if (typeof str !== 'string') {
-        return str;
-    }
-    return isHexPrefixed(str) ? str.slice(2) : str;
-}
-/** Transform anything into a Uint8Array */
-function toBytes(v) {
-    if (v instanceof Uint8Array) {
-        return v;
-    }
-    if (typeof v === 'string') {
-        if (isHexPrefixed(v)) {
-            return hexToBytes(padToEven(stripHexPrefix(v)));
-        }
-        return utf8ToBytes(v);
-    }
-    if (typeof v === 'number' || typeof v === 'bigint') {
-        if (!v) {
-            return Uint8Array.from([]);
-        }
-        return hexToBytes(numberToHex(v));
-    }
-    if (v === null || v === undefined) {
-        return Uint8Array.from([]);
-    }
-    throw new Error('toBytes: received unsupported type ' + typeof v);
-}
-exports.utils = {
-    bytesToHex,
-    concatBytes,
-    hexToBytes,
-    utf8ToBytes,
-};
-exports.RLP = { encode, decode };
-
-},{}],21:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.accountBodyToRLP = exports.accountBodyToSlim = exports.accountBodyFromSlim = exports.isZeroAddress = exports.zeroAddress = exports.importPublic = exports.privateToAddress = exports.privateToPublic = exports.publicToAddress = exports.pubToAddress = exports.isValidPublic = exports.isValidPrivate = exports.generateAddress2 = exports.generateAddress = exports.isValidChecksumAddress = exports.toChecksumAddress = exports.isValidAddress = exports.Account = void 0;
-const rlp_1 = require("@ethereumjs/rlp");
-const keccak_js_1 = require("ethereum-cryptography/keccak.js");
-const secp256k1_js_1 = require("ethereum-cryptography/secp256k1.js");
-const bytes_js_1 = require("./bytes.js");
-const constants_js_1 = require("./constants.js");
-const helpers_js_1 = require("./helpers.js");
-const internal_js_1 = require("./internal.js");
-const _0n = BigInt(0);
-class Account {
-    /**
-     * This constructor assigns and validates the values.
-     * Use the static factory methods to assist in creating an Account from varying data types.
-     */
-    constructor(nonce = _0n, balance = _0n, storageRoot = constants_js_1.KECCAK256_RLP, codeHash = constants_js_1.KECCAK256_NULL) {
-        this.nonce = nonce;
-        this.balance = balance;
-        this.storageRoot = storageRoot;
-        this.codeHash = codeHash;
-        this._validate();
-    }
-    static fromAccountData(accountData) {
-        const { nonce, balance, storageRoot, codeHash } = accountData;
-        return new Account(nonce !== undefined ? (0, bytes_js_1.bytesToBigInt)((0, bytes_js_1.toBytes)(nonce)) : undefined, balance !== undefined ? (0, bytes_js_1.bytesToBigInt)((0, bytes_js_1.toBytes)(balance)) : undefined, storageRoot !== undefined ? (0, bytes_js_1.toBytes)(storageRoot) : undefined, codeHash !== undefined ? (0, bytes_js_1.toBytes)(codeHash) : undefined);
-    }
-    static fromRlpSerializedAccount(serialized) {
-        const values = rlp_1.RLP.decode(serialized);
-        if (!Array.isArray(values)) {
-            throw new Error('Invalid serialized account input. Must be array');
-        }
-        return this.fromValuesArray(values);
-    }
-    static fromValuesArray(values) {
-        const [nonce, balance, storageRoot, codeHash] = values;
-        return new Account((0, bytes_js_1.bytesToBigInt)(nonce), (0, bytes_js_1.bytesToBigInt)(balance), storageRoot, codeHash);
-    }
-    _validate() {
-        if (this.nonce < _0n) {
-            throw new Error('nonce must be greater than zero');
-        }
-        if (this.balance < _0n) {
-            throw new Error('balance must be greater than zero');
-        }
-        if (this.storageRoot.length !== 32) {
-            throw new Error('storageRoot must have a length of 32');
-        }
-        if (this.codeHash.length !== 32) {
-            throw new Error('codeHash must have a length of 32');
-        }
-    }
-    /**
-     * Returns an array of Uint8Arrays of the raw bytes for the account, in order.
-     */
-    raw() {
-        return [
-            (0, bytes_js_1.bigIntToUnpaddedBytes)(this.nonce),
-            (0, bytes_js_1.bigIntToUnpaddedBytes)(this.balance),
-            this.storageRoot,
-            this.codeHash,
-        ];
-    }
-    /**
-     * Returns the RLP serialization of the account as a `Uint8Array`.
-     */
-    serialize() {
-        return rlp_1.RLP.encode(this.raw());
-    }
-    /**
-     * Returns a `Boolean` determining if the account is a contract.
-     */
-    isContract() {
-        return !(0, bytes_js_1.equalsBytes)(this.codeHash, constants_js_1.KECCAK256_NULL);
-    }
-    /**
-     * Returns a `Boolean` determining if the account is empty complying to the definition of
-     * account emptiness in [EIP-161](https://eips.ethereum.org/EIPS/eip-161):
-     * "An account is considered empty when it has no code and zero nonce and zero balance."
-     */
-    isEmpty() {
-        return this.balance === _0n && this.nonce === _0n && (0, bytes_js_1.equalsBytes)(this.codeHash, constants_js_1.KECCAK256_NULL);
-    }
-}
-exports.Account = Account;
-/**
- * Checks if the address is a valid. Accepts checksummed addresses too.
- */
-const isValidAddress = function (hexAddress) {
-    try {
-        (0, helpers_js_1.assertIsString)(hexAddress);
-    }
-    catch (e) {
-        return false;
-    }
-    return /^0x[0-9a-fA-F]{40}$/.test(hexAddress);
-};
-exports.isValidAddress = isValidAddress;
-/**
- * Returns a checksummed address.
- *
- * If an eip1191ChainId is provided, the chainId will be included in the checksum calculation. This
- * has the effect of checksummed addresses for one chain having invalid checksums for others.
- * For more details see [EIP-1191](https://eips.ethereum.org/EIPS/eip-1191).
- *
- * WARNING: Checksums with and without the chainId will differ and the EIP-1191 checksum is not
- * backwards compatible to the original widely adopted checksum format standard introduced in
- * [EIP-55](https://eips.ethereum.org/EIPS/eip-55), so this will break in existing applications.
- * Usage of this EIP is therefore discouraged unless you have a very targeted use case.
- */
-const toChecksumAddress = function (hexAddress, eip1191ChainId) {
-    (0, helpers_js_1.assertIsHexString)(hexAddress);
-    const address = (0, internal_js_1.stripHexPrefix)(hexAddress).toLowerCase();
-    let prefix = '';
-    if (eip1191ChainId !== undefined) {
-        const chainId = (0, bytes_js_1.bytesToBigInt)((0, bytes_js_1.toBytes)(eip1191ChainId));
-        prefix = chainId.toString() + '0x';
-    }
-    const bytes = (0, bytes_js_1.utf8ToBytes)(prefix + address);
-    const hash = (0, bytes_js_1.bytesToHex)((0, keccak_js_1.keccak256)(bytes)).slice(2);
-    let ret = '0x';
-    for (let i = 0; i < address.length; i++) {
-        if (parseInt(hash[i], 16) >= 8) {
-            ret += address[i].toUpperCase();
-        }
-        else {
-            ret += address[i];
-        }
-    }
-    return ret;
-};
-exports.toChecksumAddress = toChecksumAddress;
-/**
- * Checks if the address is a valid checksummed address.
- *
- * See toChecksumAddress' documentation for details about the eip1191ChainId parameter.
- */
-const isValidChecksumAddress = function (hexAddress, eip1191ChainId) {
-    return (0, exports.isValidAddress)(hexAddress) && (0, exports.toChecksumAddress)(hexAddress, eip1191ChainId) === hexAddress;
-};
-exports.isValidChecksumAddress = isValidChecksumAddress;
-/**
- * Generates an address of a newly created contract.
- * @param from The address which is creating this new address
- * @param nonce The nonce of the from account
- */
-const generateAddress = function (from, nonce) {
-    (0, helpers_js_1.assertIsBytes)(from);
-    (0, helpers_js_1.assertIsBytes)(nonce);
-    if ((0, bytes_js_1.bytesToBigInt)(nonce) === BigInt(0)) {
-        // in RLP we want to encode null in the case of zero nonce
-        // read the RLP documentation for an answer if you dare
-        return (0, keccak_js_1.keccak256)(rlp_1.RLP.encode([from, Uint8Array.from([])])).subarray(-20);
-    }
-    // Only take the lower 160bits of the hash
-    return (0, keccak_js_1.keccak256)(rlp_1.RLP.encode([from, nonce])).subarray(-20);
-};
-exports.generateAddress = generateAddress;
-/**
- * Generates an address for a contract created using CREATE2.
- * @param from The address which is creating this new address
- * @param salt A salt
- * @param initCode The init code of the contract being created
- */
-const generateAddress2 = function (from, salt, initCode) {
-    (0, helpers_js_1.assertIsBytes)(from);
-    (0, helpers_js_1.assertIsBytes)(salt);
-    (0, helpers_js_1.assertIsBytes)(initCode);
-    if (from.length !== 20) {
-        throw new Error('Expected from to be of length 20');
-    }
-    if (salt.length !== 32) {
-        throw new Error('Expected salt to be of length 32');
-    }
-    const address = (0, keccak_js_1.keccak256)((0, bytes_js_1.concatBytes)((0, bytes_js_1.hexToBytes)('0xff'), from, salt, (0, keccak_js_1.keccak256)(initCode)));
-    return address.subarray(-20);
-};
-exports.generateAddress2 = generateAddress2;
-/**
- * Checks if the private key satisfies the rules of the curve secp256k1.
- */
-const isValidPrivate = function (privateKey) {
-    return secp256k1_js_1.secp256k1.utils.isValidPrivateKey(privateKey);
-};
-exports.isValidPrivate = isValidPrivate;
-/**
- * Checks if the public key satisfies the rules of the curve secp256k1
- * and the requirements of Ethereum.
- * @param publicKey The two points of an uncompressed key, unless sanitize is enabled
- * @param sanitize Accept public keys in other formats
- */
-const isValidPublic = function (publicKey, sanitize = false) {
-    (0, helpers_js_1.assertIsBytes)(publicKey);
-    if (publicKey.length === 64) {
-        // Convert to SEC1 for secp256k1
-        // Automatically checks whether point is on curve
-        try {
-            secp256k1_js_1.secp256k1.ProjectivePoint.fromHex((0, bytes_js_1.concatBytes)(Uint8Array.from([4]), publicKey));
-            return true;
-        }
-        catch (e) {
-            return false;
-        }
-    }
-    if (!sanitize) {
-        return false;
-    }
-    try {
-        secp256k1_js_1.secp256k1.ProjectivePoint.fromHex(publicKey);
-        return true;
-    }
-    catch (e) {
-        return false;
-    }
-};
-exports.isValidPublic = isValidPublic;
-/**
- * Returns the ethereum address of a given public key.
- * Accepts "Ethereum public keys" and SEC1 encoded keys.
- * @param pubKey The two points of an uncompressed key, unless sanitize is enabled
- * @param sanitize Accept public keys in other formats
- */
-const pubToAddress = function (pubKey, sanitize = false) {
-    (0, helpers_js_1.assertIsBytes)(pubKey);
-    if (sanitize && pubKey.length !== 64) {
-        pubKey = secp256k1_js_1.secp256k1.ProjectivePoint.fromHex(pubKey).toRawBytes(false).slice(1);
-    }
-    if (pubKey.length !== 64) {
-        throw new Error('Expected pubKey to be of length 64');
-    }
-    // Only take the lower 160bits of the hash
-    return (0, keccak_js_1.keccak256)(pubKey).subarray(-20);
-};
-exports.pubToAddress = pubToAddress;
-exports.publicToAddress = exports.pubToAddress;
-/**
- * Returns the ethereum public key of a given private key.
- * @param privateKey A private key must be 256 bits wide
- */
-const privateToPublic = function (privateKey) {
-    (0, helpers_js_1.assertIsBytes)(privateKey);
-    // skip the type flag and use the X, Y points
-    return secp256k1_js_1.secp256k1.ProjectivePoint.fromPrivateKey(privateKey).toRawBytes(false).slice(1);
-};
-exports.privateToPublic = privateToPublic;
-/**
- * Returns the ethereum address of a given private key.
- * @param privateKey A private key must be 256 bits wide
- */
-const privateToAddress = function (privateKey) {
-    return (0, exports.publicToAddress)((0, exports.privateToPublic)(privateKey));
-};
-exports.privateToAddress = privateToAddress;
-/**
- * Converts a public key to the Ethereum format.
- */
-const importPublic = function (publicKey) {
-    (0, helpers_js_1.assertIsBytes)(publicKey);
-    if (publicKey.length !== 64) {
-        publicKey = secp256k1_js_1.secp256k1.ProjectivePoint.fromHex(publicKey).toRawBytes(false).slice(1);
-    }
-    return publicKey;
-};
-exports.importPublic = importPublic;
-/**
- * Returns the zero address.
- */
-const zeroAddress = function () {
-    const addressLength = 20;
-    const addr = (0, bytes_js_1.zeros)(addressLength);
-    return (0, bytes_js_1.bytesToHex)(addr);
-};
-exports.zeroAddress = zeroAddress;
-/**
- * Checks if a given address is the zero address.
- */
-const isZeroAddress = function (hexAddress) {
-    try {
-        (0, helpers_js_1.assertIsString)(hexAddress);
-    }
-    catch (e) {
-        return false;
-    }
-    const zeroAddr = (0, exports.zeroAddress)();
-    return zeroAddr === hexAddress;
-};
-exports.isZeroAddress = isZeroAddress;
-function accountBodyFromSlim(body) {
-    const [nonce, balance, storageRoot, codeHash] = body;
-    return [
-        nonce,
-        balance,
-        storageRoot.length === 0 ? constants_js_1.KECCAK256_RLP : storageRoot,
-        codeHash.length === 0 ? constants_js_1.KECCAK256_NULL : codeHash,
-    ];
-}
-exports.accountBodyFromSlim = accountBodyFromSlim;
-const emptyUint8Arr = new Uint8Array(0);
-function accountBodyToSlim(body) {
-    const [nonce, balance, storageRoot, codeHash] = body;
-    return [
-        nonce,
-        balance,
-        (0, bytes_js_1.equalsBytes)(storageRoot, constants_js_1.KECCAK256_RLP) ? emptyUint8Arr : storageRoot,
-        (0, bytes_js_1.equalsBytes)(codeHash, constants_js_1.KECCAK256_NULL) ? emptyUint8Arr : codeHash,
-    ];
-}
-exports.accountBodyToSlim = accountBodyToSlim;
-/**
- * Converts a slim account (per snap protocol spec) to the RLP encoded version of the account
- * @param body Array of 4 Uint8Array-like items to represent the account
- * @returns RLP encoded version of the account
- */
-function accountBodyToRLP(body, couldBeSlim = true) {
-    const accountBody = couldBeSlim ? accountBodyFromSlim(body) : body;
-    return rlp_1.RLP.encode(accountBody);
-}
-exports.accountBodyToRLP = accountBodyToRLP;
-
-},{"./bytes.js":25,"./constants.js":26,"./helpers.js":29,"./internal.js":31,"@ethereumjs/rlp":20,"ethereum-cryptography/keccak.js":217,"ethereum-cryptography/secp256k1.js":219}],22:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Address = void 0;
-const account_js_1 = require("./account.js");
-const bytes_js_1 = require("./bytes.js");
-/**
- * Handling and generating Ethereum addresses
- */
-class Address {
-    constructor(bytes) {
-        if (bytes.length !== 20) {
-            throw new Error('Invalid address length');
-        }
-        this.bytes = bytes;
-    }
-    /**
-     * Returns the zero address.
-     */
-    static zero() {
-        return new Address((0, bytes_js_1.zeros)(20));
-    }
-    /**
-     * Returns an Address object from a hex-encoded string.
-     * @param str - Hex-encoded address
-     */
-    static fromString(str) {
-        if (!(0, account_js_1.isValidAddress)(str)) {
-            throw new Error('Invalid address');
-        }
-        return new Address((0, bytes_js_1.toBytes)(str));
-    }
-    /**
-     * Returns an address for a given public key.
-     * @param pubKey The two points of an uncompressed key
-     */
-    static fromPublicKey(pubKey) {
-        if (!(pubKey instanceof Uint8Array)) {
-            throw new Error('Public key should be Uint8Array');
-        }
-        const bytes = (0, account_js_1.pubToAddress)(pubKey);
-        return new Address(bytes);
-    }
-    /**
-     * Returns an address for a given private key.
-     * @param privateKey A private key must be 256 bits wide
-     */
-    static fromPrivateKey(privateKey) {
-        if (!(privateKey instanceof Uint8Array)) {
-            throw new Error('Private key should be Uint8Array');
-        }
-        const bytes = (0, account_js_1.privateToAddress)(privateKey);
-        return new Address(bytes);
-    }
-    /**
-     * Generates an address for a newly created contract.
-     * @param from The address which is creating this new address
-     * @param nonce The nonce of the from account
-     */
-    static generate(from, nonce) {
-        if (typeof nonce !== 'bigint') {
-            throw new Error('Expected nonce to be a bigint');
-        }
-        return new Address((0, account_js_1.generateAddress)(from.bytes, (0, bytes_js_1.bigIntToBytes)(nonce)));
-    }
-    /**
-     * Generates an address for a contract created using CREATE2.
-     * @param from The address which is creating this new address
-     * @param salt A salt
-     * @param initCode The init code of the contract being created
-     */
-    static generate2(from, salt, initCode) {
-        if (!(salt instanceof Uint8Array)) {
-            throw new Error('Expected salt to be a Uint8Array');
-        }
-        if (!(initCode instanceof Uint8Array)) {
-            throw new Error('Expected initCode to be a Uint8Array');
-        }
-        return new Address((0, account_js_1.generateAddress2)(from.bytes, salt, initCode));
-    }
-    /**
-     * Is address equal to another.
-     */
-    equals(address) {
-        return (0, bytes_js_1.equalsBytes)(this.bytes, address.bytes);
-    }
-    /**
-     * Is address zero.
-     */
-    isZero() {
-        return this.equals(Address.zero());
-    }
-    /**
-     * True if address is in the address range defined
-     * by EIP-1352
-     */
-    isPrecompileOrSystemAddress() {
-        const address = (0, bytes_js_1.bytesToBigInt)(this.bytes);
-        const rangeMin = BigInt(0);
-        const rangeMax = BigInt('0xffff');
-        return address >= rangeMin && address <= rangeMax;
-    }
-    /**
-     * Returns hex encoding of address.
-     */
-    toString() {
-        return (0, bytes_js_1.bytesToHex)(this.bytes);
-    }
-    /**
-     * Returns a new Uint8Array representation of address.
-     */
-    toBytes() {
-        return new Uint8Array(this.bytes);
-    }
-}
-exports.Address = Address;
-
-},{"./account.js":21,"./bytes.js":25}],23:[function(require,module,exports){
-"use strict";
-/**
- * Ported to Typescript from original implementation below:
- * https://github.com/ahultgren/async-eventemitter -- MIT licensed
- *
- * Type Definitions based on work by: patarapolw <https://github.com/patarapolw> -- MIT licensed
- * that was contributed to Definitely Typed below:
- * https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/async-eventemitter
- */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.AsyncEventEmitter = void 0;
-const events_1 = require("events");
-async function runInSeries(context, tasks, data) {
-    let error;
-    for await (const task of tasks) {
-        try {
-            if (task.length < 2) {
-                //sync
-                task.call(context, data);
-            }
-            else {
-                await new Promise((resolve, reject) => {
-                    task.call(context, data, (error) => {
-                        if (error) {
-                            reject(error);
-                        }
-                        else {
-                            resolve();
-                        }
-                    });
-                });
-            }
-        }
-        catch (e) {
-            error = e;
-        }
-    }
-    if (error) {
-        throw error;
-    }
-}
-class AsyncEventEmitter extends events_1.EventEmitter {
-    emit(event, ...args) {
-        let [data, callback] = args;
-        const self = this;
-        let listeners = self._events[event] ?? [];
-        // Optional data argument
-        if (callback === undefined && typeof data === 'function') {
-            callback = data;
-            data = undefined;
-        }
-        // Special treatment of internal newListener and removeListener events
-        if (event === 'newListener' || event === 'removeListener') {
-            data = {
-                event: data,
-                fn: callback,
-            };
-            callback = undefined;
-        }
-        // A single listener is just a function not an array...
-        listeners = Array.isArray(listeners) ? listeners : [listeners];
-        runInSeries(self, listeners.slice(), data).then(callback).catch(callback);
-        return self.listenerCount(event) > 0;
-    }
-    once(event, listener) {
-        const self = this;
-        let g;
-        if (typeof listener !== 'function') {
-            throw new TypeError('listener must be a function');
-        }
-        // Hack to support set arity
-        if (listener.length >= 2) {
-            g = function (e, next) {
-                self.removeListener(event, g);
-                void listener(e, next);
-            };
-        }
-        else {
-            g = function (e) {
-                self.removeListener(event, g);
-                void listener(e, g);
-            };
-        }
-        self.on(event, g);
-        return self;
-    }
-    first(event, listener) {
-        let listeners = this._events[event] ?? [];
-        // Contract
-        if (typeof listener !== 'function') {
-            throw new TypeError('listener must be a function');
-        }
-        // Listeners are not always an array
-        if (!Array.isArray(listeners)) {
-            ;
-            this._events[event] = listeners = [listeners];
-        }
-        listeners.unshift(listener);
-        return this;
-    }
-    before(event, target, listener) {
-        return this.beforeOrAfter(event, target, listener);
-    }
-    after(event, target, listener) {
-        return this.beforeOrAfter(event, target, listener, 'after');
-    }
-    beforeOrAfter(event, target, listener, beforeOrAfter) {
-        let listeners = this._events[event] ?? [];
-        let i;
-        let index;
-        const add = beforeOrAfter === 'after' ? 1 : 0;
-        // Contract
-        if (typeof listener !== 'function') {
-            throw new TypeError('listener must be a function');
-        }
-        if (typeof target !== 'function') {
-            throw new TypeError('target must be a function');
-        }
-        // Listeners are not always an array
-        if (!Array.isArray(listeners)) {
-            ;
-            this._events[event] = listeners = [listeners];
-        }
-        index = listeners.length;
-        for (i = listeners.length; i--;) {
-            if (listeners[i] === target) {
-                index = i + add;
-                break;
-            }
-        }
-        listeners.splice(index, 0, listener);
-        return this;
-    }
-    on(event, listener) {
-        return super.on(event, listener);
-    }
-    addListener(event, listener) {
-        return super.addListener(event, listener);
-    }
-    prependListener(event, listener) {
-        return super.prependListener(event, listener);
-    }
-    prependOnceListener(event, listener) {
-        return super.prependOnceListener(event, listener);
-    }
-    removeAllListeners(event) {
-        return super.removeAllListeners(event);
-    }
-    removeListener(event, listener) {
-        return super.removeListener(event, listener);
-    }
-    eventNames() {
-        return super.eventNames();
-    }
-    listeners(event) {
-        return super.listeners(event);
-    }
-    listenerCount(event) {
-        return super.listenerCount(event);
-    }
-    getMaxListeners() {
-        return super.getMaxListeners();
-    }
-    setMaxListeners(maxListeners) {
-        return super.setMaxListeners(maxListeners);
-    }
-}
-exports.AsyncEventEmitter = AsyncEventEmitter;
-
-},{"events":226}],24:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.commitmentsToVersionedHashes = exports.computeVersionedHash = exports.blobsToProofs = exports.blobsToCommitments = exports.getBlobs = void 0;
-const sha256_js_1 = require("ethereum-cryptography/sha256.js");
-const bytes_js_1 = require("./bytes.js");
-const kzg_js_1 = require("./kzg.js");
-/**
- * These utilities for constructing blobs are borrowed from https://github.com/Inphi/eip4844-interop.git
- */
-const BYTES_PER_FIELD_ELEMENT = 32;
-const FIELD_ELEMENTS_PER_BLOB = 4096;
-const USEFUL_BYTES_PER_BLOB = 32 * FIELD_ELEMENTS_PER_BLOB;
-const MAX_BLOBS_PER_TX = 2;
-const MAX_USEFUL_BYTES_PER_TX = USEFUL_BYTES_PER_BLOB * MAX_BLOBS_PER_TX - 1;
-const BLOB_SIZE = BYTES_PER_FIELD_ELEMENT * FIELD_ELEMENTS_PER_BLOB;
-function get_padded(data, blobs_len) {
-    const pdata = new Uint8Array(blobs_len * USEFUL_BYTES_PER_BLOB).fill(0);
-    pdata.set(data);
-    pdata[data.byteLength] = 0x80;
-    return pdata;
-}
-function get_blob(data) {
-    const blob = new Uint8Array(BLOB_SIZE);
-    for (let i = 0; i < FIELD_ELEMENTS_PER_BLOB; i++) {
-        const chunk = new Uint8Array(32);
-        chunk.set(data.subarray(i * 31, (i + 1) * 31), 0);
-        blob.set(chunk, i * 32);
-    }
-    return blob;
-}
-const getBlobs = (input) => {
-    const data = (0, bytes_js_1.utf8ToBytes)(input);
-    const len = data.byteLength;
-    if (len === 0) {
-        throw Error('invalid blob data');
-    }
-    if (len > MAX_USEFUL_BYTES_PER_TX) {
-        throw Error('blob data is too large');
-    }
-    const blobs_len = Math.ceil(len / USEFUL_BYTES_PER_BLOB);
-    const pdata = get_padded(data, blobs_len);
-    const blobs = [];
-    for (let i = 0; i < blobs_len; i++) {
-        const chunk = pdata.subarray(i * USEFUL_BYTES_PER_BLOB, (i + 1) * USEFUL_BYTES_PER_BLOB);
-        const blob = get_blob(chunk);
-        blobs.push(blob);
-    }
-    return blobs;
-};
-exports.getBlobs = getBlobs;
-const blobsToCommitments = (blobs) => {
-    const commitments = [];
-    for (const blob of blobs) {
-        commitments.push(kzg_js_1.kzg.blobToKzgCommitment(blob));
-    }
-    return commitments;
-};
-exports.blobsToCommitments = blobsToCommitments;
-const blobsToProofs = (blobs, commitments) => {
-    const proofs = blobs.map((blob, ctx) => kzg_js_1.kzg.computeBlobKzgProof(blob, commitments[ctx]));
-    return proofs;
-};
-exports.blobsToProofs = blobsToProofs;
-/**
- * Converts a vector commitment for a given data blob to its versioned hash.  For 4844, this version
- * number will be 0x01 for KZG vector commitments but could be different if future vector commitment
- * types are introduced
- * @param commitment a vector commitment to a blob
- * @param blobCommitmentVersion the version number corresponding to the type of vector commitment
- * @returns a versioned hash corresponding to a given blob vector commitment
- */
-const computeVersionedHash = (commitment, blobCommitmentVersion) => {
-    const computedVersionedHash = new Uint8Array(32);
-    computedVersionedHash.set([blobCommitmentVersion], 0);
-    computedVersionedHash.set((0, sha256_js_1.sha256)(commitment).subarray(1), 1);
-    return computedVersionedHash;
-};
-exports.computeVersionedHash = computeVersionedHash;
-/**
- * Generate an array of versioned hashes from corresponding kzg commitments
- * @param commitments array of kzg commitments
- * @returns array of versioned hashes
- * Note: assumes KZG commitments (version 1 version hashes)
- */
-const commitmentsToVersionedHashes = (commitments) => {
-    const hashes = [];
-    for (const commitment of commitments) {
-        hashes.push((0, exports.computeVersionedHash)(commitment, 0x01));
-    }
-    return hashes;
-};
-exports.commitmentsToVersionedHashes = commitmentsToVersionedHashes;
-
-},{"./bytes.js":25,"./kzg.js":32,"ethereum-cryptography/sha256.js":220}],25:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.utf8ToBytes = exports.equalsBytes = exports.bytesToUtf8 = exports.concatBytes = exports.randomBytes = exports.compareBytes = exports.intToUnpaddedBytes = exports.bigIntToUnpaddedBytes = exports.bigIntToHex = exports.validateNoLeadingZeroes = exports.short = exports.addHexPrefix = exports.toUnsigned = exports.fromSigned = exports.toBytes = exports.unpadHex = exports.unpadArray = exports.unpadBytes = exports.setLengthRight = exports.setLengthLeft = exports.zeros = exports.bigIntToBytes = exports.intToBytes = exports.intToHex = exports.hexToBytes = exports.bytesToInt = exports.bytesToBigInt = exports.bytesToHex = exports.unprefixedHexToBytes = exports.bytesToUnprefixedHex = void 0;
-const random_js_1 = require("ethereum-cryptography/random.js");
-// eslint-disable-next-line no-restricted-imports
-const utils_js_1 = require("ethereum-cryptography/utils.js");
-const helpers_js_1 = require("./helpers.js");
-const internal_js_1 = require("./internal.js");
-/**
- * @deprecated
- */
-exports.bytesToUnprefixedHex = utils_js_1.bytesToHex;
-/**
- * @deprecated
- */
-const unprefixedHexToBytes = (inp) => {
-    if (inp.slice(0, 2) === '0x') {
-        throw new Error('hex string is prefixed with 0x, should be unprefixed');
-    }
-    else {
-        return (0, utils_js_1.hexToBytes)((0, internal_js_1.padToEven)(inp));
-    }
-};
-exports.unprefixedHexToBytes = unprefixedHexToBytes;
-/****************  Borrowed from @chainsafe/ssz */
-// Caching this info costs about ~1000 bytes and speeds up toHexString() by x6
-const hexByByte = Array.from({ length: 256 }, (v, i) => i.toString(16).padStart(2, '0'));
-const bytesToHex = (bytes) => {
-    let hex = '0x';
-    if (bytes === undefined || bytes.length === 0)
-        return hex;
-    for (const byte of bytes) {
-        hex += hexByByte[byte];
-    }
-    return hex;
-};
-exports.bytesToHex = bytesToHex;
-/**
- * Converts a {@link Uint8Array} to a {@link bigint}
- * @param {Uint8Array} bytes the bytes to convert
- * @returns {bigint}
- */
-const bytesToBigInt = (bytes) => {
-    const hex = (0, exports.bytesToHex)(bytes);
-    if (hex === '0x') {
-        return BigInt(0);
-    }
-    return BigInt(hex);
-};
-exports.bytesToBigInt = bytesToBigInt;
-/**
- * Converts a {@link Uint8Array} to a {@link number}.
- * @param {Uint8Array} bytes the bytes to convert
- * @return  {number}
- * @throws If the input number exceeds 53 bits.
- */
-const bytesToInt = (bytes) => {
-    const res = Number((0, exports.bytesToBigInt)(bytes));
-    if (!Number.isSafeInteger(res))
-        throw new Error('Number exceeds 53 bits');
-    return res;
-};
-exports.bytesToInt = bytesToInt;
-const hexToBytes = (hex) => {
-    if (typeof hex !== 'string') {
-        throw new Error(`hex argument type ${typeof hex} must be of type string`);
-    }
-    if (!hex.startsWith('0x')) {
-        throw new Error(`prefixed hex input should start with 0x, got ${hex.substring(0, 2)}`);
-    }
-    hex = hex.slice(2);
-    if (hex.length % 2 !== 0) {
-        hex = (0, internal_js_1.padToEven)(hex);
-    }
-    const byteLen = hex.length / 2;
-    const bytes = new Uint8Array(byteLen);
-    for (let i = 0; i < byteLen; i++) {
-        const byte = parseInt(hex.slice(i * 2, (i + 1) * 2), 16);
-        bytes[i] = byte;
-    }
-    return bytes;
-};
-exports.hexToBytes = hexToBytes;
-/******************************************/
-/**
- * Converts a {@link number} into a {@link PrefixedHexString}
- * @param {number} i
- * @return {PrefixedHexString}
- */
-const intToHex = (i) => {
-    if (!Number.isSafeInteger(i) || i < 0) {
-        throw new Error(`Received an invalid integer type: ${i}`);
-    }
-    return `0x${i.toString(16)}`;
-};
-exports.intToHex = intToHex;
-/**
- * Converts an {@link number} to a {@link Uint8Array}
- * @param {Number} i
- * @return {Uint8Array}
- */
-const intToBytes = (i) => {
-    const hex = (0, exports.intToHex)(i);
-    return (0, exports.hexToBytes)(hex);
-};
-exports.intToBytes = intToBytes;
-/**
- * Converts a {@link bigint} to a {@link Uint8Array}
- *  * @param {bigint} num the bigint to convert
- * @returns {Uint8Array}
- */
-const bigIntToBytes = (num) => {
-    // eslint-disable-next-line @typescript-eslint/no-use-before-define
-    return (0, exports.toBytes)('0x' + (0, internal_js_1.padToEven)(num.toString(16)));
-};
-exports.bigIntToBytes = bigIntToBytes;
-/**
- * Returns a Uint8Array filled with 0s.
- * @param {number} bytes the number of bytes of the Uint8Array
- * @return {Uint8Array}
- */
-const zeros = (bytes) => {
-    return new Uint8Array(bytes);
-};
-exports.zeros = zeros;
-/**
- * Pads a `Uint8Array` with zeros till it has `length` bytes.
- * Truncates the beginning or end of input if its length exceeds `length`.
- * @param {Uint8Array} msg the value to pad
- * @param {number} length the number of bytes the output should be
- * @param {boolean} right whether to start padding form the left or right
- * @return {Uint8Array}
- */
-const setLength = (msg, length, right) => {
-    if (right) {
-        if (msg.length < length) {
-            return new Uint8Array([...msg, ...(0, exports.zeros)(length - msg.length)]);
-        }
-        return msg.subarray(0, length);
-    }
-    else {
-        if (msg.length < length) {
-            return new Uint8Array([...(0, exports.zeros)(length - msg.length), ...msg]);
-        }
-        return msg.subarray(-length);
-    }
-};
-/**
- * Left Pads a `Uint8Array` with leading zeros till it has `length` bytes.
- * Or it truncates the beginning if it exceeds.
- * @param {Uint8Array} msg the value to pad
- * @param {number} length the number of bytes the output should be
- * @return {Uint8Array}
- */
-const setLengthLeft = (msg, length) => {
-    (0, helpers_js_1.assertIsBytes)(msg);
-    return setLength(msg, length, false);
-};
-exports.setLengthLeft = setLengthLeft;
-/**
- * Right Pads a `Uint8Array` with trailing zeros till it has `length` bytes.
- * it truncates the end if it exceeds.
- * @param {Uint8Array} msg the value to pad
- * @param {number} length the number of bytes the output should be
- * @return {Uint8Array}
- */
-const setLengthRight = (msg, length) => {
-    (0, helpers_js_1.assertIsBytes)(msg);
-    return setLength(msg, length, true);
-};
-exports.setLengthRight = setLengthRight;
-/**
- * Trims leading zeros from a `Uint8Array`, `number[]` or PrefixedHexString`.
- * @param {Uint8Array|number[]|PrefixedHexString} a
- * @return {Uint8Array|number[]|PrefixedHexString}
- */
-const stripZeros = (a) => {
-    let first = a[0];
-    while (a.length > 0 && first.toString() === '0') {
-        a = a.slice(1);
-        first = a[0];
-    }
-    return a;
-};
-/**
- * Trims leading zeros from a `Uint8Array`.
- * @param {Uint8Array} a
- * @return {Uint8Array}
- */
-const unpadBytes = (a) => {
-    (0, helpers_js_1.assertIsBytes)(a);
-    return stripZeros(a);
-};
-exports.unpadBytes = unpadBytes;
-/**
- * Trims leading zeros from an `Array` (of numbers).
- * @param  {number[]} a
- * @return {number[]}
- */
-const unpadArray = (a) => {
-    (0, helpers_js_1.assertIsArray)(a);
-    return stripZeros(a);
-};
-exports.unpadArray = unpadArray;
-/**
- * Trims leading zeros from a `PrefixedHexString`.
- * @param {PrefixedHexString} a
- * @return {PrefixedHexString}
- */
-const unpadHex = (a) => {
-    (0, helpers_js_1.assertIsHexString)(a);
-    a = (0, internal_js_1.stripHexPrefix)(a);
-    return '0x' + stripZeros(a);
-};
-exports.unpadHex = unpadHex;
-/**
- * Attempts to turn a value into a `Uint8Array`.
- * Inputs supported: `Buffer`, `Uint8Array`, `String` (hex-prefixed), `Number`, null/undefined, `BigInt` and other objects
- * with a `toArray()` or `toBytes()` method.
- * @param {ToBytesInputTypes} v the value
- * @return {Uint8Array}
- */
-const toBytes = (v) => {
-    if (v === null || v === undefined) {
-        return new Uint8Array();
-    }
-    if (Array.isArray(v) || v instanceof Uint8Array) {
-        return Uint8Array.from(v);
-    }
-    if (typeof v === 'string') {
-        if (!(0, internal_js_1.isHexString)(v)) {
-            throw new Error(`Cannot convert string to Uint8Array. toBytes only supports 0x-prefixed hex strings and this string was given: ${v}`);
-        }
-        return (0, exports.hexToBytes)(v);
-    }
-    if (typeof v === 'number') {
-        return (0, exports.intToBytes)(v);
-    }
-    if (typeof v === 'bigint') {
-        if (v < BigInt(0)) {
-            throw new Error(`Cannot convert negative bigint to Uint8Array. Given: ${v}`);
-        }
-        let n = v.toString(16);
-        if (n.length % 2)
-            n = '0' + n;
-        return (0, exports.unprefixedHexToBytes)(n);
-    }
-    if (v.toBytes !== undefined) {
-        // converts a `TransformableToBytes` object to a Uint8Array
-        return v.toBytes();
-    }
-    throw new Error('invalid type');
-};
-exports.toBytes = toBytes;
-/**
- * Interprets a `Uint8Array` as a signed integer and returns a `BigInt`. Assumes 256-bit numbers.
- * @param {Uint8Array} num Signed integer value
- * @returns {bigint}
- */
-const fromSigned = (num) => {
-    return BigInt.asIntN(256, (0, exports.bytesToBigInt)(num));
-};
-exports.fromSigned = fromSigned;
-/**
- * Converts a `BigInt` to an unsigned integer and returns it as a `Uint8Array`. Assumes 256-bit numbers.
- * @param {bigint} num
- * @returns {Uint8Array}
- */
-const toUnsigned = (num) => {
-    return (0, exports.bigIntToBytes)(BigInt.asUintN(256, num));
-};
-exports.toUnsigned = toUnsigned;
-/**
- * Adds "0x" to a given `string` if it does not already start with "0x".
- * @param {string} str
- * @return {PrefixedHexString}
- */
-const addHexPrefix = (str) => {
-    if (typeof str !== 'string') {
-        return str;
-    }
-    return (0, internal_js_1.isHexPrefixed)(str) ? str : '0x' + str;
-};
-exports.addHexPrefix = addHexPrefix;
-/**
- * Shortens a string  or Uint8Array's hex string representation to maxLength (default 50).
- *
- * Examples:
- *
- * Input:  '657468657265756d000000000000000000000000000000000000000000000000'
- * Output: '657468657265756d0000000000000000000000000000000000…'
- * @param {Uint8Array | string} bytes
- * @param {number} maxLength
- * @return {string}
- */
-const short = (bytes, maxLength = 50) => {
-    const byteStr = bytes instanceof Uint8Array ? (0, exports.bytesToHex)(bytes) : bytes;
-    const len = byteStr.slice(0, 2) === '0x' ? maxLength + 2 : maxLength;
-    if (byteStr.length <= len) {
-        return byteStr;
-    }
-    return byteStr.slice(0, len) + '…';
-};
-exports.short = short;
-/**
- * Checks provided Uint8Array for leading zeroes and throws if found.
- *
- * Examples:
- *
- * Valid values: 0x1, 0x, 0x01, 0x1234
- * Invalid values: 0x0, 0x00, 0x001, 0x0001
- *
- * Note: This method is useful for validating that RLP encoded integers comply with the rule that all
- * integer values encoded to RLP must be in the most compact form and contain no leading zero bytes
- * @param values An object containing string keys and Uint8Array values
- * @throws if any provided value is found to have leading zero bytes
- */
-const validateNoLeadingZeroes = (values) => {
-    for (const [k, v] of Object.entries(values)) {
-        if (v !== undefined && v.length > 0 && v[0] === 0) {
-            throw new Error(`${k} cannot have leading zeroes, received: ${(0, exports.bytesToHex)(v)}`);
-        }
-    }
-};
-exports.validateNoLeadingZeroes = validateNoLeadingZeroes;
-/**
- * Converts a {@link bigint} to a `0x` prefixed hex string
- * @param {bigint} num the bigint to convert
- * @returns {PrefixedHexString}
- */
-const bigIntToHex = (num) => {
-    return '0x' + num.toString(16);
-};
-exports.bigIntToHex = bigIntToHex;
-/**
- * Convert value from bigint to an unpadded Uint8Array
- * (useful for RLP transport)
- * @param {bigint} value the bigint to convert
- * @returns {Uint8Array}
- */
-const bigIntToUnpaddedBytes = (value) => {
-    return (0, exports.unpadBytes)((0, exports.bigIntToBytes)(value));
-};
-exports.bigIntToUnpaddedBytes = bigIntToUnpaddedBytes;
-/**
- * Convert value from number to an unpadded Uint8Array
- * (useful for RLP transport)
- * @param {number} value the bigint to convert
- * @returns {Uint8Array}
- */
-const intToUnpaddedBytes = (value) => {
-    return (0, exports.unpadBytes)((0, exports.intToBytes)(value));
-};
-exports.intToUnpaddedBytes = intToUnpaddedBytes;
-/**
- * Compares two Uint8Arrays and returns a number indicating their order in a sorted array.
- *
- * @param {Uint8Array} value1 - The first Uint8Array to compare.
- * @param {Uint8Array} value2 - The second Uint8Array to compare.
- * @returns {number} A positive number if value1 is larger than value2,
- *                   A negative number if value1 is smaller than value2,
- *                   or 0 if value1 and value2 are equal.
- */
-const compareBytes = (value1, value2) => {
-    const bigIntValue1 = (0, exports.bytesToBigInt)(value1);
-    const bigIntValue2 = (0, exports.bytesToBigInt)(value2);
-    return bigIntValue1 > bigIntValue2 ? 1 : bigIntValue1 < bigIntValue2 ? -1 : 0;
-};
-exports.compareBytes = compareBytes;
-/**
- * Generates a Uint8Array of random bytes of specified length.
- *
- * @param {number} length - The length of the Uint8Array.
- * @returns {Uint8Array} A Uint8Array of random bytes of specified length.
- */
-const randomBytes = (length) => {
-    return (0, random_js_1.getRandomBytesSync)(length);
-};
-exports.randomBytes = randomBytes;
-/**
- * This mirrors the functionality of the `ethereum-cryptography` export except
- * it skips the check to validate that every element of `arrays` is indead a `uint8Array`
- * Can give small performance gains on large arrays
- * @param {Uint8Array[]} arrays an array of Uint8Arrays
- * @returns {Uint8Array} one Uint8Array with all the elements of the original set
- * works like `Buffer.concat`
- */
-const concatBytes = (...arrays) => {
-    if (arrays.length === 1)
-        return arrays[0];
-    const length = arrays.reduce((a, arr) => a + arr.length, 0);
-    const result = new Uint8Array(length);
-    for (let i = 0, pad = 0; i < arrays.length; i++) {
-        const arr = arrays[i];
-        result.set(arr, pad);
-        pad += arr.length;
-    }
-    return result;
-};
-exports.concatBytes = concatBytes;
-// eslint-disable-next-line no-restricted-imports
-var utils_js_2 = require("ethereum-cryptography/utils.js");
-Object.defineProperty(exports, "bytesToUtf8", { enumerable: true, get: function () { return utils_js_2.bytesToUtf8; } });
-Object.defineProperty(exports, "equalsBytes", { enumerable: true, get: function () { return utils_js_2.equalsBytes; } });
-Object.defineProperty(exports, "utf8ToBytes", { enumerable: true, get: function () { return utils_js_2.utf8ToBytes; } });
-
-},{"./helpers.js":29,"./internal.js":31,"ethereum-cryptography/random.js":218,"ethereum-cryptography/utils.js":221}],26:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.RIPEMD160_ADDRESS_STRING = exports.MAX_WITHDRAWALS_PER_PAYLOAD = exports.RLP_EMPTY_STRING = exports.KECCAK256_RLP = exports.KECCAK256_RLP_S = exports.KECCAK256_RLP_ARRAY = exports.KECCAK256_RLP_ARRAY_S = exports.KECCAK256_NULL = exports.KECCAK256_NULL_S = exports.TWO_POW256 = exports.SECP256K1_ORDER_DIV_2 = exports.SECP256K1_ORDER = exports.MAX_INTEGER_BIGINT = exports.MAX_INTEGER = exports.MAX_UINT64 = void 0;
-const secp256k1_js_1 = require("ethereum-cryptography/secp256k1.js");
-const bytes_js_1 = require("./bytes.js");
-/**
- * 2^64-1
- */
-exports.MAX_UINT64 = BigInt('0xffffffffffffffff');
-/**
- * The max integer that the evm can handle (2^256-1)
- */
-exports.MAX_INTEGER = BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff');
-/**
- * The max integer that the evm can handle (2^256-1) as a bigint
- * 2^256-1 equals to 340282366920938463463374607431768211455
- * We use literal value instead of calculated value for compatibility issue.
- */
-exports.MAX_INTEGER_BIGINT = BigInt('115792089237316195423570985008687907853269984665640564039457584007913129639935');
-exports.SECP256K1_ORDER = secp256k1_js_1.secp256k1.CURVE.n;
-exports.SECP256K1_ORDER_DIV_2 = secp256k1_js_1.secp256k1.CURVE.n / BigInt(2);
-/**
- * 2^256
- */
-exports.TWO_POW256 = BigInt('0x10000000000000000000000000000000000000000000000000000000000000000');
-/**
- * Keccak-256 hash of null
- */
-exports.KECCAK256_NULL_S = '0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470';
-/**
- * Keccak-256 hash of null
- */
-exports.KECCAK256_NULL = (0, bytes_js_1.hexToBytes)(exports.KECCAK256_NULL_S);
-/**
- * Keccak-256 of an RLP of an empty array
- */
-exports.KECCAK256_RLP_ARRAY_S = '0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347';
-/**
- * Keccak-256 of an RLP of an empty array
- */
-exports.KECCAK256_RLP_ARRAY = (0, bytes_js_1.hexToBytes)(exports.KECCAK256_RLP_ARRAY_S);
-/**
- * Keccak-256 hash of the RLP of null
- */
-exports.KECCAK256_RLP_S = '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421';
-/**
- * Keccak-256 hash of the RLP of null
- */
-exports.KECCAK256_RLP = (0, bytes_js_1.hexToBytes)(exports.KECCAK256_RLP_S);
-/**
- *  RLP encoded empty string
- */
-exports.RLP_EMPTY_STRING = Uint8Array.from([0x80]);
-exports.MAX_WITHDRAWALS_PER_PAYLOAD = 16;
-exports.RIPEMD160_ADDRESS_STRING = '0000000000000000000000000000000000000003';
-
-},{"./bytes.js":25,"ethereum-cryptography/secp256k1.js":219}],27:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ValueEncoding = exports.KeyEncoding = void 0;
-var KeyEncoding;
-(function (KeyEncoding) {
-    KeyEncoding["String"] = "string";
-    KeyEncoding["Bytes"] = "view";
-    KeyEncoding["Number"] = "number";
-})(KeyEncoding = exports.KeyEncoding || (exports.KeyEncoding = {}));
-var ValueEncoding;
-(function (ValueEncoding) {
-    ValueEncoding["String"] = "string";
-    ValueEncoding["Bytes"] = "view";
-    ValueEncoding["JSON"] = "json";
-})(ValueEncoding = exports.ValueEncoding || (exports.ValueEncoding = {}));
-
-},{}],28:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.parseGethGenesisState = void 0;
-const bytes_js_1 = require("./bytes.js");
-const internal_js_1 = require("./internal.js");
-/**
- * Parses the geth genesis state into Blockchain {@link GenesisState}
- * @param json representing the `alloc` key in a Geth genesis file
- */
-function parseGethGenesisState(json) {
-    const state = {};
-    for (let address of Object.keys(json.alloc)) {
-        let { balance, code, storage, nonce } = json.alloc[address];
-        address = (0, bytes_js_1.addHexPrefix)(address);
-        balance = (0, internal_js_1.isHexPrefixed)(balance) ? balance : (0, bytes_js_1.bigIntToHex)(BigInt(balance));
-        code = code !== undefined ? (0, bytes_js_1.addHexPrefix)(code) : undefined;
-        storage = storage !== undefined ? Object.entries(storage) : undefined;
-        nonce = nonce !== undefined ? (0, bytes_js_1.addHexPrefix)(nonce) : undefined;
-        state[address] = [balance, code, storage, nonce];
-    }
-    return state;
-}
-exports.parseGethGenesisState = parseGethGenesisState;
-
-},{"./bytes.js":25,"./internal.js":31}],29:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.assertIsString = exports.assertIsArray = exports.assertIsBytes = exports.assertIsHexString = void 0;
-const internal_js_1 = require("./internal.js");
-/**
- * Throws if a string is not hex prefixed
- * @param {string} input string to check hex prefix of
- */
-const assertIsHexString = function (input) {
-    if (!(0, internal_js_1.isHexString)(input)) {
-        const msg = `This method only supports 0x-prefixed hex strings but input was: ${input}`;
-        throw new Error(msg);
-    }
-};
-exports.assertIsHexString = assertIsHexString;
-/**
- * Throws if input is not a buffer
- * @param {Buffer} input value to check
- */
-const assertIsBytes = function (input) {
-    if (!(input instanceof Uint8Array)) {
-        const msg = `This method only supports Uint8Array but input was: ${input}`;
-        throw new Error(msg);
-    }
-};
-exports.assertIsBytes = assertIsBytes;
-/**
- * Throws if input is not an array
- * @param {number[]} input value to check
- */
-const assertIsArray = function (input) {
-    if (!Array.isArray(input)) {
-        const msg = `This method only supports number arrays but input was: ${input}`;
-        throw new Error(msg);
-    }
-};
-exports.assertIsArray = assertIsArray;
-/**
- * Throws if input is not a string
- * @param {string} input value to check
- */
-const assertIsString = function (input) {
-    if (typeof input !== 'string') {
-        const msg = `This method only supports strings but input was: ${input}`;
-        throw new Error(msg);
-    }
-};
-exports.assertIsString = assertIsString;
-
-},{"./internal.js":31}],30:[function(require,module,exports){
-"use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __exportStar = (this && this.__exportStar) || function(m, exports) {
-    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.toAscii = exports.stripHexPrefix = exports.padToEven = exports.isHexString = exports.isHexPrefixed = exports.getKeys = exports.getBinarySize = exports.fromUtf8 = exports.fromAscii = exports.arrayContainsArray = void 0;
-/**
- * Constants
- */
-__exportStar(require("./constants.js"), exports);
-/**
- * Units helpers
- */
-__exportStar(require("./units.js"), exports);
-/**
- * Account class and helper functions
- */
-__exportStar(require("./account.js"), exports);
-/**
- * Address type
- */
-__exportStar(require("./address.js"), exports);
-/**
- * DB type
- */
-__exportStar(require("./db.js"), exports);
-/**
- * Withdrawal type
- */
-__exportStar(require("./withdrawal.js"), exports);
-/**
- * ECDSA signature
- */
-__exportStar(require("./signature.js"), exports);
-/**
- * Utilities for manipulating bytes, Uint8Arrays, etc.
- */
-__exportStar(require("./bytes.js"), exports);
-/**
- * Helpful TypeScript types
- */
-__exportStar(require("./types.js"), exports);
-/**
- * Export ethjs-util methods
- */
-__exportStar(require("./asyncEventEmitter.js"), exports);
-__exportStar(require("./blobs.js"), exports);
-__exportStar(require("./genesis.js"), exports);
-var internal_js_1 = require("./internal.js");
-Object.defineProperty(exports, "arrayContainsArray", { enumerable: true, get: function () { return internal_js_1.arrayContainsArray; } });
-Object.defineProperty(exports, "fromAscii", { enumerable: true, get: function () { return internal_js_1.fromAscii; } });
-Object.defineProperty(exports, "fromUtf8", { enumerable: true, get: function () { return internal_js_1.fromUtf8; } });
-Object.defineProperty(exports, "getBinarySize", { enumerable: true, get: function () { return internal_js_1.getBinarySize; } });
-Object.defineProperty(exports, "getKeys", { enumerable: true, get: function () { return internal_js_1.getKeys; } });
-Object.defineProperty(exports, "isHexPrefixed", { enumerable: true, get: function () { return internal_js_1.isHexPrefixed; } });
-Object.defineProperty(exports, "isHexString", { enumerable: true, get: function () { return internal_js_1.isHexString; } });
-Object.defineProperty(exports, "padToEven", { enumerable: true, get: function () { return internal_js_1.padToEven; } });
-Object.defineProperty(exports, "stripHexPrefix", { enumerable: true, get: function () { return internal_js_1.stripHexPrefix; } });
-Object.defineProperty(exports, "toAscii", { enumerable: true, get: function () { return internal_js_1.toAscii; } });
-__exportStar(require("./kzg.js"), exports);
-__exportStar(require("./lock.js"), exports);
-__exportStar(require("./mapDB.js"), exports);
-__exportStar(require("./provider.js"), exports);
-
-},{"./account.js":21,"./address.js":22,"./asyncEventEmitter.js":23,"./blobs.js":24,"./bytes.js":25,"./constants.js":26,"./db.js":27,"./genesis.js":28,"./internal.js":31,"./kzg.js":32,"./lock.js":33,"./mapDB.js":34,"./provider.js":35,"./signature.js":36,"./types.js":37,"./units.js":38,"./withdrawal.js":39}],31:[function(require,module,exports){
-"use strict";
-/*
-The MIT License
-
-Copyright (c) 2016 Nick Dodson. nickdodson.com
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE
- */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.isHexString = exports.getKeys = exports.fromAscii = exports.fromUtf8 = exports.toAscii = exports.arrayContainsArray = exports.getBinarySize = exports.padToEven = exports.stripHexPrefix = exports.isHexPrefixed = void 0;
-const bytes_js_1 = require("./bytes.js");
-/**
- * Returns a `Boolean` on whether or not the a `String` starts with '0x'
- * @param str the string input value
- * @return a boolean if it is or is not hex prefixed
- * @throws if the str input is not a string
- */
-function isHexPrefixed(str) {
-    if (typeof str !== 'string') {
-        throw new Error(`[isHexPrefixed] input must be type 'string', received type ${typeof str}`);
-    }
-    return str[0] === '0' && str[1] === 'x';
-}
-exports.isHexPrefixed = isHexPrefixed;
-/**
- * Removes '0x' from a given `String` if present
- * @param str the string value
- * @returns the string without 0x prefix
- */
-const stripHexPrefix = (str) => {
-    if (typeof str !== 'string')
-        throw new Error(`[stripHexPrefix] input must be type 'string', received ${typeof str}`);
-    return isHexPrefixed(str) ? str.slice(2) : str;
-};
-exports.stripHexPrefix = stripHexPrefix;
-/**
- * Pads a `String` to have an even length
- * @param value
- * @return output
- */
-function padToEven(value) {
-    let a = value;
-    if (typeof a !== 'string') {
-        throw new Error(`[padToEven] value must be type 'string', received ${typeof a}`);
-    }
-    if (a.length % 2)
-        a = `0${a}`;
-    return a;
-}
-exports.padToEven = padToEven;
-/**
- * Get the binary size of a string
- * @param str
- * @returns the number of bytes contained within the string
- */
-function getBinarySize(str) {
-    if (typeof str !== 'string') {
-        throw new Error(`[getBinarySize] method requires input type 'string', received ${typeof str}`);
-    }
-    return (0, bytes_js_1.utf8ToBytes)(str).byteLength;
-}
-exports.getBinarySize = getBinarySize;
-/**
- * Returns TRUE if the first specified array contains all elements
- * from the second one. FALSE otherwise.
- *
- * @param superset
- * @param subset
- *
- */
-function arrayContainsArray(superset, subset, some) {
-    if (Array.isArray(superset) !== true) {
-        throw new Error(`[arrayContainsArray] method requires input 'superset' to be an array, got type '${typeof superset}'`);
-    }
-    if (Array.isArray(subset) !== true) {
-        throw new Error(`[arrayContainsArray] method requires input 'subset' to be an array, got type '${typeof subset}'`);
-    }
-    return subset[some === true ? 'some' : 'every']((value) => superset.indexOf(value) >= 0);
-}
-exports.arrayContainsArray = arrayContainsArray;
-/**
- * Should be called to get ascii from its hex representation
- *
- * @param string in hex
- * @returns ascii string representation of hex value
- */
-function toAscii(hex) {
-    let str = '';
-    let i = 0;
-    const l = hex.length;
-    if (hex.substring(0, 2) === '0x')
-        i = 2;
-    for (; i < l; i += 2) {
-        const code = parseInt(hex.substr(i, 2), 16);
-        str += String.fromCharCode(code);
-    }
-    return str;
-}
-exports.toAscii = toAscii;
-/**
- * Should be called to get hex representation (prefixed by 0x) of utf8 string
- *
- * @param string
- * @param optional padding
- * @returns hex representation of input string
- */
-function fromUtf8(stringValue) {
-    const str = (0, bytes_js_1.utf8ToBytes)(stringValue);
-    return `0x${padToEven((0, bytes_js_1.bytesToHex)(str)).replace(/^0+|0+$/g, '')}`;
-}
-exports.fromUtf8 = fromUtf8;
-/**
- * Should be called to get hex representation (prefixed by 0x) of ascii string
- *
- * @param  string
- * @param  optional padding
- * @returns  hex representation of input string
- */
-function fromAscii(stringValue) {
-    let hex = '';
-    for (let i = 0; i < stringValue.length; i++) {
-        const code = stringValue.charCodeAt(i);
-        const n = code.toString(16);
-        hex += n.length < 2 ? `0${n}` : n;
-    }
-    return `0x${hex}`;
-}
-exports.fromAscii = fromAscii;
-/**
- * Returns the keys from an array of objects.
- * @example
- * ```js
- * getKeys([{a: '1', b: '2'}, {a: '3', b: '4'}], 'a') => ['1', '3']
- *````
- * @param  params
- * @param  key
- * @param  allowEmpty
- * @returns output just a simple array of output keys
- */
-function getKeys(params, key, allowEmpty) {
-    if (!Array.isArray(params)) {
-        throw new Error(`[getKeys] method expects input 'params' to be an array, got ${typeof params}`);
-    }
-    if (typeof key !== 'string') {
-        throw new Error(`[getKeys] method expects input 'key' to be type 'string', got ${typeof params}`);
-    }
-    const result = [];
-    for (let i = 0; i < params.length; i++) {
-        let value = params[i][key];
-        if (allowEmpty === true && !value) {
-            value = '';
-        }
-        else if (typeof value !== 'string') {
-            throw new Error(`invalid abi - expected type 'string', received ${typeof value}`);
-        }
-        result.push(value);
-    }
-    return result;
-}
-exports.getKeys = getKeys;
-/**
- * Is the string a hex string.
- *
- * @param  value
- * @param  length
- * @returns  output the string is a hex string
- */
-function isHexString(value, length) {
-    if (typeof value !== 'string' || !value.match(/^0x[0-9A-Fa-f]*$/))
-        return false;
-    if (typeof length !== 'undefined' && length > 0 && value.length !== 2 + 2 * length)
-        return false;
-    return true;
-}
-exports.isHexString = isHexString;
-
-},{"./bytes.js":25}],32:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.initKZG = exports.kzg = void 0;
-function kzgNotLoaded() {
-    throw Error('kzg library not loaded');
-}
-// eslint-disable-next-line import/no-mutable-exports
-exports.kzg = {
-    loadTrustedSetup: kzgNotLoaded,
-    blobToKzgCommitment: kzgNotLoaded,
-    computeBlobKzgProof: kzgNotLoaded,
-    verifyKzgProof: kzgNotLoaded,
-    verifyBlobKzgProofBatch: kzgNotLoaded,
-};
-/**
- * @param kzgLib a KZG implementation (defaults to c-kzg)
- * @param trustedSetupPath the full path (e.g. "/home/linux/devnet4.txt") to a kzg trusted setup text file
- */
-function initKZG(kzgLib, trustedSetupPath) {
-    exports.kzg = kzgLib;
-    exports.kzg.loadTrustedSetup(trustedSetupPath);
-}
-exports.initKZG = initKZG;
-
-},{}],33:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Lock = void 0;
-// Based on https://github.com/jsoendermann/semaphore-async-await/blob/master/src/Semaphore.ts
-class Lock {
-    constructor() {
-        this.permits = 1;
-        this.promiseResolverQueue = [];
-    }
-    /**
-     * Returns a promise used to wait for a permit to become available. This method should be awaited on.
-     * @returns  A promise that gets resolved when execution is allowed to proceed.
-     */
-    async acquire() {
-        if (this.permits > 0) {
-            this.permits -= 1;
-            return Promise.resolve(true);
-        }
-        // If there is no permit available, we return a promise that resolves once the semaphore gets
-        // signaled enough times that permits is equal to one.
-        return new Promise((resolver) => this.promiseResolverQueue.push(resolver));
-    }
-    /**
-     * Increases the number of permits by one. If there are other functions waiting, one of them will
-     * continue to execute in a future iteration of the event loop.
-     */
-    release() {
-        this.permits += 1;
-        if (this.permits > 1 && this.promiseResolverQueue.length > 0) {
-            // eslint-disable-next-line no-console
-            console.warn('Lock.permits should never be > 0 when there is someone waiting.');
-        }
-        else if (this.permits === 1 && this.promiseResolverQueue.length > 0) {
-            // If there is someone else waiting, immediately consume the permit that was released
-            // at the beginning of this function and let the waiting function resume.
-            this.permits -= 1;
-            const nextResolver = this.promiseResolverQueue.shift();
-            if (nextResolver) {
-                nextResolver(true);
-            }
-        }
-    }
-}
-exports.Lock = Lock;
-
-},{}],34:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.MapDB = void 0;
-const bytes_js_1 = require("./bytes.js");
-class MapDB {
-    constructor(database) {
-        this._database = database ?? new Map();
-    }
-    async get(key) {
-        const dbKey = key instanceof Uint8Array ? (0, bytes_js_1.bytesToUnprefixedHex)(key) : key.toString();
-        return this._database.get(dbKey);
-    }
-    async put(key, val) {
-        const dbKey = key instanceof Uint8Array ? (0, bytes_js_1.bytesToUnprefixedHex)(key) : key.toString();
-        this._database.set(dbKey, val);
-    }
-    async del(key) {
-        const dbKey = key instanceof Uint8Array ? (0, bytes_js_1.bytesToUnprefixedHex)(key) : key.toString();
-        this._database.delete(dbKey);
-    }
-    async batch(opStack) {
-        for (const op of opStack) {
-            if (op.type === 'del') {
-                await this.del(op.key);
-            }
-            if (op.type === 'put') {
-                await this.put(op.key, op.value);
-            }
-        }
-    }
-    /**
-     * Note that the returned shallow copy will share the underlying database with the original
-     *
-     * @returns DB
-     */
-    shallowCopy() {
-        return new MapDB(this._database);
-    }
-    open() {
-        return Promise.resolve();
-    }
-}
-exports.MapDB = MapDB;
-
-},{"./bytes.js":25}],35:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getProvider = exports.fetchFromProvider = void 0;
-/**
- * Makes a simple RPC call to a remote Ethereum JSON-RPC provider and passes through the response.
- * No parameter or response validation is done.
- *
- * @param url the URL for the JSON RPC provider
- * @param params the parameters for the JSON-RPC method - refer to
- * https://ethereum.org/en/developers/docs/apis/json-rpc/ for details on RPC methods
- * @returns the `result` field from the JSON-RPC response
- */
-const fetchFromProvider = async (url, params) => {
-    const data = JSON.stringify({
-        method: params.method,
-        params: params.params,
-        jsonrpc: '2.0',
-        id: 1,
-    });
-    const res = await fetch(url, {
-        headers: {
-            'content-type': 'application/json',
-        },
-        method: 'POST',
-        body: data,
-    });
-    const json = await res.json();
-    return json.result;
-};
-exports.fetchFromProvider = fetchFromProvider;
-/**
- *
- * @param provider a URL string or {@link EthersProvider}
- * @returns the extracted URL string for the JSON-RPC Provider
- */
-const getProvider = (provider) => {
-    if (typeof provider === 'string') {
-        return provider;
-    }
-    else if (typeof provider === 'object' && provider._getConnection !== undefined) {
-        return provider._getConnection().url;
-    }
-    else {
-        throw new Error('Must provide valid provider URL or Web3Provider');
-    }
-};
-exports.getProvider = getProvider;
-
-},{}],36:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.hashPersonalMessage = exports.isValidSignature = exports.fromRpcSig = exports.toCompactSig = exports.toRpcSig = exports.ecrecover = exports.ecsign = void 0;
-const keccak_js_1 = require("ethereum-cryptography/keccak.js");
-const secp256k1_js_1 = require("ethereum-cryptography/secp256k1.js");
-const bytes_js_1 = require("./bytes.js");
-const constants_js_1 = require("./constants.js");
-const helpers_js_1 = require("./helpers.js");
-/**
- * Returns the ECDSA signature of a message hash.
- *
- * If `chainId` is provided assume an EIP-155-style signature and calculate the `v` value
- * accordingly, otherwise return a "static" `v` just derived from the `recovery` bit
- */
-function ecsign(msgHash, privateKey, chainId) {
-    const sig = secp256k1_js_1.secp256k1.sign(msgHash, privateKey);
-    const buf = sig.toCompactRawBytes();
-    const r = buf.slice(0, 32);
-    const s = buf.slice(32, 64);
-    const v = chainId === undefined
-        ? BigInt(sig.recovery + 27)
-        : BigInt(sig.recovery + 35) + BigInt(chainId) * BigInt(2);
-    return { r, s, v };
-}
-exports.ecsign = ecsign;
-function calculateSigRecovery(v, chainId) {
-    if (v === BigInt(0) || v === BigInt(1))
-        return v;
-    if (chainId === undefined) {
-        return v - BigInt(27);
-    }
-    return v - (chainId * BigInt(2) + BigInt(35));
-}
-function isValidSigRecovery(recovery) {
-    return recovery === BigInt(0) || recovery === BigInt(1);
-}
-/**
- * ECDSA public key recovery from signature.
- * NOTE: Accepts `v === 0 | v === 1` for EIP1559 transactions
- * @returns Recovered public key
- */
-const ecrecover = function (msgHash, v, r, s, chainId) {
-    const signature = (0, bytes_js_1.concatBytes)((0, bytes_js_1.setLengthLeft)(r, 32), (0, bytes_js_1.setLengthLeft)(s, 32));
-    const recovery = calculateSigRecovery(v, chainId);
-    if (!isValidSigRecovery(recovery)) {
-        throw new Error('Invalid signature v value');
-    }
-    const sig = secp256k1_js_1.secp256k1.Signature.fromCompact(signature).addRecoveryBit(Number(recovery));
-    const senderPubKey = sig.recoverPublicKey(msgHash);
-    return senderPubKey.toRawBytes(false).slice(1);
-};
-exports.ecrecover = ecrecover;
-/**
- * Convert signature parameters into the format of `eth_sign` RPC method.
- * NOTE: Accepts `v === 0 | v === 1` for EIP1559 transactions
- * @returns Signature
- */
-const toRpcSig = function (v, r, s, chainId) {
-    const recovery = calculateSigRecovery(v, chainId);
-    if (!isValidSigRecovery(recovery)) {
-        throw new Error('Invalid signature v value');
-    }
-    // geth (and the RPC eth_sign method) uses the 65 byte format used by Bitcoin
-    return (0, bytes_js_1.bytesToHex)((0, bytes_js_1.concatBytes)((0, bytes_js_1.setLengthLeft)(r, 32), (0, bytes_js_1.setLengthLeft)(s, 32), (0, bytes_js_1.toBytes)(v)));
-};
-exports.toRpcSig = toRpcSig;
-/**
- * Convert signature parameters into the format of Compact Signature Representation (EIP-2098).
- * NOTE: Accepts `v === 0 | v === 1` for EIP1559 transactions
- * @returns Signature
- */
-const toCompactSig = function (v, r, s, chainId) {
-    const recovery = calculateSigRecovery(v, chainId);
-    if (!isValidSigRecovery(recovery)) {
-        throw new Error('Invalid signature v value');
-    }
-    const ss = Uint8Array.from([...s]);
-    if ((v > BigInt(28) && v % BigInt(2) === BigInt(1)) || v === BigInt(1) || v === BigInt(28)) {
-        ss[0] |= 0x80;
-    }
-    return (0, bytes_js_1.bytesToHex)((0, bytes_js_1.concatBytes)((0, bytes_js_1.setLengthLeft)(r, 32), (0, bytes_js_1.setLengthLeft)(ss, 32)));
-};
-exports.toCompactSig = toCompactSig;
-/**
- * Convert signature format of the `eth_sign` RPC method to signature parameters
- *
- * NOTE: For an extracted `v` value < 27 (see Geth bug https://github.com/ethereum/go-ethereum/issues/2053)
- * `v + 27` is returned for the `v` value
- * NOTE: After EIP1559, `v` could be `0` or `1` but this function assumes
- * it's a signed message (EIP-191 or EIP-712) adding `27` at the end. Remove if needed.
- */
-const fromRpcSig = function (sig) {
-    const bytes = (0, bytes_js_1.toBytes)(sig);
-    let r;
-    let s;
-    let v;
-    if (bytes.length >= 65) {
-        r = bytes.subarray(0, 32);
-        s = bytes.subarray(32, 64);
-        v = (0, bytes_js_1.bytesToBigInt)(bytes.subarray(64));
-    }
-    else if (bytes.length === 64) {
-        // Compact Signature Representation (https://eips.ethereum.org/EIPS/eip-2098)
-        r = bytes.subarray(0, 32);
-        s = bytes.subarray(32, 64);
-        v = BigInt((0, bytes_js_1.bytesToInt)(bytes.subarray(32, 33)) >> 7);
-        s[0] &= 0x7f;
-    }
-    else {
-        throw new Error('Invalid signature length');
-    }
-    // support both versions of `eth_sign` responses
-    if (v < 27) {
-        v = v + BigInt(27);
-    }
-    return {
-        v,
-        r,
-        s,
-    };
-};
-exports.fromRpcSig = fromRpcSig;
-/**
- * Validate a ECDSA signature.
- * NOTE: Accepts `v === 0 | v === 1` for EIP1559 transactions
- * @param homesteadOrLater Indicates whether this is being used on either the homestead hardfork or a later one
- */
-const isValidSignature = function (v, r, s, homesteadOrLater = true, chainId) {
-    if (r.length !== 32 || s.length !== 32) {
-        return false;
-    }
-    if (!isValidSigRecovery(calculateSigRecovery(v, chainId))) {
-        return false;
-    }
-    const rBigInt = (0, bytes_js_1.bytesToBigInt)(r);
-    const sBigInt = (0, bytes_js_1.bytesToBigInt)(s);
-    if (rBigInt === BigInt(0) ||
-        rBigInt >= constants_js_1.SECP256K1_ORDER ||
-        sBigInt === BigInt(0) ||
-        sBigInt >= constants_js_1.SECP256K1_ORDER) {
-        return false;
-    }
-    if (homesteadOrLater && sBigInt >= constants_js_1.SECP256K1_ORDER_DIV_2) {
-        return false;
-    }
-    return true;
-};
-exports.isValidSignature = isValidSignature;
-/**
- * Returns the keccak-256 hash of `message`, prefixed with the header used by the `eth_sign` RPC call.
- * The output of this function can be fed into `ecsign` to produce the same signature as the `eth_sign`
- * call for a given `message`, or fed to `ecrecover` along with a signature to recover the public key
- * used to produce the signature.
- */
-const hashPersonalMessage = function (message) {
-    (0, helpers_js_1.assertIsBytes)(message);
-    const prefix = (0, bytes_js_1.utf8ToBytes)(`\u0019Ethereum Signed Message:\n${message.length}`);
-    return (0, keccak_js_1.keccak256)((0, bytes_js_1.concatBytes)(prefix, message));
-};
-exports.hashPersonalMessage = hashPersonalMessage;
-
-},{"./bytes.js":25,"./constants.js":26,"./helpers.js":29,"ethereum-cryptography/keccak.js":217,"ethereum-cryptography/secp256k1.js":219}],37:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.toType = exports.TypeOutput = void 0;
-const bytes_js_1 = require("./bytes.js");
-const internal_js_1 = require("./internal.js");
-/**
- * Type output options
- */
-var TypeOutput;
-(function (TypeOutput) {
-    TypeOutput[TypeOutput["Number"] = 0] = "Number";
-    TypeOutput[TypeOutput["BigInt"] = 1] = "BigInt";
-    TypeOutput[TypeOutput["Uint8Array"] = 2] = "Uint8Array";
-    TypeOutput[TypeOutput["PrefixedHexString"] = 3] = "PrefixedHexString";
-})(TypeOutput = exports.TypeOutput || (exports.TypeOutput = {}));
-function toType(input, outputType) {
-    if (input === null) {
-        return null;
-    }
-    if (input === undefined) {
-        return undefined;
-    }
-    if (typeof input === 'string' && !(0, internal_js_1.isHexString)(input)) {
-        throw new Error(`A string must be provided with a 0x-prefix, given: ${input}`);
-    }
-    else if (typeof input === 'number' && !Number.isSafeInteger(input)) {
-        throw new Error('The provided number is greater than MAX_SAFE_INTEGER (please use an alternative input type)');
-    }
-    const output = (0, bytes_js_1.toBytes)(input);
-    switch (outputType) {
-        case TypeOutput.Uint8Array:
-            return output;
-        case TypeOutput.BigInt:
-            return (0, bytes_js_1.bytesToBigInt)(output);
-        case TypeOutput.Number: {
-            const bigInt = (0, bytes_js_1.bytesToBigInt)(output);
-            if (bigInt > BigInt(Number.MAX_SAFE_INTEGER)) {
-                throw new Error('The provided number is greater than MAX_SAFE_INTEGER (please use an alternative output type)');
-            }
-            return Number(bigInt);
-        }
-        case TypeOutput.PrefixedHexString:
-            return (0, bytes_js_1.bytesToHex)(output);
-        default:
-            throw new Error('unknown outputType');
-    }
-}
-exports.toType = toType;
-
-},{"./bytes.js":25,"./internal.js":31}],38:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.GWEI_TO_WEI = void 0;
-/** Easy conversion from Gwei to wei */
-exports.GWEI_TO_WEI = BigInt(1000000000);
-
-},{}],39:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Withdrawal = void 0;
-const address_js_1 = require("./address.js");
-const bytes_js_1 = require("./bytes.js");
-const types_js_1 = require("./types.js");
-/**
- * Representation of EIP-4895 withdrawal data
- */
-class Withdrawal {
-    /**
-     * This constructor assigns and validates the values.
-     * Use the static factory methods to assist in creating a Withdrawal object from varying data types.
-     * Its amount is in Gwei to match CL representation and for eventual ssz withdrawalsRoot
-     */
-    constructor(index, validatorIndex, address, 
-    /**
-     * withdrawal amount in Gwei to match the CL repesentation and eventually ssz withdrawalsRoot
-     */
-    amount) {
-        this.index = index;
-        this.validatorIndex = validatorIndex;
-        this.address = address;
-        this.amount = amount;
-    }
-    static fromWithdrawalData(withdrawalData) {
-        const { index: indexData, validatorIndex: validatorIndexData, address: addressData, amount: amountData, } = withdrawalData;
-        const index = (0, types_js_1.toType)(indexData, types_js_1.TypeOutput.BigInt);
-        const validatorIndex = (0, types_js_1.toType)(validatorIndexData, types_js_1.TypeOutput.BigInt);
-        const address = addressData instanceof address_js_1.Address ? addressData : new address_js_1.Address((0, bytes_js_1.toBytes)(addressData));
-        const amount = (0, types_js_1.toType)(amountData, types_js_1.TypeOutput.BigInt);
-        return new Withdrawal(index, validatorIndex, address, amount);
-    }
-    static fromValuesArray(withdrawalArray) {
-        if (withdrawalArray.length !== 4) {
-            throw Error(`Invalid withdrawalArray length expected=4 actual=${withdrawalArray.length}`);
-        }
-        const [index, validatorIndex, address, amount] = withdrawalArray;
-        return Withdrawal.fromWithdrawalData({ index, validatorIndex, address, amount });
-    }
-    /**
-     * Convert a withdrawal to a buffer array
-     * @param withdrawal the withdrawal to convert
-     * @returns buffer array of the withdrawal
-     */
-    static toBytesArray(withdrawal) {
-        const { index, validatorIndex, address, amount } = withdrawal;
-        const indexBytes = (0, types_js_1.toType)(index, types_js_1.TypeOutput.BigInt) === BigInt(0)
-            ? new Uint8Array()
-            : (0, types_js_1.toType)(index, types_js_1.TypeOutput.Uint8Array);
-        const validatorIndexBytes = (0, types_js_1.toType)(validatorIndex, types_js_1.TypeOutput.BigInt) === BigInt(0)
-            ? new Uint8Array()
-            : (0, types_js_1.toType)(validatorIndex, types_js_1.TypeOutput.Uint8Array);
-        const addressBytes = address instanceof address_js_1.Address ? address.bytes : (0, types_js_1.toType)(address, types_js_1.TypeOutput.Uint8Array);
-        const amountBytes = (0, types_js_1.toType)(amount, types_js_1.TypeOutput.BigInt) === BigInt(0)
-            ? new Uint8Array()
-            : (0, types_js_1.toType)(amount, types_js_1.TypeOutput.Uint8Array);
-        return [indexBytes, validatorIndexBytes, addressBytes, amountBytes];
-    }
-    raw() {
-        return Withdrawal.toBytesArray(this);
-    }
-    toValue() {
-        return {
-            index: this.index,
-            validatorIndex: this.validatorIndex,
-            address: this.address.bytes,
-            amount: this.amount,
-        };
-    }
-    toJSON() {
-        return {
-            index: (0, bytes_js_1.bigIntToHex)(this.index),
-            validatorIndex: (0, bytes_js_1.bigIntToHex)(this.validatorIndex),
-            address: (0, bytes_js_1.bytesToHex)(this.address.bytes),
-            amount: (0, bytes_js_1.bigIntToHex)(this.amount),
-        };
-    }
-}
-exports.Withdrawal = Withdrawal;
-
-},{"./address.js":22,"./bytes.js":25,"./types.js":37}],40:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "abi/5.7.0";
 
-},{}],41:[function(require,module,exports){
+},{}],2:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.defaultAbiCoder = exports.AbiCoder = void 0;
@@ -2932,7 +109,7 @@ var AbiCoder = /** @class */ (function () {
 exports.AbiCoder = AbiCoder;
 exports.defaultAbiCoder = new AbiCoder();
 
-},{"./_version":40,"./coders/abstract-coder":42,"./coders/address":43,"./coders/array":45,"./coders/boolean":46,"./coders/bytes":47,"./coders/fixed-bytes":48,"./coders/null":49,"./coders/number":50,"./coders/string":51,"./coders/tuple":52,"./fragments":53,"@ethersproject/bytes":70,"@ethersproject/logger":97,"@ethersproject/properties":103}],42:[function(require,module,exports){
+},{"./_version":1,"./coders/abstract-coder":3,"./coders/address":4,"./coders/array":6,"./coders/boolean":7,"./coders/bytes":8,"./coders/fixed-bytes":9,"./coders/null":10,"./coders/number":11,"./coders/string":12,"./coders/tuple":13,"./fragments":14,"@ethersproject/bytes":31,"@ethersproject/logger":58,"@ethersproject/properties":64}],3:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Reader = exports.Writer = exports.Coder = exports.checkResultErrors = void 0;
@@ -3106,7 +283,7 @@ var Reader = /** @class */ (function () {
 }());
 exports.Reader = Reader;
 
-},{"../_version":40,"@ethersproject/bignumber":68,"@ethersproject/bytes":70,"@ethersproject/logger":97,"@ethersproject/properties":103}],43:[function(require,module,exports){
+},{"../_version":1,"@ethersproject/bignumber":29,"@ethersproject/bytes":31,"@ethersproject/logger":58,"@ethersproject/properties":64}],4:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -3152,7 +329,7 @@ var AddressCoder = /** @class */ (function (_super) {
 }(abstract_coder_1.Coder));
 exports.AddressCoder = AddressCoder;
 
-},{"./abstract-coder":42,"@ethersproject/address":61,"@ethersproject/bytes":70}],44:[function(require,module,exports){
+},{"./abstract-coder":3,"@ethersproject/address":22,"@ethersproject/bytes":31}],5:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -3193,7 +370,7 @@ var AnonymousCoder = /** @class */ (function (_super) {
 }(abstract_coder_1.Coder));
 exports.AnonymousCoder = AnonymousCoder;
 
-},{"./abstract-coder":42}],45:[function(require,module,exports){
+},{"./abstract-coder":3}],6:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -3430,7 +607,7 @@ var ArrayCoder = /** @class */ (function (_super) {
 }(abstract_coder_1.Coder));
 exports.ArrayCoder = ArrayCoder;
 
-},{"../_version":40,"./abstract-coder":42,"./anonymous":44,"@ethersproject/logger":97}],46:[function(require,module,exports){
+},{"../_version":1,"./abstract-coder":3,"./anonymous":5,"@ethersproject/logger":58}],7:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -3468,7 +645,7 @@ var BooleanCoder = /** @class */ (function (_super) {
 }(abstract_coder_1.Coder));
 exports.BooleanCoder = BooleanCoder;
 
-},{"./abstract-coder":42}],47:[function(require,module,exports){
+},{"./abstract-coder":3}],8:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -3521,7 +698,7 @@ var BytesCoder = /** @class */ (function (_super) {
 }(DynamicBytesCoder));
 exports.BytesCoder = BytesCoder;
 
-},{"./abstract-coder":42,"@ethersproject/bytes":70}],48:[function(require,module,exports){
+},{"./abstract-coder":3,"@ethersproject/bytes":31}],9:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -3569,7 +746,7 @@ var FixedBytesCoder = /** @class */ (function (_super) {
 }(abstract_coder_1.Coder));
 exports.FixedBytesCoder = FixedBytesCoder;
 
-},{"./abstract-coder":42,"@ethersproject/bytes":70}],49:[function(require,module,exports){
+},{"./abstract-coder":3,"@ethersproject/bytes":31}],10:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -3611,7 +788,7 @@ var NullCoder = /** @class */ (function (_super) {
 }(abstract_coder_1.Coder));
 exports.NullCoder = NullCoder;
 
-},{"./abstract-coder":42}],50:[function(require,module,exports){
+},{"./abstract-coder":3}],11:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -3676,7 +853,7 @@ var NumberCoder = /** @class */ (function (_super) {
 }(abstract_coder_1.Coder));
 exports.NumberCoder = NumberCoder;
 
-},{"./abstract-coder":42,"@ethersproject/bignumber":68,"@ethersproject/constants":74}],51:[function(require,module,exports){
+},{"./abstract-coder":3,"@ethersproject/bignumber":29,"@ethersproject/constants":35}],12:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -3715,7 +892,7 @@ var StringCoder = /** @class */ (function (_super) {
 }(bytes_1.DynamicBytesCoder));
 exports.StringCoder = StringCoder;
 
-},{"./bytes":47,"@ethersproject/strings":141}],52:[function(require,module,exports){
+},{"./bytes":8,"@ethersproject/strings":102}],13:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -3795,7 +972,7 @@ var TupleCoder = /** @class */ (function (_super) {
 }(abstract_coder_1.Coder));
 exports.TupleCoder = TupleCoder;
 
-},{"./abstract-coder":42,"./array":45}],53:[function(require,module,exports){
+},{"./abstract-coder":3,"./array":6}],14:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -4696,7 +1873,7 @@ function splitNesting(value) {
     return result;
 }
 
-},{"./_version":40,"@ethersproject/bignumber":68,"@ethersproject/logger":97,"@ethersproject/properties":103}],54:[function(require,module,exports){
+},{"./_version":1,"@ethersproject/bignumber":29,"@ethersproject/logger":58,"@ethersproject/properties":64}],15:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TransactionDescription = exports.LogDescription = exports.checkResultErrors = exports.Indexed = exports.Interface = exports.defaultAbiCoder = exports.AbiCoder = exports.FormatTypes = exports.ParamType = exports.FunctionFragment = exports.Fragment = exports.EventFragment = exports.ErrorFragment = exports.ConstructorFragment = void 0;
@@ -4718,7 +1895,7 @@ Object.defineProperty(exports, "Interface", { enumerable: true, get: function ()
 Object.defineProperty(exports, "LogDescription", { enumerable: true, get: function () { return interface_1.LogDescription; } });
 Object.defineProperty(exports, "TransactionDescription", { enumerable: true, get: function () { return interface_1.TransactionDescription; } });
 
-},{"./abi-coder":41,"./fragments":53,"./interface":55}],55:[function(require,module,exports){
+},{"./abi-coder":2,"./fragments":14,"./interface":16}],16:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -5383,13 +2560,13 @@ var Interface = /** @class */ (function () {
 }());
 exports.Interface = Interface;
 
-},{"./_version":40,"./abi-coder":41,"./coders/abstract-coder":42,"./fragments":53,"@ethersproject/address":61,"@ethersproject/bignumber":68,"@ethersproject/bytes":70,"@ethersproject/hash":83,"@ethersproject/keccak256":95,"@ethersproject/logger":97,"@ethersproject/properties":103}],56:[function(require,module,exports){
+},{"./_version":1,"./abi-coder":2,"./coders/abstract-coder":3,"./fragments":14,"@ethersproject/address":22,"@ethersproject/bignumber":29,"@ethersproject/bytes":31,"@ethersproject/hash":44,"@ethersproject/keccak256":56,"@ethersproject/logger":58,"@ethersproject/properties":64}],17:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "abstract-provider/5.7.0";
 
-},{}],57:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -5576,13 +2753,13 @@ var Provider = /** @class */ (function () {
 }());
 exports.Provider = Provider;
 
-},{"./_version":56,"@ethersproject/bignumber":68,"@ethersproject/bytes":70,"@ethersproject/logger":97,"@ethersproject/properties":103}],58:[function(require,module,exports){
+},{"./_version":17,"@ethersproject/bignumber":29,"@ethersproject/bytes":31,"@ethersproject/logger":58,"@ethersproject/properties":64}],19:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "abstract-signer/5.7.0";
 
-},{}],59:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -6020,13 +3197,13 @@ var VoidSigner = /** @class */ (function (_super) {
 }(Signer));
 exports.VoidSigner = VoidSigner;
 
-},{"./_version":58,"@ethersproject/logger":97,"@ethersproject/properties":103}],60:[function(require,module,exports){
+},{"./_version":19,"@ethersproject/logger":58,"@ethersproject/properties":64}],21:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "address/5.7.0";
 
-},{}],61:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getCreate2Address = exports.getContractAddress = exports.getIcapAddress = exports.isAddress = exports.getAddress = void 0;
@@ -6168,7 +3345,7 @@ function getCreate2Address(from, salt, initCodeHash) {
 }
 exports.getCreate2Address = getCreate2Address;
 
-},{"./_version":60,"@ethersproject/bignumber":68,"@ethersproject/bytes":70,"@ethersproject/keccak256":95,"@ethersproject/logger":97,"@ethersproject/rlp":128}],62:[function(require,module,exports){
+},{"./_version":21,"@ethersproject/bignumber":29,"@ethersproject/bytes":31,"@ethersproject/keccak256":56,"@ethersproject/logger":58,"@ethersproject/rlp":89}],23:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.encode = exports.decode = void 0;
@@ -6192,7 +3369,7 @@ function encode(data) {
 }
 exports.encode = encode;
 
-},{"@ethersproject/bytes":70}],63:[function(require,module,exports){
+},{"@ethersproject/bytes":31}],24:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.encode = exports.decode = void 0;
@@ -6200,7 +3377,7 @@ var base64_1 = require("./base64");
 Object.defineProperty(exports, "decode", { enumerable: true, get: function () { return base64_1.decode; } });
 Object.defineProperty(exports, "encode", { enumerable: true, get: function () { return base64_1.encode; } });
 
-},{"./base64":62}],64:[function(require,module,exports){
+},{"./base64":23}],25:[function(require,module,exports){
 "use strict";
 /**
  * var basex = require("base-x");
@@ -6326,13 +3503,13 @@ exports.Base58 = Base58;
 //console.log(Base58.decode("Qmd2V777o5XvJbYMeMb8k2nU5f8d3ciUQ5YpYuWhzv8iDj"))
 //console.log(Base58.encode(Base58.decode("Qmd2V777o5XvJbYMeMb8k2nU5f8d3ciUQ5YpYuWhzv8iDj")))
 
-},{"@ethersproject/bytes":70,"@ethersproject/properties":103}],65:[function(require,module,exports){
+},{"@ethersproject/bytes":31,"@ethersproject/properties":64}],26:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "bignumber/5.7.0";
 
-},{}],66:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -6648,7 +3825,7 @@ function _base16To36(value) {
 }
 exports._base16To36 = _base16To36;
 
-},{"./_version":65,"@ethersproject/bytes":70,"@ethersproject/logger":97,"bn.js":195}],67:[function(require,module,exports){
+},{"./_version":26,"@ethersproject/bytes":31,"@ethersproject/logger":58,"bn.js":142}],28:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FixedNumber = exports.FixedFormat = exports.parseFixed = exports.formatFixed = void 0;
@@ -7018,7 +4195,7 @@ exports.FixedNumber = FixedNumber;
 var ONE = FixedNumber.from(1);
 var BUMP = FixedNumber.from("0.5");
 
-},{"./_version":65,"./bignumber":66,"@ethersproject/bytes":70,"@ethersproject/logger":97}],68:[function(require,module,exports){
+},{"./_version":26,"./bignumber":27,"@ethersproject/bytes":31,"@ethersproject/logger":58}],29:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports._base36To16 = exports._base16To36 = exports.parseFixed = exports.FixedNumber = exports.FixedFormat = exports.formatFixed = exports.BigNumber = void 0;
@@ -7034,13 +4211,13 @@ var bignumber_2 = require("./bignumber");
 Object.defineProperty(exports, "_base16To36", { enumerable: true, get: function () { return bignumber_2._base16To36; } });
 Object.defineProperty(exports, "_base36To16", { enumerable: true, get: function () { return bignumber_2._base36To16; } });
 
-},{"./bignumber":66,"./fixednumber":67}],69:[function(require,module,exports){
+},{"./bignumber":27,"./fixednumber":28}],30:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "bytes/5.7.0";
 
-},{}],70:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.joinSignature = exports.splitSignature = exports.hexZeroPad = exports.hexStripZeros = exports.hexValue = exports.hexConcat = exports.hexDataSlice = exports.hexDataLength = exports.hexlify = exports.isHexString = exports.zeroPad = exports.stripZeros = exports.concat = exports.arrayify = exports.isBytes = exports.isBytesLike = void 0;
@@ -7468,13 +4645,13 @@ function joinSignature(signature) {
 }
 exports.joinSignature = joinSignature;
 
-},{"./_version":69,"@ethersproject/logger":97}],71:[function(require,module,exports){
+},{"./_version":30,"@ethersproject/logger":58}],32:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AddressZero = void 0;
 exports.AddressZero = "0x0000000000000000000000000000000000000000";
 
-},{}],72:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MaxInt256 = exports.MinInt256 = exports.MaxUint256 = exports.WeiPerEther = exports.Two = exports.One = exports.Zero = exports.NegativeOne = void 0;
@@ -7496,13 +4673,13 @@ exports.MinInt256 = MinInt256;
 var MaxInt256 = ( /*#__PURE__*/bignumber_1.BigNumber.from("0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"));
 exports.MaxInt256 = MaxInt256;
 
-},{"@ethersproject/bignumber":68}],73:[function(require,module,exports){
+},{"@ethersproject/bignumber":29}],34:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.HashZero = void 0;
 exports.HashZero = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
-},{}],74:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EtherSymbol = exports.HashZero = exports.MaxInt256 = exports.MinInt256 = exports.MaxUint256 = exports.WeiPerEther = exports.Two = exports.One = exports.Zero = exports.NegativeOne = exports.AddressZero = void 0;
@@ -7522,20 +4699,20 @@ Object.defineProperty(exports, "HashZero", { enumerable: true, get: function () 
 var strings_1 = require("./strings");
 Object.defineProperty(exports, "EtherSymbol", { enumerable: true, get: function () { return strings_1.EtherSymbol; } });
 
-},{"./addresses":71,"./bignumbers":72,"./hashes":73,"./strings":75}],75:[function(require,module,exports){
+},{"./addresses":32,"./bignumbers":33,"./hashes":34,"./strings":36}],36:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EtherSymbol = void 0;
 // NFKC (composed)             // (decomposed)
 exports.EtherSymbol = "\u039e"; // "\uD835\uDF63";
 
-},{}],76:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "contracts/5.7.0";
 
-},{}],77:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -8739,13 +5916,13 @@ var ContractFactory = /** @class */ (function () {
 }());
 exports.ContractFactory = ContractFactory;
 
-},{"./_version":76,"@ethersproject/abi":54,"@ethersproject/abstract-provider":57,"@ethersproject/abstract-signer":59,"@ethersproject/address":61,"@ethersproject/bignumber":68,"@ethersproject/bytes":70,"@ethersproject/logger":97,"@ethersproject/properties":103,"@ethersproject/transactions":144}],78:[function(require,module,exports){
+},{"./_version":37,"@ethersproject/abi":15,"@ethersproject/abstract-provider":18,"@ethersproject/abstract-signer":20,"@ethersproject/address":22,"@ethersproject/bignumber":29,"@ethersproject/bytes":31,"@ethersproject/logger":58,"@ethersproject/properties":64,"@ethersproject/transactions":105}],39:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "hash/5.7.0";
 
-},{}],79:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 "use strict";
 /**
  * MIT License
@@ -9012,7 +6189,7 @@ function read_emoji_trie(next) {
 }
 exports.read_emoji_trie = read_emoji_trie;
 
-},{}],80:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 "use strict";
 /**
  * MIT License
@@ -9051,7 +6228,7 @@ function getData() {
 }
 exports.getData = getData;
 
-},{"./decoder.js":79,"@ethersproject/base64":63}],81:[function(require,module,exports){
+},{"./decoder.js":40,"@ethersproject/base64":24}],42:[function(require,module,exports){
 "use strict";
 /**
  * MIT License
@@ -9200,7 +6377,7 @@ function consume_emoji_reversed(cps, eaten) {
     return emoji;
 }
 
-},{"./decoder.js":79,"./include.js":80,"@ethersproject/strings":141}],82:[function(require,module,exports){
+},{"./decoder.js":40,"./include.js":41,"@ethersproject/strings":102}],43:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.id = void 0;
@@ -9211,7 +6388,7 @@ function id(text) {
 }
 exports.id = id;
 
-},{"@ethersproject/keccak256":95,"@ethersproject/strings":141}],83:[function(require,module,exports){
+},{"@ethersproject/keccak256":56,"@ethersproject/strings":102}],44:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports._TypedDataEncoder = exports.hashMessage = exports.messagePrefix = exports.ensNormalize = exports.isValidName = exports.namehash = exports.dnsEncode = exports.id = void 0;
@@ -9229,7 +6406,7 @@ Object.defineProperty(exports, "ensNormalize", { enumerable: true, get: function
 var typed_data_1 = require("./typed-data");
 Object.defineProperty(exports, "_TypedDataEncoder", { enumerable: true, get: function () { return typed_data_1.TypedDataEncoder; } });
 
-},{"./id":82,"./message":84,"./namehash":85,"./typed-data":86}],84:[function(require,module,exports){
+},{"./id":43,"./message":45,"./namehash":46,"./typed-data":47}],45:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.hashMessage = exports.messagePrefix = void 0;
@@ -9249,7 +6426,7 @@ function hashMessage(message) {
 }
 exports.hashMessage = hashMessage;
 
-},{"@ethersproject/bytes":70,"@ethersproject/keccak256":95,"@ethersproject/strings":141}],85:[function(require,module,exports){
+},{"@ethersproject/bytes":31,"@ethersproject/keccak256":56,"@ethersproject/strings":102}],46:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.dnsEncode = exports.namehash = exports.isValidName = exports.ensNormalize = void 0;
@@ -9329,7 +6506,7 @@ function dnsEncode(name) {
 }
 exports.dnsEncode = dnsEncode;
 
-},{"./_version":78,"./ens-normalize/lib":81,"@ethersproject/bytes":70,"@ethersproject/keccak256":95,"@ethersproject/logger":97,"@ethersproject/strings":141}],86:[function(require,module,exports){
+},{"./_version":39,"./ens-normalize/lib":42,"@ethersproject/bytes":31,"@ethersproject/keccak256":56,"@ethersproject/logger":58,"@ethersproject/strings":102}],47:[function(require,module,exports){
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -9831,13 +7008,13 @@ var TypedDataEncoder = /** @class */ (function () {
 }());
 exports.TypedDataEncoder = TypedDataEncoder;
 
-},{"./_version":78,"./id":82,"@ethersproject/address":61,"@ethersproject/bignumber":68,"@ethersproject/bytes":70,"@ethersproject/keccak256":95,"@ethersproject/logger":97,"@ethersproject/properties":103}],87:[function(require,module,exports){
+},{"./_version":39,"./id":43,"@ethersproject/address":22,"@ethersproject/bignumber":29,"@ethersproject/bytes":31,"@ethersproject/keccak256":56,"@ethersproject/logger":58,"@ethersproject/properties":64}],48:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "hdnode/5.7.0";
 
-},{}],88:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getAccountPath = exports.isValidMnemonic = exports.entropyToMnemonic = exports.mnemonicToEntropy = exports.mnemonicToSeed = exports.HDNode = exports.defaultPath = void 0;
@@ -10181,13 +7358,13 @@ function getAccountPath(index) {
 }
 exports.getAccountPath = getAccountPath;
 
-},{"./_version":87,"@ethersproject/basex":64,"@ethersproject/bignumber":68,"@ethersproject/bytes":70,"@ethersproject/logger":97,"@ethersproject/pbkdf2":101,"@ethersproject/properties":103,"@ethersproject/sha2":131,"@ethersproject/signing-key":135,"@ethersproject/strings":141,"@ethersproject/transactions":144,"@ethersproject/wordlists":153}],89:[function(require,module,exports){
+},{"./_version":48,"@ethersproject/basex":25,"@ethersproject/bignumber":29,"@ethersproject/bytes":31,"@ethersproject/logger":58,"@ethersproject/pbkdf2":62,"@ethersproject/properties":64,"@ethersproject/sha2":92,"@ethersproject/signing-key":96,"@ethersproject/strings":102,"@ethersproject/transactions":105,"@ethersproject/wordlists":114}],50:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "json-wallets/5.7.0";
 
-},{}],90:[function(require,module,exports){
+},{}],51:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -10263,7 +7440,7 @@ function decrypt(json, password) {
 }
 exports.decrypt = decrypt;
 
-},{"./_version":89,"./utils":94,"@ethersproject/address":61,"@ethersproject/bytes":70,"@ethersproject/keccak256":95,"@ethersproject/logger":97,"@ethersproject/pbkdf2":101,"@ethersproject/properties":103,"@ethersproject/strings":141,"aes-js":192}],91:[function(require,module,exports){
+},{"./_version":50,"./utils":55,"@ethersproject/address":22,"@ethersproject/bytes":31,"@ethersproject/keccak256":56,"@ethersproject/logger":58,"@ethersproject/pbkdf2":62,"@ethersproject/properties":64,"@ethersproject/strings":102,"aes-js":139}],52:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.decryptJsonWalletSync = exports.decryptJsonWallet = exports.getJsonWalletAddress = exports.isKeystoreWallet = exports.isCrowdsaleWallet = exports.encryptKeystore = exports.decryptKeystoreSync = exports.decryptKeystore = exports.decryptCrowdsale = void 0;
@@ -10305,7 +7482,7 @@ function decryptJsonWalletSync(json, password) {
 }
 exports.decryptJsonWalletSync = decryptJsonWalletSync;
 
-},{"./crowdsale":90,"./inspect":92,"./keystore":93}],92:[function(require,module,exports){
+},{"./crowdsale":51,"./inspect":53,"./keystore":54}],53:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getJsonWalletAddress = exports.isKeystoreWallet = exports.isCrowdsaleWallet = void 0;
@@ -10360,7 +7537,7 @@ function getJsonWalletAddress(json) {
 }
 exports.getJsonWalletAddress = getJsonWalletAddress;
 
-},{"@ethersproject/address":61}],93:[function(require,module,exports){
+},{"@ethersproject/address":22}],54:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -10741,7 +7918,7 @@ function encrypt(account, password, options, progressCallback) {
 }
 exports.encrypt = encrypt;
 
-},{"./_version":89,"./utils":94,"@ethersproject/address":61,"@ethersproject/bytes":70,"@ethersproject/hdnode":88,"@ethersproject/keccak256":95,"@ethersproject/logger":97,"@ethersproject/pbkdf2":101,"@ethersproject/properties":103,"@ethersproject/random":125,"@ethersproject/transactions":144,"aes-js":192,"scrypt-js":248}],94:[function(require,module,exports){
+},{"./_version":50,"./utils":55,"@ethersproject/address":22,"@ethersproject/bytes":31,"@ethersproject/hdnode":49,"@ethersproject/keccak256":56,"@ethersproject/logger":58,"@ethersproject/pbkdf2":62,"@ethersproject/properties":64,"@ethersproject/random":86,"@ethersproject/transactions":105,"aes-js":139,"scrypt-js":188}],55:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.uuidV4 = exports.searchPath = exports.getPassword = exports.zpad = exports.looseArrayify = void 0;
@@ -10812,7 +7989,7 @@ function uuidV4(randomBytes) {
 }
 exports.uuidV4 = uuidV4;
 
-},{"@ethersproject/bytes":70,"@ethersproject/strings":141}],95:[function(require,module,exports){
+},{"@ethersproject/bytes":31,"@ethersproject/strings":102}],56:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -10826,13 +8003,13 @@ function keccak256(data) {
 }
 exports.keccak256 = keccak256;
 
-},{"@ethersproject/bytes":70,"js-sha3":242}],96:[function(require,module,exports){
+},{"@ethersproject/bytes":31,"js-sha3":183}],57:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "logger/5.7.0";
 
-},{}],97:[function(require,module,exports){
+},{}],58:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Logger = exports.ErrorCode = exports.LogLevel = void 0;
@@ -11204,13 +8381,13 @@ var Logger = /** @class */ (function () {
 }());
 exports.Logger = Logger;
 
-},{"./_version":96}],98:[function(require,module,exports){
+},{"./_version":57}],59:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "networks/5.7.1";
 
-},{}],99:[function(require,module,exports){
+},{}],60:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getNetwork = void 0;
@@ -11462,7 +8639,7 @@ function getNetwork(network) {
 }
 exports.getNetwork = getNetwork;
 
-},{"./_version":98,"@ethersproject/logger":97}],100:[function(require,module,exports){
+},{"./_version":59,"@ethersproject/logger":58}],61:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.pbkdf2 = void 0;
@@ -11510,20 +8687,20 @@ function pbkdf2(password, salt, iterations, keylen, hashAlgorithm) {
 }
 exports.pbkdf2 = pbkdf2;
 
-},{"@ethersproject/bytes":70,"@ethersproject/sha2":131}],101:[function(require,module,exports){
+},{"@ethersproject/bytes":31,"@ethersproject/sha2":92}],62:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.pbkdf2 = void 0;
 var pbkdf2_1 = require("./pbkdf2");
 Object.defineProperty(exports, "pbkdf2", { enumerable: true, get: function () { return pbkdf2_1.pbkdf2; } });
 
-},{"./pbkdf2":100}],102:[function(require,module,exports){
+},{"./pbkdf2":61}],63:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "properties/5.7.0";
 
-},{}],103:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -11695,13 +8872,13 @@ var Description = /** @class */ (function () {
 }());
 exports.Description = Description;
 
-},{"./_version":102,"@ethersproject/logger":97}],104:[function(require,module,exports){
+},{"./_version":63,"@ethersproject/logger":58}],65:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "providers/5.7.2";
 
-},{}],105:[function(require,module,exports){
+},{}],66:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -11814,7 +8991,7 @@ var AlchemyProvider = /** @class */ (function (_super) {
 }(url_json_rpc_provider_1.UrlJsonRpcProvider));
 exports.AlchemyProvider = AlchemyProvider;
 
-},{"./_version":104,"./formatter":113,"./url-json-rpc-provider":120,"./websocket-provider":122,"@ethersproject/logger":97,"@ethersproject/properties":103}],106:[function(require,module,exports){
+},{"./_version":65,"./formatter":74,"./url-json-rpc-provider":81,"./websocket-provider":83,"@ethersproject/logger":58,"@ethersproject/properties":64}],67:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -11894,7 +9071,7 @@ var AnkrProvider = /** @class */ (function (_super) {
 }(url_json_rpc_provider_1.UrlJsonRpcProvider));
 exports.AnkrProvider = AnkrProvider;
 
-},{"./_version":104,"./formatter":113,"./url-json-rpc-provider":120,"@ethersproject/logger":97}],107:[function(require,module,exports){
+},{"./_version":65,"./formatter":74,"./url-json-rpc-provider":81,"@ethersproject/logger":58}],68:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -14480,14 +11657,14 @@ var BaseProvider = /** @class */ (function (_super) {
 }(abstract_provider_1.Provider));
 exports.BaseProvider = BaseProvider;
 
-},{"./_version":104,"./formatter":113,"@ethersproject/abstract-provider":57,"@ethersproject/base64":63,"@ethersproject/basex":64,"@ethersproject/bignumber":68,"@ethersproject/bytes":70,"@ethersproject/constants":74,"@ethersproject/hash":83,"@ethersproject/logger":97,"@ethersproject/networks":99,"@ethersproject/properties":103,"@ethersproject/sha2":131,"@ethersproject/strings":141,"@ethersproject/web":151,"bech32":194}],108:[function(require,module,exports){
+},{"./_version":65,"./formatter":74,"@ethersproject/abstract-provider":18,"@ethersproject/base64":24,"@ethersproject/basex":25,"@ethersproject/bignumber":29,"@ethersproject/bytes":31,"@ethersproject/constants":35,"@ethersproject/hash":44,"@ethersproject/logger":58,"@ethersproject/networks":60,"@ethersproject/properties":64,"@ethersproject/sha2":92,"@ethersproject/strings":102,"@ethersproject/web":112,"bech32":141}],69:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.IpcProvider = void 0;
 var IpcProvider = null;
 exports.IpcProvider = IpcProvider;
 
-},{}],109:[function(require,module,exports){
+},{}],70:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WebSocket = void 0;
@@ -14510,7 +11687,7 @@ catch (error) {
     };
 }
 
-},{"./_version":104,"@ethersproject/logger":97}],110:[function(require,module,exports){
+},{"./_version":65,"@ethersproject/logger":58}],71:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -14611,7 +11788,7 @@ var CloudflareProvider = /** @class */ (function (_super) {
 }(url_json_rpc_provider_1.UrlJsonRpcProvider));
 exports.CloudflareProvider = CloudflareProvider;
 
-},{"./_version":104,"./url-json-rpc-provider":120,"@ethersproject/logger":97}],111:[function(require,module,exports){
+},{"./_version":65,"./url-json-rpc-provider":81,"@ethersproject/logger":58}],72:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -15140,7 +12317,7 @@ var EtherscanProvider = /** @class */ (function (_super) {
 }(base_provider_1.BaseProvider));
 exports.EtherscanProvider = EtherscanProvider;
 
-},{"./_version":104,"./base-provider":107,"./formatter":113,"@ethersproject/bytes":70,"@ethersproject/logger":97,"@ethersproject/properties":103,"@ethersproject/transactions":144,"@ethersproject/web":151}],112:[function(require,module,exports){
+},{"./_version":65,"./base-provider":68,"./formatter":74,"@ethersproject/bytes":31,"@ethersproject/logger":58,"@ethersproject/properties":64,"@ethersproject/transactions":105,"@ethersproject/web":112}],73:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -15840,7 +13017,7 @@ var FallbackProvider = /** @class */ (function (_super) {
 }(base_provider_1.BaseProvider));
 exports.FallbackProvider = FallbackProvider;
 
-},{"./_version":104,"./base-provider":107,"./formatter":113,"@ethersproject/abstract-provider":57,"@ethersproject/bignumber":68,"@ethersproject/bytes":70,"@ethersproject/logger":97,"@ethersproject/properties":103,"@ethersproject/random":125,"@ethersproject/web":151}],113:[function(require,module,exports){
+},{"./_version":65,"./base-provider":68,"./formatter":74,"@ethersproject/abstract-provider":18,"@ethersproject/bignumber":29,"@ethersproject/bytes":31,"@ethersproject/logger":58,"@ethersproject/properties":64,"@ethersproject/random":86,"@ethersproject/web":112}],74:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.showThrottleMessage = exports.isCommunityResource = exports.isCommunityResourcable = exports.Formatter = void 0;
@@ -16297,7 +13474,7 @@ function showThrottleMessage() {
 }
 exports.showThrottleMessage = showThrottleMessage;
 
-},{"./_version":104,"@ethersproject/address":61,"@ethersproject/bignumber":68,"@ethersproject/bytes":70,"@ethersproject/constants":74,"@ethersproject/logger":97,"@ethersproject/properties":103,"@ethersproject/transactions":144}],114:[function(require,module,exports){
+},{"./_version":65,"@ethersproject/address":22,"@ethersproject/bignumber":29,"@ethersproject/bytes":31,"@ethersproject/constants":35,"@ethersproject/logger":58,"@ethersproject/properties":64,"@ethersproject/transactions":105}],75:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Formatter = exports.showThrottleMessage = exports.isCommunityResourcable = exports.isCommunityResource = exports.getNetwork = exports.getDefaultProvider = exports.JsonRpcSigner = exports.IpcProvider = exports.WebSocketProvider = exports.Web3Provider = exports.StaticJsonRpcProvider = exports.PocketProvider = exports.NodesmithProvider = exports.JsonRpcBatchProvider = exports.JsonRpcProvider = exports.InfuraWebSocketProvider = exports.InfuraProvider = exports.EtherscanProvider = exports.CloudflareProvider = exports.AnkrProvider = exports.AlchemyWebSocketProvider = exports.AlchemyProvider = exports.FallbackProvider = exports.UrlJsonRpcProvider = exports.Resolver = exports.BaseProvider = exports.Provider = void 0;
@@ -16395,7 +13572,7 @@ function getDefaultProvider(network, options) {
 }
 exports.getDefaultProvider = getDefaultProvider;
 
-},{"./_version":104,"./alchemy-provider":105,"./ankr-provider":106,"./base-provider":107,"./cloudflare-provider":110,"./etherscan-provider":111,"./fallback-provider":112,"./formatter":113,"./infura-provider":115,"./ipc-provider":108,"./json-rpc-batch-provider":116,"./json-rpc-provider":117,"./nodesmith-provider":118,"./pocket-provider":119,"./url-json-rpc-provider":120,"./web3-provider":121,"./websocket-provider":122,"@ethersproject/abstract-provider":57,"@ethersproject/logger":97,"@ethersproject/networks":99}],115:[function(require,module,exports){
+},{"./_version":65,"./alchemy-provider":66,"./ankr-provider":67,"./base-provider":68,"./cloudflare-provider":71,"./etherscan-provider":72,"./fallback-provider":73,"./formatter":74,"./infura-provider":76,"./ipc-provider":69,"./json-rpc-batch-provider":77,"./json-rpc-provider":78,"./nodesmith-provider":79,"./pocket-provider":80,"./url-json-rpc-provider":81,"./web3-provider":82,"./websocket-provider":83,"@ethersproject/abstract-provider":18,"@ethersproject/logger":58,"@ethersproject/networks":60}],76:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -16537,7 +13714,7 @@ var InfuraProvider = /** @class */ (function (_super) {
 }(url_json_rpc_provider_1.UrlJsonRpcProvider));
 exports.InfuraProvider = InfuraProvider;
 
-},{"./_version":104,"./formatter":113,"./url-json-rpc-provider":120,"./websocket-provider":122,"@ethersproject/logger":97,"@ethersproject/properties":103}],116:[function(require,module,exports){
+},{"./_version":65,"./formatter":74,"./url-json-rpc-provider":81,"./websocket-provider":83,"@ethersproject/logger":58,"@ethersproject/properties":64}],77:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -16637,7 +13814,7 @@ var JsonRpcBatchProvider = /** @class */ (function (_super) {
 }(json_rpc_provider_1.JsonRpcProvider));
 exports.JsonRpcBatchProvider = JsonRpcBatchProvider;
 
-},{"./json-rpc-provider":117,"@ethersproject/properties":103,"@ethersproject/web":151}],117:[function(require,module,exports){
+},{"./json-rpc-provider":78,"@ethersproject/properties":64,"@ethersproject/web":112}],78:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -17493,7 +14670,7 @@ var JsonRpcProvider = /** @class */ (function (_super) {
 }(base_provider_1.BaseProvider));
 exports.JsonRpcProvider = JsonRpcProvider;
 
-},{"./_version":104,"./base-provider":107,"@ethersproject/abstract-signer":59,"@ethersproject/bignumber":68,"@ethersproject/bytes":70,"@ethersproject/hash":83,"@ethersproject/logger":97,"@ethersproject/properties":103,"@ethersproject/strings":141,"@ethersproject/transactions":144,"@ethersproject/web":151}],118:[function(require,module,exports){
+},{"./_version":65,"./base-provider":68,"@ethersproject/abstract-signer":20,"@ethersproject/bignumber":29,"@ethersproject/bytes":31,"@ethersproject/hash":44,"@ethersproject/logger":58,"@ethersproject/properties":64,"@ethersproject/strings":102,"@ethersproject/transactions":105,"@ethersproject/web":112}],79:[function(require,module,exports){
 /* istanbul ignore file */
 "use strict";
 var __extends = (this && this.__extends) || (function () {
@@ -17558,7 +14735,7 @@ var NodesmithProvider = /** @class */ (function (_super) {
 }(url_json_rpc_provider_1.UrlJsonRpcProvider));
 exports.NodesmithProvider = NodesmithProvider;
 
-},{"./_version":104,"./url-json-rpc-provider":120,"@ethersproject/logger":97}],119:[function(require,module,exports){
+},{"./_version":65,"./url-json-rpc-provider":81,"@ethersproject/logger":58}],80:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -17657,7 +14834,7 @@ var PocketProvider = /** @class */ (function (_super) {
 }(url_json_rpc_provider_1.UrlJsonRpcProvider));
 exports.PocketProvider = PocketProvider;
 
-},{"./_version":104,"./url-json-rpc-provider":120,"@ethersproject/logger":97}],120:[function(require,module,exports){
+},{"./_version":65,"./url-json-rpc-provider":81,"@ethersproject/logger":58}],81:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -17811,7 +14988,7 @@ var UrlJsonRpcProvider = /** @class */ (function (_super) {
 }(StaticJsonRpcProvider));
 exports.UrlJsonRpcProvider = UrlJsonRpcProvider;
 
-},{"./_version":104,"./json-rpc-provider":117,"@ethersproject/logger":97,"@ethersproject/properties":103}],121:[function(require,module,exports){
+},{"./_version":65,"./json-rpc-provider":78,"@ethersproject/logger":58,"@ethersproject/properties":64}],82:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -17967,7 +15144,7 @@ var Web3Provider = /** @class */ (function (_super) {
 }(json_rpc_provider_1.JsonRpcProvider));
 exports.Web3Provider = Web3Provider;
 
-},{"./_version":104,"./json-rpc-provider":117,"@ethersproject/logger":97,"@ethersproject/properties":103}],122:[function(require,module,exports){
+},{"./_version":65,"./json-rpc-provider":78,"@ethersproject/logger":58,"@ethersproject/properties":64}],83:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -18352,13 +15529,13 @@ var WebSocketProvider = /** @class */ (function (_super) {
 }(json_rpc_provider_1.JsonRpcProvider));
 exports.WebSocketProvider = WebSocketProvider;
 
-},{"./_version":104,"./json-rpc-provider":117,"./ws":109,"@ethersproject/bignumber":68,"@ethersproject/logger":97,"@ethersproject/properties":103}],123:[function(require,module,exports){
+},{"./_version":65,"./json-rpc-provider":78,"./ws":70,"@ethersproject/bignumber":29,"@ethersproject/logger":58,"@ethersproject/properties":64}],84:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "random/5.7.0";
 
-},{}],124:[function(require,module,exports){
+},{}],85:[function(require,module,exports){
 (function (global){(function (){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -18407,7 +15584,7 @@ exports.randomBytes = randomBytes;
 ;
 
 }).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./_version":123,"@ethersproject/bytes":70,"@ethersproject/logger":97}],125:[function(require,module,exports){
+},{"./_version":84,"@ethersproject/bytes":31,"@ethersproject/logger":58}],86:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.shuffled = exports.randomBytes = void 0;
@@ -18416,7 +15593,7 @@ Object.defineProperty(exports, "randomBytes", { enumerable: true, get: function 
 var shuffle_1 = require("./shuffle");
 Object.defineProperty(exports, "shuffled", { enumerable: true, get: function () { return shuffle_1.shuffled; } });
 
-},{"./random":124,"./shuffle":126}],126:[function(require,module,exports){
+},{"./random":85,"./shuffle":87}],87:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.shuffled = void 0;
@@ -18432,13 +15609,13 @@ function shuffled(array) {
 }
 exports.shuffled = shuffled;
 
-},{}],127:[function(require,module,exports){
+},{}],88:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "rlp/5.7.0";
 
-},{}],128:[function(require,module,exports){
+},{}],89:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.decode = exports.encode = void 0;
@@ -18563,13 +15740,13 @@ function decode(data) {
 }
 exports.decode = decode;
 
-},{"./_version":127,"@ethersproject/bytes":70,"@ethersproject/logger":97}],129:[function(require,module,exports){
+},{"./_version":88,"@ethersproject/bytes":31,"@ethersproject/logger":58}],90:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "sha2/5.7.0";
 
-},{}],130:[function(require,module,exports){
+},{}],91:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -18606,7 +15783,7 @@ function computeHmac(algorithm, key, data) {
 }
 exports.computeHmac = computeHmac;
 
-},{"./_version":129,"./types":132,"@ethersproject/bytes":70,"@ethersproject/logger":97,"hash.js":227}],131:[function(require,module,exports){
+},{"./_version":90,"./types":93,"@ethersproject/bytes":31,"@ethersproject/logger":58,"hash.js":168}],92:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SupportedAlgorithm = exports.sha512 = exports.sha256 = exports.ripemd160 = exports.computeHmac = void 0;
@@ -18618,7 +15795,7 @@ Object.defineProperty(exports, "sha512", { enumerable: true, get: function () { 
 var types_1 = require("./types");
 Object.defineProperty(exports, "SupportedAlgorithm", { enumerable: true, get: function () { return types_1.SupportedAlgorithm; } });
 
-},{"./sha2":130,"./types":132}],132:[function(require,module,exports){
+},{"./sha2":91,"./types":93}],93:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SupportedAlgorithm = void 0;
@@ -18629,13 +15806,13 @@ var SupportedAlgorithm;
 })(SupportedAlgorithm = exports.SupportedAlgorithm || (exports.SupportedAlgorithm = {}));
 ;
 
-},{}],133:[function(require,module,exports){
+},{}],94:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "signing-key/5.7.0";
 
-},{}],134:[function(require,module,exports){
+},{}],95:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -18646,7 +15823,7 @@ var elliptic_1 = __importDefault(require("elliptic"));
 var EC = elliptic_1.default.ec;
 exports.EC = EC;
 
-},{"elliptic":200}],135:[function(require,module,exports){
+},{"elliptic":147}],96:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.computePublicKey = exports.recoverPublicKey = exports.SigningKey = void 0;
@@ -18735,13 +15912,13 @@ function computePublicKey(key, compressed) {
 }
 exports.computePublicKey = computePublicKey;
 
-},{"./_version":133,"./elliptic":134,"@ethersproject/bytes":70,"@ethersproject/logger":97,"@ethersproject/properties":103}],136:[function(require,module,exports){
+},{"./_version":94,"./elliptic":95,"@ethersproject/bytes":31,"@ethersproject/logger":58,"@ethersproject/properties":64}],97:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "solidity/5.7.0";
 
-},{}],137:[function(require,module,exports){
+},{}],98:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sha256 = exports.keccak256 = exports.pack = void 0;
@@ -18838,13 +16015,13 @@ function sha256(types, values) {
 }
 exports.sha256 = sha256;
 
-},{"./_version":136,"@ethersproject/bignumber":68,"@ethersproject/bytes":70,"@ethersproject/keccak256":95,"@ethersproject/logger":97,"@ethersproject/sha2":131,"@ethersproject/strings":141}],138:[function(require,module,exports){
+},{"./_version":97,"@ethersproject/bignumber":29,"@ethersproject/bytes":31,"@ethersproject/keccak256":56,"@ethersproject/logger":58,"@ethersproject/sha2":92,"@ethersproject/strings":102}],99:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "strings/5.7.0";
 
-},{}],139:[function(require,module,exports){
+},{}],100:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.parseBytes32String = exports.formatBytes32String = void 0;
@@ -18881,7 +16058,7 @@ function parseBytes32String(bytes) {
 }
 exports.parseBytes32String = parseBytes32String;
 
-},{"./utf8":142,"@ethersproject/bytes":70,"@ethersproject/constants":74}],140:[function(require,module,exports){
+},{"./utf8":103,"@ethersproject/bytes":31,"@ethersproject/constants":35}],101:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.nameprep = exports._nameprepTableC = exports._nameprepTableB2 = exports._nameprepTableA1 = void 0;
@@ -19072,7 +16249,7 @@ function nameprep(value) {
 }
 exports.nameprep = nameprep;
 
-},{"./utf8":142}],141:[function(require,module,exports){
+},{"./utf8":103}],102:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.nameprep = exports.parseBytes32String = exports.formatBytes32String = exports.UnicodeNormalizationForm = exports.Utf8ErrorReason = exports.Utf8ErrorFuncs = exports.toUtf8String = exports.toUtf8CodePoints = exports.toUtf8Bytes = exports._toEscapedUtf8String = void 0;
@@ -19090,7 +16267,7 @@ Object.defineProperty(exports, "UnicodeNormalizationForm", { enumerable: true, g
 Object.defineProperty(exports, "Utf8ErrorFuncs", { enumerable: true, get: function () { return utf8_1.Utf8ErrorFuncs; } });
 Object.defineProperty(exports, "Utf8ErrorReason", { enumerable: true, get: function () { return utf8_1.Utf8ErrorReason; } });
 
-},{"./bytes32":139,"./idna":140,"./utf8":142}],142:[function(require,module,exports){
+},{"./bytes32":100,"./idna":101,"./utf8":103}],103:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.toUtf8CodePoints = exports.toUtf8String = exports._toUtf8String = exports._toEscapedUtf8String = exports.toUtf8Bytes = exports.Utf8ErrorFuncs = exports.Utf8ErrorReason = exports.UnicodeNormalizationForm = void 0;
@@ -19348,13 +16525,13 @@ function toUtf8CodePoints(str, form) {
 }
 exports.toUtf8CodePoints = toUtf8CodePoints;
 
-},{"./_version":138,"@ethersproject/bytes":70,"@ethersproject/logger":97}],143:[function(require,module,exports){
+},{"./_version":99,"@ethersproject/bytes":31,"@ethersproject/logger":58}],104:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "transactions/5.7.0";
 
-},{}],144:[function(require,module,exports){
+},{}],105:[function(require,module,exports){
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -19767,13 +16944,13 @@ function parse(rawTransaction) {
 }
 exports.parse = parse;
 
-},{"./_version":143,"@ethersproject/address":61,"@ethersproject/bignumber":68,"@ethersproject/bytes":70,"@ethersproject/constants":74,"@ethersproject/keccak256":95,"@ethersproject/logger":97,"@ethersproject/properties":103,"@ethersproject/rlp":128,"@ethersproject/signing-key":135}],145:[function(require,module,exports){
+},{"./_version":104,"@ethersproject/address":22,"@ethersproject/bignumber":29,"@ethersproject/bytes":31,"@ethersproject/constants":35,"@ethersproject/keccak256":56,"@ethersproject/logger":58,"@ethersproject/properties":64,"@ethersproject/rlp":89,"@ethersproject/signing-key":96}],106:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "units/5.7.0";
 
-},{}],146:[function(require,module,exports){
+},{}],107:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.parseEther = exports.formatEther = exports.parseUnits = exports.formatUnits = exports.commify = void 0;
@@ -19865,13 +17042,13 @@ function parseEther(ether) {
 }
 exports.parseEther = parseEther;
 
-},{"./_version":145,"@ethersproject/bignumber":68,"@ethersproject/logger":97}],147:[function(require,module,exports){
+},{"./_version":106,"@ethersproject/bignumber":29,"@ethersproject/logger":58}],108:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "wallet/5.7.0";
 
-},{}],148:[function(require,module,exports){
+},{}],109:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -20120,13 +17297,13 @@ function verifyTypedData(domain, types, value, signature) {
 }
 exports.verifyTypedData = verifyTypedData;
 
-},{"./_version":147,"@ethersproject/abstract-provider":57,"@ethersproject/abstract-signer":59,"@ethersproject/address":61,"@ethersproject/bytes":70,"@ethersproject/hash":83,"@ethersproject/hdnode":88,"@ethersproject/json-wallets":91,"@ethersproject/keccak256":95,"@ethersproject/logger":97,"@ethersproject/properties":103,"@ethersproject/random":125,"@ethersproject/signing-key":135,"@ethersproject/transactions":144}],149:[function(require,module,exports){
+},{"./_version":108,"@ethersproject/abstract-provider":18,"@ethersproject/abstract-signer":20,"@ethersproject/address":22,"@ethersproject/bytes":31,"@ethersproject/hash":44,"@ethersproject/hdnode":49,"@ethersproject/json-wallets":52,"@ethersproject/keccak256":56,"@ethersproject/logger":58,"@ethersproject/properties":64,"@ethersproject/random":86,"@ethersproject/signing-key":96,"@ethersproject/transactions":105}],110:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "web/5.7.1";
 
-},{}],150:[function(require,module,exports){
+},{}],111:[function(require,module,exports){
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -20236,7 +17413,7 @@ function getUrl(href, options) {
 }
 exports.getUrl = getUrl;
 
-},{"@ethersproject/bytes":70}],151:[function(require,module,exports){
+},{"@ethersproject/bytes":31}],112:[function(require,module,exports){
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -20700,13 +17877,13 @@ function poll(func, options) {
 }
 exports.poll = poll;
 
-},{"./_version":149,"./geturl":150,"@ethersproject/base64":63,"@ethersproject/bytes":70,"@ethersproject/logger":97,"@ethersproject/properties":103,"@ethersproject/strings":141}],152:[function(require,module,exports){
+},{"./_version":110,"./geturl":111,"@ethersproject/base64":24,"@ethersproject/bytes":31,"@ethersproject/logger":58,"@ethersproject/properties":64,"@ethersproject/strings":102}],113:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "wordlists/5.7.0";
 
-},{}],153:[function(require,module,exports){
+},{}],114:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.wordlists = exports.Wordlist = exports.logger = void 0;
@@ -20718,7 +17895,7 @@ Object.defineProperty(exports, "Wordlist", { enumerable: true, get: function () 
 var wordlists_1 = require("./wordlists");
 Object.defineProperty(exports, "wordlists", { enumerable: true, get: function () { return wordlists_1.wordlists; } });
 
-},{"./wordlist":162,"./wordlists":163}],154:[function(require,module,exports){
+},{"./wordlist":123,"./wordlists":124}],115:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -20771,7 +17948,7 @@ var langCz = new LangCz();
 exports.langCz = langCz;
 wordlist_1.Wordlist.register(langCz);
 
-},{"./wordlist":162}],155:[function(require,module,exports){
+},{"./wordlist":123}],116:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -20824,7 +18001,7 @@ var langEn = new LangEn();
 exports.langEn = langEn;
 wordlist_1.Wordlist.register(langEn);
 
-},{"./wordlist":162}],156:[function(require,module,exports){
+},{"./wordlist":123}],117:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -20908,7 +18085,7 @@ var langEs = new LangEs();
 exports.langEs = langEs;
 wordlist_1.Wordlist.register(langEs);
 
-},{"./wordlist":162,"@ethersproject/strings":141}],157:[function(require,module,exports){
+},{"./wordlist":123,"@ethersproject/strings":102}],118:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -20991,7 +18168,7 @@ var langFr = new LangFr();
 exports.langFr = langFr;
 wordlist_1.Wordlist.register(langFr);
 
-},{"./wordlist":162,"@ethersproject/strings":141}],158:[function(require,module,exports){
+},{"./wordlist":123,"@ethersproject/strings":102}],119:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -21044,7 +18221,7 @@ var langIt = new LangIt();
 exports.langIt = langIt;
 wordlist_1.Wordlist.register(langIt);
 
-},{"./wordlist":162}],159:[function(require,module,exports){
+},{"./wordlist":123}],120:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -21192,7 +18369,7 @@ var langJa = new LangJa();
 exports.langJa = langJa;
 wordlist_1.Wordlist.register(langJa);
 
-},{"./wordlist":162,"@ethersproject/bytes":70,"@ethersproject/strings":141}],160:[function(require,module,exports){
+},{"./wordlist":123,"@ethersproject/bytes":31,"@ethersproject/strings":102}],121:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -21276,7 +18453,7 @@ var langKo = new LangKo();
 exports.langKo = langKo;
 wordlist_1.Wordlist.register(langKo);
 
-},{"./wordlist":162,"@ethersproject/strings":141}],161:[function(require,module,exports){
+},{"./wordlist":123,"@ethersproject/strings":102}],122:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -21365,7 +18542,7 @@ var langZhTw = new LangZh("tw");
 exports.langZhTw = langZhTw;
 wordlist_1.Wordlist.register(langZhTw);
 
-},{"./wordlist":162,"@ethersproject/strings":141}],162:[function(require,module,exports){
+},{"./wordlist":123,"@ethersproject/strings":102}],123:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Wordlist = exports.logger = void 0;
@@ -21423,7 +18600,7 @@ var Wordlist = /** @class */ (function () {
 }());
 exports.Wordlist = Wordlist;
 
-},{"./_version":152,"@ethersproject/hash":83,"@ethersproject/logger":97,"@ethersproject/properties":103}],163:[function(require,module,exports){
+},{"./_version":113,"@ethersproject/hash":44,"@ethersproject/logger":58,"@ethersproject/properties":64}],124:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.wordlists = void 0;
@@ -21448,3204 +18625,7 @@ exports.wordlists = {
     zh_tw: lang_zh_1.langZhTw
 };
 
-},{"./lang-cz":154,"./lang-en":155,"./lang-es":156,"./lang-fr":157,"./lang-it":158,"./lang-ja":159,"./lang-ko":160,"./lang-zh":161}],164:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.createCurve = exports.getHash = void 0;
-/*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) */
-const hmac_1 = require("@noble/hashes/hmac");
-const utils_1 = require("@noble/hashes/utils");
-const weierstrass_js_1 = require("./abstract/weierstrass.js");
-// connects noble-curves to noble-hashes
-function getHash(hash) {
-    return {
-        hash,
-        hmac: (key, ...msgs) => (0, hmac_1.hmac)(hash, key, (0, utils_1.concatBytes)(...msgs)),
-        randomBytes: utils_1.randomBytes,
-    };
-}
-exports.getHash = getHash;
-function createCurve(curveDef, defHash) {
-    const create = (hash) => (0, weierstrass_js_1.weierstrass)({ ...curveDef, ...getHash(hash) });
-    return Object.freeze({ ...create(defHash), create });
-}
-exports.createCurve = createCurve;
-
-},{"./abstract/weierstrass.js":169,"@noble/hashes/hmac":175,"@noble/hashes/utils":178}],165:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateBasic = exports.wNAF = void 0;
-/*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) */
-// Abelian group utilities
-const modular_js_1 = require("./modular.js");
-const utils_js_1 = require("./utils.js");
-const _0n = BigInt(0);
-const _1n = BigInt(1);
-// Elliptic curve multiplication of Point by scalar. Fragile.
-// Scalars should always be less than curve order: this should be checked inside of a curve itself.
-// Creates precomputation tables for fast multiplication:
-// - private scalar is split by fixed size windows of W bits
-// - every window point is collected from window's table & added to accumulator
-// - since windows are different, same point inside tables won't be accessed more than once per calc
-// - each multiplication is 'Math.ceil(CURVE_ORDER / 𝑊) + 1' point additions (fixed for any scalar)
-// - +1 window is neccessary for wNAF
-// - wNAF reduces table size: 2x less memory + 2x faster generation, but 10% slower multiplication
-// TODO: Research returning 2d JS array of windows, instead of a single window. This would allow
-// windows to be in different memory locations
-function wNAF(c, bits) {
-    const constTimeNegate = (condition, item) => {
-        const neg = item.negate();
-        return condition ? neg : item;
-    };
-    const opts = (W) => {
-        const windows = Math.ceil(bits / W) + 1; // +1, because
-        const windowSize = 2 ** (W - 1); // -1 because we skip zero
-        return { windows, windowSize };
-    };
-    return {
-        constTimeNegate,
-        // non-const time multiplication ladder
-        unsafeLadder(elm, n) {
-            let p = c.ZERO;
-            let d = elm;
-            while (n > _0n) {
-                if (n & _1n)
-                    p = p.add(d);
-                d = d.double();
-                n >>= _1n;
-            }
-            return p;
-        },
-        /**
-         * Creates a wNAF precomputation window. Used for caching.
-         * Default window size is set by `utils.precompute()` and is equal to 8.
-         * Number of precomputed points depends on the curve size:
-         * 2^(𝑊−1) * (Math.ceil(𝑛 / 𝑊) + 1), where:
-         * - 𝑊 is the window size
-         * - 𝑛 is the bitlength of the curve order.
-         * For a 256-bit curve and window size 8, the number of precomputed points is 128 * 33 = 4224.
-         * @returns precomputed point tables flattened to a single array
-         */
-        precomputeWindow(elm, W) {
-            const { windows, windowSize } = opts(W);
-            const points = [];
-            let p = elm;
-            let base = p;
-            for (let window = 0; window < windows; window++) {
-                base = p;
-                points.push(base);
-                // =1, because we skip zero
-                for (let i = 1; i < windowSize; i++) {
-                    base = base.add(p);
-                    points.push(base);
-                }
-                p = base.double();
-            }
-            return points;
-        },
-        /**
-         * Implements ec multiplication using precomputed tables and w-ary non-adjacent form.
-         * @param W window size
-         * @param precomputes precomputed tables
-         * @param n scalar (we don't check here, but should be less than curve order)
-         * @returns real and fake (for const-time) points
-         */
-        wNAF(W, precomputes, n) {
-            // TODO: maybe check that scalar is less than group order? wNAF behavious is undefined otherwise
-            // But need to carefully remove other checks before wNAF. ORDER == bits here
-            const { windows, windowSize } = opts(W);
-            let p = c.ZERO;
-            let f = c.BASE;
-            const mask = BigInt(2 ** W - 1); // Create mask with W ones: 0b1111 for W=4 etc.
-            const maxNumber = 2 ** W;
-            const shiftBy = BigInt(W);
-            for (let window = 0; window < windows; window++) {
-                const offset = window * windowSize;
-                // Extract W bits.
-                let wbits = Number(n & mask);
-                // Shift number by W bits.
-                n >>= shiftBy;
-                // If the bits are bigger than max size, we'll split those.
-                // +224 => 256 - 32
-                if (wbits > windowSize) {
-                    wbits -= maxNumber;
-                    n += _1n;
-                }
-                // This code was first written with assumption that 'f' and 'p' will never be infinity point:
-                // since each addition is multiplied by 2 ** W, it cannot cancel each other. However,
-                // there is negate now: it is possible that negated element from low value
-                // would be the same as high element, which will create carry into next window.
-                // It's not obvious how this can fail, but still worth investigating later.
-                // Check if we're onto Zero point.
-                // Add random point inside current window to f.
-                const offset1 = offset;
-                const offset2 = offset + Math.abs(wbits) - 1; // -1 because we skip zero
-                const cond1 = window % 2 !== 0;
-                const cond2 = wbits < 0;
-                if (wbits === 0) {
-                    // The most important part for const-time getPublicKey
-                    f = f.add(constTimeNegate(cond1, precomputes[offset1]));
-                }
-                else {
-                    p = p.add(constTimeNegate(cond2, precomputes[offset2]));
-                }
-            }
-            // JIT-compiler should not eliminate f here, since it will later be used in normalizeZ()
-            // Even if the variable is still unused, there are some checks which will
-            // throw an exception, so compiler needs to prove they won't happen, which is hard.
-            // At this point there is a way to F be infinity-point even if p is not,
-            // which makes it less const-time: around 1 bigint multiply.
-            return { p, f };
-        },
-        wNAFCached(P, precomputesMap, n, transform) {
-            // @ts-ignore
-            const W = P._WINDOW_SIZE || 1;
-            // Calculate precomputes on a first run, reuse them after
-            let comp = precomputesMap.get(P);
-            if (!comp) {
-                comp = this.precomputeWindow(P, W);
-                if (W !== 1) {
-                    precomputesMap.set(P, transform(comp));
-                }
-            }
-            return this.wNAF(W, comp, n);
-        },
-    };
-}
-exports.wNAF = wNAF;
-function validateBasic(curve) {
-    (0, modular_js_1.validateField)(curve.Fp);
-    (0, utils_js_1.validateObject)(curve, {
-        n: 'bigint',
-        h: 'bigint',
-        Gx: 'field',
-        Gy: 'field',
-    }, {
-        nBitLength: 'isSafeInteger',
-        nByteLength: 'isSafeInteger',
-    });
-    // Set defaults
-    return Object.freeze({
-        ...(0, modular_js_1.nLength)(curve.n, curve.nBitLength),
-        ...curve,
-        ...{ p: curve.Fp.ORDER },
-    });
-}
-exports.validateBasic = validateBasic;
-
-},{"./modular.js":167,"./utils.js":168}],166:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.createHasher = exports.isogenyMap = exports.hash_to_field = exports.expand_message_xof = exports.expand_message_xmd = void 0;
-const modular_js_1 = require("./modular.js");
-const utils_js_1 = require("./utils.js");
-function validateDST(dst) {
-    if (dst instanceof Uint8Array)
-        return dst;
-    if (typeof dst === 'string')
-        return (0, utils_js_1.utf8ToBytes)(dst);
-    throw new Error('DST must be Uint8Array or string');
-}
-// Octet Stream to Integer. "spec" implementation of os2ip is 2.5x slower vs bytesToNumberBE.
-const os2ip = utils_js_1.bytesToNumberBE;
-// Integer to Octet Stream (numberToBytesBE)
-function i2osp(value, length) {
-    if (value < 0 || value >= 1 << (8 * length)) {
-        throw new Error(`bad I2OSP call: value=${value} length=${length}`);
-    }
-    const res = Array.from({ length }).fill(0);
-    for (let i = length - 1; i >= 0; i--) {
-        res[i] = value & 0xff;
-        value >>>= 8;
-    }
-    return new Uint8Array(res);
-}
-function strxor(a, b) {
-    const arr = new Uint8Array(a.length);
-    for (let i = 0; i < a.length; i++) {
-        arr[i] = a[i] ^ b[i];
-    }
-    return arr;
-}
-function isBytes(item) {
-    if (!(item instanceof Uint8Array))
-        throw new Error('Uint8Array expected');
-}
-function isNum(item) {
-    if (!Number.isSafeInteger(item))
-        throw new Error('number expected');
-}
-// Produces a uniformly random byte string using a cryptographic hash function H that outputs b bits
-// https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-hash-to-curve-11#section-5.4.1
-function expand_message_xmd(msg, DST, lenInBytes, H) {
-    isBytes(msg);
-    isBytes(DST);
-    isNum(lenInBytes);
-    // https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-hash-to-curve-16#section-5.3.3
-    if (DST.length > 255)
-        DST = H((0, utils_js_1.concatBytes)((0, utils_js_1.utf8ToBytes)('H2C-OVERSIZE-DST-'), DST));
-    const { outputLen: b_in_bytes, blockLen: r_in_bytes } = H;
-    const ell = Math.ceil(lenInBytes / b_in_bytes);
-    if (ell > 255)
-        throw new Error('Invalid xmd length');
-    const DST_prime = (0, utils_js_1.concatBytes)(DST, i2osp(DST.length, 1));
-    const Z_pad = i2osp(0, r_in_bytes);
-    const l_i_b_str = i2osp(lenInBytes, 2); // len_in_bytes_str
-    const b = new Array(ell);
-    const b_0 = H((0, utils_js_1.concatBytes)(Z_pad, msg, l_i_b_str, i2osp(0, 1), DST_prime));
-    b[0] = H((0, utils_js_1.concatBytes)(b_0, i2osp(1, 1), DST_prime));
-    for (let i = 1; i <= ell; i++) {
-        const args = [strxor(b_0, b[i - 1]), i2osp(i + 1, 1), DST_prime];
-        b[i] = H((0, utils_js_1.concatBytes)(...args));
-    }
-    const pseudo_random_bytes = (0, utils_js_1.concatBytes)(...b);
-    return pseudo_random_bytes.slice(0, lenInBytes);
-}
-exports.expand_message_xmd = expand_message_xmd;
-function expand_message_xof(msg, DST, lenInBytes, k, H) {
-    isBytes(msg);
-    isBytes(DST);
-    isNum(lenInBytes);
-    // https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-hash-to-curve-16#section-5.3.3
-    // DST = H('H2C-OVERSIZE-DST-' || a_very_long_DST, Math.ceil((lenInBytes * k) / 8));
-    if (DST.length > 255) {
-        const dkLen = Math.ceil((2 * k) / 8);
-        DST = H.create({ dkLen }).update((0, utils_js_1.utf8ToBytes)('H2C-OVERSIZE-DST-')).update(DST).digest();
-    }
-    if (lenInBytes > 65535 || DST.length > 255)
-        throw new Error('expand_message_xof: invalid lenInBytes');
-    return (H.create({ dkLen: lenInBytes })
-        .update(msg)
-        .update(i2osp(lenInBytes, 2))
-        // 2. DST_prime = DST || I2OSP(len(DST), 1)
-        .update(DST)
-        .update(i2osp(DST.length, 1))
-        .digest());
-}
-exports.expand_message_xof = expand_message_xof;
-/**
- * Hashes arbitrary-length byte strings to a list of one or more elements of a finite field F
- * https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-hash-to-curve-11#section-5.3
- * @param msg a byte string containing the message to hash
- * @param count the number of elements of F to output
- * @param options `{DST: string, p: bigint, m: number, k: number, expand: 'xmd' | 'xof', hash: H}`, see above
- * @returns [u_0, ..., u_(count - 1)], a list of field elements.
- */
-function hash_to_field(msg, count, options) {
-    (0, utils_js_1.validateObject)(options, {
-        DST: 'string',
-        p: 'bigint',
-        m: 'isSafeInteger',
-        k: 'isSafeInteger',
-        hash: 'hash',
-    });
-    const { p, k, m, hash, expand, DST: _DST } = options;
-    isBytes(msg);
-    isNum(count);
-    const DST = validateDST(_DST);
-    const log2p = p.toString(2).length;
-    const L = Math.ceil((log2p + k) / 8); // section 5.1 of ietf draft link above
-    const len_in_bytes = count * m * L;
-    let prb; // pseudo_random_bytes
-    if (expand === 'xmd') {
-        prb = expand_message_xmd(msg, DST, len_in_bytes, hash);
-    }
-    else if (expand === 'xof') {
-        prb = expand_message_xof(msg, DST, len_in_bytes, k, hash);
-    }
-    else if (expand === '_internal_pass') {
-        // for internal tests only
-        prb = msg;
-    }
-    else {
-        throw new Error('expand must be "xmd" or "xof"');
-    }
-    const u = new Array(count);
-    for (let i = 0; i < count; i++) {
-        const e = new Array(m);
-        for (let j = 0; j < m; j++) {
-            const elm_offset = L * (j + i * m);
-            const tv = prb.subarray(elm_offset, elm_offset + L);
-            e[j] = (0, modular_js_1.mod)(os2ip(tv), p);
-        }
-        u[i] = e;
-    }
-    return u;
-}
-exports.hash_to_field = hash_to_field;
-function isogenyMap(field, map) {
-    // Make same order as in spec
-    const COEFF = map.map((i) => Array.from(i).reverse());
-    return (x, y) => {
-        const [xNum, xDen, yNum, yDen] = COEFF.map((val) => val.reduce((acc, i) => field.add(field.mul(acc, x), i)));
-        x = field.div(xNum, xDen); // xNum / xDen
-        y = field.mul(y, field.div(yNum, yDen)); // y * (yNum / yDev)
-        return { x, y };
-    };
-}
-exports.isogenyMap = isogenyMap;
-function createHasher(Point, mapToCurve, def) {
-    if (typeof mapToCurve !== 'function')
-        throw new Error('mapToCurve() must be defined');
-    return {
-        // Encodes byte string to elliptic curve
-        // https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-hash-to-curve-16#section-3
-        hashToCurve(msg, options) {
-            const u = hash_to_field(msg, 2, { ...def, DST: def.DST, ...options });
-            const u0 = Point.fromAffine(mapToCurve(u[0]));
-            const u1 = Point.fromAffine(mapToCurve(u[1]));
-            const P = u0.add(u1).clearCofactor();
-            P.assertValidity();
-            return P;
-        },
-        // https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-hash-to-curve-16#section-3
-        encodeToCurve(msg, options) {
-            const u = hash_to_field(msg, 1, { ...def, DST: def.encodeDST, ...options });
-            const P = Point.fromAffine(mapToCurve(u[0])).clearCofactor();
-            P.assertValidity();
-            return P;
-        },
-    };
-}
-exports.createHasher = createHasher;
-
-},{"./modular.js":167,"./utils.js":168}],167:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.hashToPrivateScalar = exports.FpSqrtEven = exports.FpSqrtOdd = exports.Field = exports.nLength = exports.FpIsSquare = exports.FpDiv = exports.FpInvertBatch = exports.FpPow = exports.validateField = exports.isNegativeLE = exports.FpSqrt = exports.tonelliShanks = exports.invert = exports.pow2 = exports.pow = exports.mod = void 0;
-/*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) */
-// Utilities for modular arithmetics and finite fields
-const utils_js_1 = require("./utils.js");
-// prettier-ignore
-const _0n = BigInt(0), _1n = BigInt(1), _2n = BigInt(2), _3n = BigInt(3);
-// prettier-ignore
-const _4n = BigInt(4), _5n = BigInt(5), _8n = BigInt(8);
-// prettier-ignore
-const _9n = BigInt(9), _16n = BigInt(16);
-// Calculates a modulo b
-function mod(a, b) {
-    const result = a % b;
-    return result >= _0n ? result : b + result;
-}
-exports.mod = mod;
-/**
- * Efficiently raise num to power and do modular division.
- * Unsafe in some contexts: uses ladder, so can expose bigint bits.
- * @example
- * pow(2n, 6n, 11n) // 64n % 11n == 9n
- */
-// TODO: use field version && remove
-function pow(num, power, modulo) {
-    if (modulo <= _0n || power < _0n)
-        throw new Error('Expected power/modulo > 0');
-    if (modulo === _1n)
-        return _0n;
-    let res = _1n;
-    while (power > _0n) {
-        if (power & _1n)
-            res = (res * num) % modulo;
-        num = (num * num) % modulo;
-        power >>= _1n;
-    }
-    return res;
-}
-exports.pow = pow;
-// Does x ^ (2 ^ power) mod p. pow2(30, 4) == 30 ^ (2 ^ 4)
-function pow2(x, power, modulo) {
-    let res = x;
-    while (power-- > _0n) {
-        res *= res;
-        res %= modulo;
-    }
-    return res;
-}
-exports.pow2 = pow2;
-// Inverses number over modulo
-function invert(number, modulo) {
-    if (number === _0n || modulo <= _0n) {
-        throw new Error(`invert: expected positive integers, got n=${number} mod=${modulo}`);
-    }
-    // Euclidean GCD https://brilliant.org/wiki/extended-euclidean-algorithm/
-    // Fermat's little theorem "CT-like" version inv(n) = n^(m-2) mod m is 30x slower.
-    let a = mod(number, modulo);
-    let b = modulo;
-    // prettier-ignore
-    let x = _0n, y = _1n, u = _1n, v = _0n;
-    while (a !== _0n) {
-        // JIT applies optimization if those two lines follow each other
-        const q = b / a;
-        const r = b % a;
-        const m = x - u * q;
-        const n = y - v * q;
-        // prettier-ignore
-        b = a, a = r, x = u, y = v, u = m, v = n;
-    }
-    const gcd = b;
-    if (gcd !== _1n)
-        throw new Error('invert: does not exist');
-    return mod(x, modulo);
-}
-exports.invert = invert;
-// Tonelli-Shanks algorithm
-// Paper 1: https://eprint.iacr.org/2012/685.pdf (page 12)
-// Paper 2: Square Roots from 1; 24, 51, 10 to Dan Shanks
-function tonelliShanks(P) {
-    // Legendre constant: used to calculate Legendre symbol (a | p),
-    // which denotes the value of a^((p-1)/2) (mod p).
-    // (a | p) ≡ 1    if a is a square (mod p)
-    // (a | p) ≡ -1   if a is not a square (mod p)
-    // (a | p) ≡ 0    if a ≡ 0 (mod p)
-    const legendreC = (P - _1n) / _2n;
-    let Q, S, Z;
-    // Step 1: By factoring out powers of 2 from p - 1,
-    // find q and s such that p - 1 = q*(2^s) with q odd
-    for (Q = P - _1n, S = 0; Q % _2n === _0n; Q /= _2n, S++)
-        ;
-    // Step 2: Select a non-square z such that (z | p) ≡ -1 and set c ≡ zq
-    for (Z = _2n; Z < P && pow(Z, legendreC, P) !== P - _1n; Z++)
-        ;
-    // Fast-path
-    if (S === 1) {
-        const p1div4 = (P + _1n) / _4n;
-        return function tonelliFast(Fp, n) {
-            const root = Fp.pow(n, p1div4);
-            if (!Fp.eql(Fp.sqr(root), n))
-                throw new Error('Cannot find square root');
-            return root;
-        };
-    }
-    // Slow-path
-    const Q1div2 = (Q + _1n) / _2n;
-    return function tonelliSlow(Fp, n) {
-        // Step 0: Check that n is indeed a square: (n | p) should not be ≡ -1
-        if (Fp.pow(n, legendreC) === Fp.neg(Fp.ONE))
-            throw new Error('Cannot find square root');
-        let r = S;
-        // TODO: will fail at Fp2/etc
-        let g = Fp.pow(Fp.mul(Fp.ONE, Z), Q); // will update both x and b
-        let x = Fp.pow(n, Q1div2); // first guess at the square root
-        let b = Fp.pow(n, Q); // first guess at the fudge factor
-        while (!Fp.eql(b, Fp.ONE)) {
-            if (Fp.eql(b, Fp.ZERO))
-                return Fp.ZERO; // https://en.wikipedia.org/wiki/Tonelli%E2%80%93Shanks_algorithm (4. If t = 0, return r = 0)
-            // Find m such b^(2^m)==1
-            let m = 1;
-            for (let t2 = Fp.sqr(b); m < r; m++) {
-                if (Fp.eql(t2, Fp.ONE))
-                    break;
-                t2 = Fp.sqr(t2); // t2 *= t2
-            }
-            // NOTE: r-m-1 can be bigger than 32, need to convert to bigint before shift, otherwise there will be overflow
-            const ge = Fp.pow(g, _1n << BigInt(r - m - 1)); // ge = 2^(r-m-1)
-            g = Fp.sqr(ge); // g = ge * ge
-            x = Fp.mul(x, ge); // x *= ge
-            b = Fp.mul(b, g); // b *= g
-            r = m;
-        }
-        return x;
-    };
-}
-exports.tonelliShanks = tonelliShanks;
-function FpSqrt(P) {
-    // NOTE: different algorithms can give different roots, it is up to user to decide which one they want.
-    // For example there is FpSqrtOdd/FpSqrtEven to choice root based on oddness (used for hash-to-curve).
-    // P ≡ 3 (mod 4)
-    // √n = n^((P+1)/4)
-    if (P % _4n === _3n) {
-        // Not all roots possible!
-        // const ORDER =
-        //   0x1a0111ea397fe69a4b1ba7b6434bacd764774b84f38512bf6730d2a0f6b0f6241eabfffeb153ffffb9feffffffffaaabn;
-        // const NUM = 72057594037927816n;
-        const p1div4 = (P + _1n) / _4n;
-        return function sqrt3mod4(Fp, n) {
-            const root = Fp.pow(n, p1div4);
-            // Throw if root**2 != n
-            if (!Fp.eql(Fp.sqr(root), n))
-                throw new Error('Cannot find square root');
-            return root;
-        };
-    }
-    // Atkin algorithm for q ≡ 5 (mod 8), https://eprint.iacr.org/2012/685.pdf (page 10)
-    if (P % _8n === _5n) {
-        const c1 = (P - _5n) / _8n;
-        return function sqrt5mod8(Fp, n) {
-            const n2 = Fp.mul(n, _2n);
-            const v = Fp.pow(n2, c1);
-            const nv = Fp.mul(n, v);
-            const i = Fp.mul(Fp.mul(nv, _2n), v);
-            const root = Fp.mul(nv, Fp.sub(i, Fp.ONE));
-            if (!Fp.eql(Fp.sqr(root), n))
-                throw new Error('Cannot find square root');
-            return root;
-        };
-    }
-    // P ≡ 9 (mod 16)
-    if (P % _16n === _9n) {
-        // NOTE: tonelli is too slow for bls-Fp2 calculations even on start
-        // Means we cannot use sqrt for constants at all!
-        //
-        // const c1 = Fp.sqrt(Fp.negate(Fp.ONE)); //  1. c1 = sqrt(-1) in F, i.e., (c1^2) == -1 in F
-        // const c2 = Fp.sqrt(c1);                //  2. c2 = sqrt(c1) in F, i.e., (c2^2) == c1 in F
-        // const c3 = Fp.sqrt(Fp.negate(c1));     //  3. c3 = sqrt(-c1) in F, i.e., (c3^2) == -c1 in F
-        // const c4 = (P + _7n) / _16n;           //  4. c4 = (q + 7) / 16        # Integer arithmetic
-        // sqrt = (x) => {
-        //   let tv1 = Fp.pow(x, c4);             //  1. tv1 = x^c4
-        //   let tv2 = Fp.mul(c1, tv1);           //  2. tv2 = c1 * tv1
-        //   const tv3 = Fp.mul(c2, tv1);         //  3. tv3 = c2 * tv1
-        //   let tv4 = Fp.mul(c3, tv1);           //  4. tv4 = c3 * tv1
-        //   const e1 = Fp.equals(Fp.square(tv2), x); //  5.  e1 = (tv2^2) == x
-        //   const e2 = Fp.equals(Fp.square(tv3), x); //  6.  e2 = (tv3^2) == x
-        //   tv1 = Fp.cmov(tv1, tv2, e1); //  7. tv1 = CMOV(tv1, tv2, e1)  # Select tv2 if (tv2^2) == x
-        //   tv2 = Fp.cmov(tv4, tv3, e2); //  8. tv2 = CMOV(tv4, tv3, e2)  # Select tv3 if (tv3^2) == x
-        //   const e3 = Fp.equals(Fp.square(tv2), x); //  9.  e3 = (tv2^2) == x
-        //   return Fp.cmov(tv1, tv2, e3); //  10.  z = CMOV(tv1, tv2, e3)  # Select the sqrt from tv1 and tv2
-        // }
-    }
-    // Other cases: Tonelli-Shanks algorithm
-    return tonelliShanks(P);
-}
-exports.FpSqrt = FpSqrt;
-// Little-endian check for first LE bit (last BE bit);
-const isNegativeLE = (num, modulo) => (mod(num, modulo) & _1n) === _1n;
-exports.isNegativeLE = isNegativeLE;
-// prettier-ignore
-const FIELD_FIELDS = [
-    'create', 'isValid', 'is0', 'neg', 'inv', 'sqrt', 'sqr',
-    'eql', 'add', 'sub', 'mul', 'pow', 'div',
-    'addN', 'subN', 'mulN', 'sqrN'
-];
-function validateField(field) {
-    const initial = {
-        ORDER: 'bigint',
-        MASK: 'bigint',
-        BYTES: 'isSafeInteger',
-        BITS: 'isSafeInteger',
-    };
-    const opts = FIELD_FIELDS.reduce((map, val) => {
-        map[val] = 'function';
-        return map;
-    }, initial);
-    return (0, utils_js_1.validateObject)(field, opts);
-}
-exports.validateField = validateField;
-// Generic field functions
-function FpPow(f, num, power) {
-    // Should have same speed as pow for bigints
-    // TODO: benchmark!
-    if (power < _0n)
-        throw new Error('Expected power > 0');
-    if (power === _0n)
-        return f.ONE;
-    if (power === _1n)
-        return num;
-    let p = f.ONE;
-    let d = num;
-    while (power > _0n) {
-        if (power & _1n)
-            p = f.mul(p, d);
-        d = f.sqr(d);
-        power >>= _1n;
-    }
-    return p;
-}
-exports.FpPow = FpPow;
-// 0 is non-invertible: non-batched version will throw on 0
-function FpInvertBatch(f, nums) {
-    const tmp = new Array(nums.length);
-    // Walk from first to last, multiply them by each other MOD p
-    const lastMultiplied = nums.reduce((acc, num, i) => {
-        if (f.is0(num))
-            return acc;
-        tmp[i] = acc;
-        return f.mul(acc, num);
-    }, f.ONE);
-    // Invert last element
-    const inverted = f.inv(lastMultiplied);
-    // Walk from last to first, multiply them by inverted each other MOD p
-    nums.reduceRight((acc, num, i) => {
-        if (f.is0(num))
-            return acc;
-        tmp[i] = f.mul(acc, tmp[i]);
-        return f.mul(acc, num);
-    }, inverted);
-    return tmp;
-}
-exports.FpInvertBatch = FpInvertBatch;
-function FpDiv(f, lhs, rhs) {
-    return f.mul(lhs, typeof rhs === 'bigint' ? invert(rhs, f.ORDER) : f.inv(rhs));
-}
-exports.FpDiv = FpDiv;
-// This function returns True whenever the value x is a square in the field F.
-function FpIsSquare(f) {
-    const legendreConst = (f.ORDER - _1n) / _2n; // Integer arithmetic
-    return (x) => {
-        const p = f.pow(x, legendreConst);
-        return f.eql(p, f.ZERO) || f.eql(p, f.ONE);
-    };
-}
-exports.FpIsSquare = FpIsSquare;
-// CURVE.n lengths
-function nLength(n, nBitLength) {
-    // Bit size, byte size of CURVE.n
-    const _nBitLength = nBitLength !== undefined ? nBitLength : n.toString(2).length;
-    const nByteLength = Math.ceil(_nBitLength / 8);
-    return { nBitLength: _nBitLength, nByteLength };
-}
-exports.nLength = nLength;
-/**
- * Initializes a galois field over prime. Non-primes are not supported for now.
- * Do not init in loop: slow. Very fragile: always run a benchmark on change.
- * Major performance gains:
- * a) non-normalized operations like mulN instead of mul
- * b) `Object.freeze`
- * c) Same object shape: never add or remove keys
- * @param ORDER prime positive bigint
- * @param bitLen how many bits the field consumes
- * @param isLE (def: false) if encoding / decoding should be in little-endian
- * @param redef optional faster redefinitions of sqrt and other methods
- */
-function Field(ORDER, bitLen, isLE = false, redef = {}) {
-    if (ORDER <= _0n)
-        throw new Error(`Expected Fp ORDER > 0, got ${ORDER}`);
-    const { nBitLength: BITS, nByteLength: BYTES } = nLength(ORDER, bitLen);
-    if (BYTES > 2048)
-        throw new Error('Field lengths over 2048 bytes are not supported');
-    const sqrtP = FpSqrt(ORDER);
-    const f = Object.freeze({
-        ORDER,
-        BITS,
-        BYTES,
-        MASK: (0, utils_js_1.bitMask)(BITS),
-        ZERO: _0n,
-        ONE: _1n,
-        create: (num) => mod(num, ORDER),
-        isValid: (num) => {
-            if (typeof num !== 'bigint')
-                throw new Error(`Invalid field element: expected bigint, got ${typeof num}`);
-            return _0n <= num && num < ORDER; // 0 is valid element, but it's not invertible
-        },
-        is0: (num) => num === _0n,
-        isOdd: (num) => (num & _1n) === _1n,
-        neg: (num) => mod(-num, ORDER),
-        eql: (lhs, rhs) => lhs === rhs,
-        sqr: (num) => mod(num * num, ORDER),
-        add: (lhs, rhs) => mod(lhs + rhs, ORDER),
-        sub: (lhs, rhs) => mod(lhs - rhs, ORDER),
-        mul: (lhs, rhs) => mod(lhs * rhs, ORDER),
-        pow: (num, power) => FpPow(f, num, power),
-        div: (lhs, rhs) => mod(lhs * invert(rhs, ORDER), ORDER),
-        // Same as above, but doesn't normalize
-        sqrN: (num) => num * num,
-        addN: (lhs, rhs) => lhs + rhs,
-        subN: (lhs, rhs) => lhs - rhs,
-        mulN: (lhs, rhs) => lhs * rhs,
-        inv: (num) => invert(num, ORDER),
-        sqrt: redef.sqrt || ((n) => sqrtP(f, n)),
-        invertBatch: (lst) => FpInvertBatch(f, lst),
-        // TODO: do we really need constant cmov?
-        // We don't have const-time bigints anyway, so probably will be not very useful
-        cmov: (a, b, c) => (c ? b : a),
-        toBytes: (num) => (isLE ? (0, utils_js_1.numberToBytesLE)(num, BYTES) : (0, utils_js_1.numberToBytesBE)(num, BYTES)),
-        fromBytes: (bytes) => {
-            if (bytes.length !== BYTES)
-                throw new Error(`Fp.fromBytes: expected ${BYTES}, got ${bytes.length}`);
-            return isLE ? (0, utils_js_1.bytesToNumberLE)(bytes) : (0, utils_js_1.bytesToNumberBE)(bytes);
-        },
-    });
-    return Object.freeze(f);
-}
-exports.Field = Field;
-function FpSqrtOdd(Fp, elm) {
-    if (!Fp.isOdd)
-        throw new Error(`Field doesn't have isOdd`);
-    const root = Fp.sqrt(elm);
-    return Fp.isOdd(root) ? root : Fp.neg(root);
-}
-exports.FpSqrtOdd = FpSqrtOdd;
-function FpSqrtEven(Fp, elm) {
-    if (!Fp.isOdd)
-        throw new Error(`Field doesn't have isOdd`);
-    const root = Fp.sqrt(elm);
-    return Fp.isOdd(root) ? Fp.neg(root) : root;
-}
-exports.FpSqrtEven = FpSqrtEven;
-/**
- * FIPS 186 B.4.1-compliant "constant-time" private key generation utility.
- * Can take (n+8) or more bytes of uniform input e.g. from CSPRNG or KDF
- * and convert them into private scalar, with the modulo bias being negligible.
- * Needs at least 40 bytes of input for 32-byte private key.
- * https://research.kudelskisecurity.com/2020/07/28/the-definitive-guide-to-modulo-bias-and-how-to-avoid-it/
- * @param hash hash output from SHA3 or a similar function
- * @param groupOrder size of subgroup - (e.g. curveFn.CURVE.n)
- * @param isLE interpret hash bytes as LE num
- * @returns valid private scalar
- */
-function hashToPrivateScalar(hash, groupOrder, isLE = false) {
-    hash = (0, utils_js_1.ensureBytes)('privateHash', hash);
-    const hashLen = hash.length;
-    const minLen = nLength(groupOrder).nByteLength + 8;
-    if (minLen < 24 || hashLen < minLen || hashLen > 1024)
-        throw new Error(`hashToPrivateScalar: expected ${minLen}-1024 bytes of input, got ${hashLen}`);
-    const num = isLE ? (0, utils_js_1.bytesToNumberLE)(hash) : (0, utils_js_1.bytesToNumberBE)(hash);
-    return mod(num, groupOrder - _1n) + _1n;
-}
-exports.hashToPrivateScalar = hashToPrivateScalar;
-
-},{"./utils.js":168}],168:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateObject = exports.createHmacDrbg = exports.bitMask = exports.bitSet = exports.bitGet = exports.bitLen = exports.utf8ToBytes = exports.equalBytes = exports.concatBytes = exports.ensureBytes = exports.numberToVarBytesBE = exports.numberToBytesLE = exports.numberToBytesBE = exports.bytesToNumberLE = exports.bytesToNumberBE = exports.hexToBytes = exports.hexToNumber = exports.numberToHexUnpadded = exports.bytesToHex = void 0;
-/*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) */
-// 100 lines of code in the file are duplicated from noble-hashes (utils).
-// This is OK: `abstract` directory does not use noble-hashes.
-// User may opt-in into using different hashing library. This way, noble-hashes
-// won't be included into their bundle.
-const _0n = BigInt(0);
-const _1n = BigInt(1);
-const _2n = BigInt(2);
-const u8a = (a) => a instanceof Uint8Array;
-const hexes = Array.from({ length: 256 }, (v, i) => i.toString(16).padStart(2, '0'));
-/**
- * @example bytesToHex(Uint8Array.from([0xca, 0xfe, 0x01, 0x23])) // 'cafe0123'
- */
-function bytesToHex(bytes) {
-    if (!u8a(bytes))
-        throw new Error('Uint8Array expected');
-    // pre-caching improves the speed 6x
-    let hex = '';
-    for (let i = 0; i < bytes.length; i++) {
-        hex += hexes[bytes[i]];
-    }
-    return hex;
-}
-exports.bytesToHex = bytesToHex;
-function numberToHexUnpadded(num) {
-    const hex = num.toString(16);
-    return hex.length & 1 ? `0${hex}` : hex;
-}
-exports.numberToHexUnpadded = numberToHexUnpadded;
-function hexToNumber(hex) {
-    if (typeof hex !== 'string')
-        throw new Error('hex string expected, got ' + typeof hex);
-    // Big Endian
-    return BigInt(hex === '' ? '0' : `0x${hex}`);
-}
-exports.hexToNumber = hexToNumber;
-/**
- * @example hexToBytes('cafe0123') // Uint8Array.from([0xca, 0xfe, 0x01, 0x23])
- */
-function hexToBytes(hex) {
-    if (typeof hex !== 'string')
-        throw new Error('hex string expected, got ' + typeof hex);
-    const len = hex.length;
-    if (len % 2)
-        throw new Error('padded hex string expected, got unpadded hex of length ' + len);
-    const array = new Uint8Array(len / 2);
-    for (let i = 0; i < array.length; i++) {
-        const j = i * 2;
-        const hexByte = hex.slice(j, j + 2);
-        const byte = Number.parseInt(hexByte, 16);
-        if (Number.isNaN(byte) || byte < 0)
-            throw new Error('Invalid byte sequence');
-        array[i] = byte;
-    }
-    return array;
-}
-exports.hexToBytes = hexToBytes;
-// BE: Big Endian, LE: Little Endian
-function bytesToNumberBE(bytes) {
-    return hexToNumber(bytesToHex(bytes));
-}
-exports.bytesToNumberBE = bytesToNumberBE;
-function bytesToNumberLE(bytes) {
-    if (!u8a(bytes))
-        throw new Error('Uint8Array expected');
-    return hexToNumber(bytesToHex(Uint8Array.from(bytes).reverse()));
-}
-exports.bytesToNumberLE = bytesToNumberLE;
-function numberToBytesBE(n, len) {
-    return hexToBytes(n.toString(16).padStart(len * 2, '0'));
-}
-exports.numberToBytesBE = numberToBytesBE;
-function numberToBytesLE(n, len) {
-    return numberToBytesBE(n, len).reverse();
-}
-exports.numberToBytesLE = numberToBytesLE;
-// Unpadded, rarely used
-function numberToVarBytesBE(n) {
-    return hexToBytes(numberToHexUnpadded(n));
-}
-exports.numberToVarBytesBE = numberToVarBytesBE;
-/**
- * Takes hex string or Uint8Array, converts to Uint8Array.
- * Validates output length.
- * Will throw error for other types.
- * @param title descriptive title for an error e.g. 'private key'
- * @param hex hex string or Uint8Array
- * @param expectedLength optional, will compare to result array's length
- * @returns
- */
-function ensureBytes(title, hex, expectedLength) {
-    let res;
-    if (typeof hex === 'string') {
-        try {
-            res = hexToBytes(hex);
-        }
-        catch (e) {
-            throw new Error(`${title} must be valid hex string, got "${hex}". Cause: ${e}`);
-        }
-    }
-    else if (u8a(hex)) {
-        // Uint8Array.from() instead of hash.slice() because node.js Buffer
-        // is instance of Uint8Array, and its slice() creates **mutable** copy
-        res = Uint8Array.from(hex);
-    }
-    else {
-        throw new Error(`${title} must be hex string or Uint8Array`);
-    }
-    const len = res.length;
-    if (typeof expectedLength === 'number' && len !== expectedLength)
-        throw new Error(`${title} expected ${expectedLength} bytes, got ${len}`);
-    return res;
-}
-exports.ensureBytes = ensureBytes;
-/**
- * Copies several Uint8Arrays into one.
- */
-function concatBytes(...arrays) {
-    const r = new Uint8Array(arrays.reduce((sum, a) => sum + a.length, 0));
-    let pad = 0; // walk through each item, ensure they have proper type
-    arrays.forEach((a) => {
-        if (!u8a(a))
-            throw new Error('Uint8Array expected');
-        r.set(a, pad);
-        pad += a.length;
-    });
-    return r;
-}
-exports.concatBytes = concatBytes;
-function equalBytes(b1, b2) {
-    // We don't care about timing attacks here
-    if (b1.length !== b2.length)
-        return false;
-    for (let i = 0; i < b1.length; i++)
-        if (b1[i] !== b2[i])
-            return false;
-    return true;
-}
-exports.equalBytes = equalBytes;
-/**
- * @example utf8ToBytes('abc') // new Uint8Array([97, 98, 99])
- */
-function utf8ToBytes(str) {
-    if (typeof str !== 'string')
-        throw new Error(`utf8ToBytes expected string, got ${typeof str}`);
-    return new Uint8Array(new TextEncoder().encode(str)); // https://bugzil.la/1681809
-}
-exports.utf8ToBytes = utf8ToBytes;
-// Bit operations
-/**
- * Calculates amount of bits in a bigint.
- * Same as `n.toString(2).length`
- */
-function bitLen(n) {
-    let len;
-    for (len = 0; n > _0n; n >>= _1n, len += 1)
-        ;
-    return len;
-}
-exports.bitLen = bitLen;
-/**
- * Gets single bit at position.
- * NOTE: first bit position is 0 (same as arrays)
- * Same as `!!+Array.from(n.toString(2)).reverse()[pos]`
- */
-function bitGet(n, pos) {
-    return (n >> BigInt(pos)) & _1n;
-}
-exports.bitGet = bitGet;
-/**
- * Sets single bit at position.
- */
-const bitSet = (n, pos, value) => {
-    return n | ((value ? _1n : _0n) << BigInt(pos));
-};
-exports.bitSet = bitSet;
-/**
- * Calculate mask for N bits. Not using ** operator with bigints because of old engines.
- * Same as BigInt(`0b${Array(i).fill('1').join('')}`)
- */
-const bitMask = (n) => (_2n << BigInt(n - 1)) - _1n;
-exports.bitMask = bitMask;
-// DRBG
-const u8n = (data) => new Uint8Array(data); // creates Uint8Array
-const u8fr = (arr) => Uint8Array.from(arr); // another shortcut
-/**
- * Minimal HMAC-DRBG from NIST 800-90 for RFC6979 sigs.
- * @returns function that will call DRBG until 2nd arg returns something meaningful
- * @example
- *   const drbg = createHmacDRBG<Key>(32, 32, hmac);
- *   drbg(seed, bytesToKey); // bytesToKey must return Key or undefined
- */
-function createHmacDrbg(hashLen, qByteLen, hmacFn) {
-    if (typeof hashLen !== 'number' || hashLen < 2)
-        throw new Error('hashLen must be a number');
-    if (typeof qByteLen !== 'number' || qByteLen < 2)
-        throw new Error('qByteLen must be a number');
-    if (typeof hmacFn !== 'function')
-        throw new Error('hmacFn must be a function');
-    // Step B, Step C: set hashLen to 8*ceil(hlen/8)
-    let v = u8n(hashLen); // Minimal non-full-spec HMAC-DRBG from NIST 800-90 for RFC6979 sigs.
-    let k = u8n(hashLen); // Steps B and C of RFC6979 3.2: set hashLen, in our case always same
-    let i = 0; // Iterations counter, will throw when over 1000
-    const reset = () => {
-        v.fill(1);
-        k.fill(0);
-        i = 0;
-    };
-    const h = (...b) => hmacFn(k, v, ...b); // hmac(k)(v, ...values)
-    const reseed = (seed = u8n()) => {
-        // HMAC-DRBG reseed() function. Steps D-G
-        k = h(u8fr([0x00]), seed); // k = hmac(k || v || 0x00 || seed)
-        v = h(); // v = hmac(k || v)
-        if (seed.length === 0)
-            return;
-        k = h(u8fr([0x01]), seed); // k = hmac(k || v || 0x01 || seed)
-        v = h(); // v = hmac(k || v)
-    };
-    const gen = () => {
-        // HMAC-DRBG generate() function
-        if (i++ >= 1000)
-            throw new Error('drbg: tried 1000 values');
-        let len = 0;
-        const out = [];
-        while (len < qByteLen) {
-            v = h();
-            const sl = v.slice();
-            out.push(sl);
-            len += v.length;
-        }
-        return concatBytes(...out);
-    };
-    const genUntil = (seed, pred) => {
-        reset();
-        reseed(seed); // Steps D-G
-        let res = undefined; // Step H: grind until k is in [1..n-1]
-        while (!(res = pred(gen())))
-            reseed();
-        reset();
-        return res;
-    };
-    return genUntil;
-}
-exports.createHmacDrbg = createHmacDrbg;
-// Validating curves and fields
-const validatorFns = {
-    bigint: (val) => typeof val === 'bigint',
-    function: (val) => typeof val === 'function',
-    boolean: (val) => typeof val === 'boolean',
-    string: (val) => typeof val === 'string',
-    isSafeInteger: (val) => Number.isSafeInteger(val),
-    array: (val) => Array.isArray(val),
-    field: (val, object) => object.Fp.isValid(val),
-    hash: (val) => typeof val === 'function' && Number.isSafeInteger(val.outputLen),
-};
-// type Record<K extends string | number | symbol, T> = { [P in K]: T; }
-function validateObject(object, validators, optValidators = {}) {
-    const checkField = (fieldName, type, isOptional) => {
-        const checkVal = validatorFns[type];
-        if (typeof checkVal !== 'function')
-            throw new Error(`Invalid validator "${type}", expected function`);
-        const val = object[fieldName];
-        if (isOptional && val === undefined)
-            return;
-        if (!checkVal(val, object)) {
-            throw new Error(`Invalid param ${String(fieldName)}=${val} (${typeof val}), expected ${type}`);
-        }
-    };
-    for (const [fieldName, type] of Object.entries(validators))
-        checkField(fieldName, type, false);
-    for (const [fieldName, type] of Object.entries(optValidators))
-        checkField(fieldName, type, true);
-    return object;
-}
-exports.validateObject = validateObject;
-// validate type tests
-// const o: { a: number; b: number; c: number } = { a: 1, b: 5, c: 6 };
-// const z0 = validateObject(o, { a: 'isSafeInteger' }, { c: 'bigint' }); // Ok!
-// // Should fail type-check
-// const z1 = validateObject(o, { a: 'tmp' }, { c: 'zz' });
-// const z2 = validateObject(o, { a: 'isSafeInteger' }, { c: 'zz' });
-// const z3 = validateObject(o, { test: 'boolean', z: 'bug' });
-// const z4 = validateObject(o, { a: 'boolean', z: 'bug' });
-
-},{}],169:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.mapToCurveSimpleSWU = exports.SWUFpSqrtRatio = exports.weierstrass = exports.weierstrassPoints = exports.DER = void 0;
-/*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) */
-// Short Weierstrass curve. The formula is: y² = x³ + ax + b
-const mod = require("./modular.js");
-const ut = require("./utils.js");
-const utils_js_1 = require("./utils.js");
-const curve_js_1 = require("./curve.js");
-function validatePointOpts(curve) {
-    const opts = (0, curve_js_1.validateBasic)(curve);
-    ut.validateObject(opts, {
-        a: 'field',
-        b: 'field',
-    }, {
-        allowedPrivateKeyLengths: 'array',
-        wrapPrivateKey: 'boolean',
-        isTorsionFree: 'function',
-        clearCofactor: 'function',
-        allowInfinityPoint: 'boolean',
-        fromBytes: 'function',
-        toBytes: 'function',
-    });
-    const { endo, Fp, a } = opts;
-    if (endo) {
-        if (!Fp.eql(a, Fp.ZERO)) {
-            throw new Error('Endomorphism can only be defined for Koblitz curves that have a=0');
-        }
-        if (typeof endo !== 'object' ||
-            typeof endo.beta !== 'bigint' ||
-            typeof endo.splitScalar !== 'function') {
-            throw new Error('Expected endomorphism with beta: bigint and splitScalar: function');
-        }
-    }
-    return Object.freeze({ ...opts });
-}
-// ASN.1 DER encoding utilities
-const { bytesToNumberBE: b2n, hexToBytes: h2b } = ut;
-exports.DER = {
-    // asn.1 DER encoding utils
-    Err: class DERErr extends Error {
-        constructor(m = '') {
-            super(m);
-        }
-    },
-    _parseInt(data) {
-        const { Err: E } = exports.DER;
-        if (data.length < 2 || data[0] !== 0x02)
-            throw new E('Invalid signature integer tag');
-        const len = data[1];
-        const res = data.subarray(2, len + 2);
-        if (!len || res.length !== len)
-            throw new E('Invalid signature integer: wrong length');
-        // https://crypto.stackexchange.com/a/57734 Leftmost bit of first byte is 'negative' flag,
-        // since we always use positive integers here. It must always be empty:
-        // - add zero byte if exists
-        // - if next byte doesn't have a flag, leading zero is not allowed (minimal encoding)
-        if (res[0] & 0b10000000)
-            throw new E('Invalid signature integer: negative');
-        if (res[0] === 0x00 && !(res[1] & 0b10000000))
-            throw new E('Invalid signature integer: unnecessary leading zero');
-        return { d: b2n(res), l: data.subarray(len + 2) }; // d is data, l is left
-    },
-    toSig(hex) {
-        // parse DER signature
-        const { Err: E } = exports.DER;
-        const data = typeof hex === 'string' ? h2b(hex) : hex;
-        if (!(data instanceof Uint8Array))
-            throw new Error('ui8a expected');
-        let l = data.length;
-        if (l < 2 || data[0] != 0x30)
-            throw new E('Invalid signature tag');
-        if (data[1] !== l - 2)
-            throw new E('Invalid signature: incorrect length');
-        const { d: r, l: sBytes } = exports.DER._parseInt(data.subarray(2));
-        const { d: s, l: rBytesLeft } = exports.DER._parseInt(sBytes);
-        if (rBytesLeft.length)
-            throw new E('Invalid signature: left bytes after parsing');
-        return { r, s };
-    },
-    hexFromSig(sig) {
-        // Add leading zero if first byte has negative bit enabled. More details in '_parseInt'
-        const slice = (s) => (Number.parseInt(s[0], 16) & 0b1000 ? '00' + s : s);
-        const h = (num) => {
-            const hex = num.toString(16);
-            return hex.length & 1 ? `0${hex}` : hex;
-        };
-        const s = slice(h(sig.s));
-        const r = slice(h(sig.r));
-        const shl = s.length / 2;
-        const rhl = r.length / 2;
-        const sl = h(shl);
-        const rl = h(rhl);
-        return `30${h(rhl + shl + 4)}02${rl}${r}02${sl}${s}`;
-    },
-};
-// Be friendly to bad ECMAScript parsers by not using bigint literals
-// prettier-ignore
-const _0n = BigInt(0), _1n = BigInt(1), _2n = BigInt(2), _3n = BigInt(3), _4n = BigInt(4);
-function weierstrassPoints(opts) {
-    const CURVE = validatePointOpts(opts);
-    const { Fp } = CURVE; // All curves has same field / group length as for now, but they can differ
-    const toBytes = CURVE.toBytes ||
-        ((c, point, isCompressed) => {
-            const a = point.toAffine();
-            return ut.concatBytes(Uint8Array.from([0x04]), Fp.toBytes(a.x), Fp.toBytes(a.y));
-        });
-    const fromBytes = CURVE.fromBytes ||
-        ((bytes) => {
-            // const head = bytes[0];
-            const tail = bytes.subarray(1);
-            // if (head !== 0x04) throw new Error('Only non-compressed encoding is supported');
-            const x = Fp.fromBytes(tail.subarray(0, Fp.BYTES));
-            const y = Fp.fromBytes(tail.subarray(Fp.BYTES, 2 * Fp.BYTES));
-            return { x, y };
-        });
-    /**
-     * y² = x³ + ax + b: Short weierstrass curve formula
-     * @returns y²
-     */
-    function weierstrassEquation(x) {
-        const { a, b } = CURVE;
-        const x2 = Fp.sqr(x); // x * x
-        const x3 = Fp.mul(x2, x); // x2 * x
-        return Fp.add(Fp.add(x3, Fp.mul(x, a)), b); // x3 + a * x + b
-    }
-    // Validate whether the passed curve params are valid.
-    // We check if curve equation works for generator point.
-    // `assertValidity()` won't work: `isTorsionFree()` is not available at this point in bls12-381.
-    // ProjectivePoint class has not been initialized yet.
-    if (!Fp.eql(Fp.sqr(CURVE.Gy), weierstrassEquation(CURVE.Gx)))
-        throw new Error('bad generator point: equation left != right');
-    // Valid group elements reside in range 1..n-1
-    function isWithinCurveOrder(num) {
-        return typeof num === 'bigint' && _0n < num && num < CURVE.n;
-    }
-    function assertGE(num) {
-        if (!isWithinCurveOrder(num))
-            throw new Error('Expected valid bigint: 0 < bigint < curve.n');
-    }
-    // Validates if priv key is valid and converts it to bigint.
-    // Supports options allowedPrivateKeyLengths and wrapPrivateKey.
-    function normPrivateKeyToScalar(key) {
-        const { allowedPrivateKeyLengths: lengths, nByteLength, wrapPrivateKey, n } = CURVE;
-        if (lengths && typeof key !== 'bigint') {
-            if (key instanceof Uint8Array)
-                key = ut.bytesToHex(key);
-            // Normalize to hex string, pad. E.g. P521 would norm 130-132 char hex to 132-char bytes
-            if (typeof key !== 'string' || !lengths.includes(key.length))
-                throw new Error('Invalid key');
-            key = key.padStart(nByteLength * 2, '0');
-        }
-        let num;
-        try {
-            num =
-                typeof key === 'bigint'
-                    ? key
-                    : ut.bytesToNumberBE((0, utils_js_1.ensureBytes)('private key', key, nByteLength));
-        }
-        catch (error) {
-            throw new Error(`private key must be ${nByteLength} bytes, hex or bigint, not ${typeof key}`);
-        }
-        if (wrapPrivateKey)
-            num = mod.mod(num, n); // disabled by default, enabled for BLS
-        assertGE(num); // num in range [1..N-1]
-        return num;
-    }
-    const pointPrecomputes = new Map();
-    function assertPrjPoint(other) {
-        if (!(other instanceof Point))
-            throw new Error('ProjectivePoint expected');
-    }
-    /**
-     * Projective Point works in 3d / projective (homogeneous) coordinates: (x, y, z) ∋ (x=x/z, y=y/z)
-     * Default Point works in 2d / affine coordinates: (x, y)
-     * We're doing calculations in projective, because its operations don't require costly inversion.
-     */
-    class Point {
-        constructor(px, py, pz) {
-            this.px = px;
-            this.py = py;
-            this.pz = pz;
-            if (px == null || !Fp.isValid(px))
-                throw new Error('x required');
-            if (py == null || !Fp.isValid(py))
-                throw new Error('y required');
-            if (pz == null || !Fp.isValid(pz))
-                throw new Error('z required');
-        }
-        // Does not validate if the point is on-curve.
-        // Use fromHex instead, or call assertValidity() later.
-        static fromAffine(p) {
-            const { x, y } = p || {};
-            if (!p || !Fp.isValid(x) || !Fp.isValid(y))
-                throw new Error('invalid affine point');
-            if (p instanceof Point)
-                throw new Error('projective point not allowed');
-            const is0 = (i) => Fp.eql(i, Fp.ZERO);
-            // fromAffine(x:0, y:0) would produce (x:0, y:0, z:1), but we need (x:0, y:1, z:0)
-            if (is0(x) && is0(y))
-                return Point.ZERO;
-            return new Point(x, y, Fp.ONE);
-        }
-        get x() {
-            return this.toAffine().x;
-        }
-        get y() {
-            return this.toAffine().y;
-        }
-        /**
-         * Takes a bunch of Projective Points but executes only one
-         * inversion on all of them. Inversion is very slow operation,
-         * so this improves performance massively.
-         * Optimization: converts a list of projective points to a list of identical points with Z=1.
-         */
-        static normalizeZ(points) {
-            const toInv = Fp.invertBatch(points.map((p) => p.pz));
-            return points.map((p, i) => p.toAffine(toInv[i])).map(Point.fromAffine);
-        }
-        /**
-         * Converts hash string or Uint8Array to Point.
-         * @param hex short/long ECDSA hex
-         */
-        static fromHex(hex) {
-            const P = Point.fromAffine(fromBytes((0, utils_js_1.ensureBytes)('pointHex', hex)));
-            P.assertValidity();
-            return P;
-        }
-        // Multiplies generator point by privateKey.
-        static fromPrivateKey(privateKey) {
-            return Point.BASE.multiply(normPrivateKeyToScalar(privateKey));
-        }
-        // "Private method", don't use it directly
-        _setWindowSize(windowSize) {
-            this._WINDOW_SIZE = windowSize;
-            pointPrecomputes.delete(this);
-        }
-        // A point on curve is valid if it conforms to equation.
-        assertValidity() {
-            // Zero is valid point too!
-            if (this.is0()) {
-                if (CURVE.allowInfinityPoint)
-                    return;
-                throw new Error('bad point: ZERO');
-            }
-            // Some 3rd-party test vectors require different wording between here & `fromCompressedHex`
-            const { x, y } = this.toAffine();
-            // Check if x, y are valid field elements
-            if (!Fp.isValid(x) || !Fp.isValid(y))
-                throw new Error('bad point: x or y not FE');
-            const left = Fp.sqr(y); // y²
-            const right = weierstrassEquation(x); // x³ + ax + b
-            if (!Fp.eql(left, right))
-                throw new Error('bad point: equation left != right');
-            if (!this.isTorsionFree())
-                throw new Error('bad point: not in prime-order subgroup');
-        }
-        hasEvenY() {
-            const { y } = this.toAffine();
-            if (Fp.isOdd)
-                return !Fp.isOdd(y);
-            throw new Error("Field doesn't support isOdd");
-        }
-        /**
-         * Compare one point to another.
-         */
-        equals(other) {
-            assertPrjPoint(other);
-            const { px: X1, py: Y1, pz: Z1 } = this;
-            const { px: X2, py: Y2, pz: Z2 } = other;
-            const U1 = Fp.eql(Fp.mul(X1, Z2), Fp.mul(X2, Z1));
-            const U2 = Fp.eql(Fp.mul(Y1, Z2), Fp.mul(Y2, Z1));
-            return U1 && U2;
-        }
-        /**
-         * Flips point to one corresponding to (x, -y) in Affine coordinates.
-         */
-        negate() {
-            return new Point(this.px, Fp.neg(this.py), this.pz);
-        }
-        // Renes-Costello-Batina exception-free doubling formula.
-        // There is 30% faster Jacobian formula, but it is not complete.
-        // https://eprint.iacr.org/2015/1060, algorithm 3
-        // Cost: 8M + 3S + 3*a + 2*b3 + 15add.
-        double() {
-            const { a, b } = CURVE;
-            const b3 = Fp.mul(b, _3n);
-            const { px: X1, py: Y1, pz: Z1 } = this;
-            let X3 = Fp.ZERO, Y3 = Fp.ZERO, Z3 = Fp.ZERO; // prettier-ignore
-            let t0 = Fp.mul(X1, X1); // step 1
-            let t1 = Fp.mul(Y1, Y1);
-            let t2 = Fp.mul(Z1, Z1);
-            let t3 = Fp.mul(X1, Y1);
-            t3 = Fp.add(t3, t3); // step 5
-            Z3 = Fp.mul(X1, Z1);
-            Z3 = Fp.add(Z3, Z3);
-            X3 = Fp.mul(a, Z3);
-            Y3 = Fp.mul(b3, t2);
-            Y3 = Fp.add(X3, Y3); // step 10
-            X3 = Fp.sub(t1, Y3);
-            Y3 = Fp.add(t1, Y3);
-            Y3 = Fp.mul(X3, Y3);
-            X3 = Fp.mul(t3, X3);
-            Z3 = Fp.mul(b3, Z3); // step 15
-            t2 = Fp.mul(a, t2);
-            t3 = Fp.sub(t0, t2);
-            t3 = Fp.mul(a, t3);
-            t3 = Fp.add(t3, Z3);
-            Z3 = Fp.add(t0, t0); // step 20
-            t0 = Fp.add(Z3, t0);
-            t0 = Fp.add(t0, t2);
-            t0 = Fp.mul(t0, t3);
-            Y3 = Fp.add(Y3, t0);
-            t2 = Fp.mul(Y1, Z1); // step 25
-            t2 = Fp.add(t2, t2);
-            t0 = Fp.mul(t2, t3);
-            X3 = Fp.sub(X3, t0);
-            Z3 = Fp.mul(t2, t1);
-            Z3 = Fp.add(Z3, Z3); // step 30
-            Z3 = Fp.add(Z3, Z3);
-            return new Point(X3, Y3, Z3);
-        }
-        // Renes-Costello-Batina exception-free addition formula.
-        // There is 30% faster Jacobian formula, but it is not complete.
-        // https://eprint.iacr.org/2015/1060, algorithm 1
-        // Cost: 12M + 0S + 3*a + 3*b3 + 23add.
-        add(other) {
-            assertPrjPoint(other);
-            const { px: X1, py: Y1, pz: Z1 } = this;
-            const { px: X2, py: Y2, pz: Z2 } = other;
-            let X3 = Fp.ZERO, Y3 = Fp.ZERO, Z3 = Fp.ZERO; // prettier-ignore
-            const a = CURVE.a;
-            const b3 = Fp.mul(CURVE.b, _3n);
-            let t0 = Fp.mul(X1, X2); // step 1
-            let t1 = Fp.mul(Y1, Y2);
-            let t2 = Fp.mul(Z1, Z2);
-            let t3 = Fp.add(X1, Y1);
-            let t4 = Fp.add(X2, Y2); // step 5
-            t3 = Fp.mul(t3, t4);
-            t4 = Fp.add(t0, t1);
-            t3 = Fp.sub(t3, t4);
-            t4 = Fp.add(X1, Z1);
-            let t5 = Fp.add(X2, Z2); // step 10
-            t4 = Fp.mul(t4, t5);
-            t5 = Fp.add(t0, t2);
-            t4 = Fp.sub(t4, t5);
-            t5 = Fp.add(Y1, Z1);
-            X3 = Fp.add(Y2, Z2); // step 15
-            t5 = Fp.mul(t5, X3);
-            X3 = Fp.add(t1, t2);
-            t5 = Fp.sub(t5, X3);
-            Z3 = Fp.mul(a, t4);
-            X3 = Fp.mul(b3, t2); // step 20
-            Z3 = Fp.add(X3, Z3);
-            X3 = Fp.sub(t1, Z3);
-            Z3 = Fp.add(t1, Z3);
-            Y3 = Fp.mul(X3, Z3);
-            t1 = Fp.add(t0, t0); // step 25
-            t1 = Fp.add(t1, t0);
-            t2 = Fp.mul(a, t2);
-            t4 = Fp.mul(b3, t4);
-            t1 = Fp.add(t1, t2);
-            t2 = Fp.sub(t0, t2); // step 30
-            t2 = Fp.mul(a, t2);
-            t4 = Fp.add(t4, t2);
-            t0 = Fp.mul(t1, t4);
-            Y3 = Fp.add(Y3, t0);
-            t0 = Fp.mul(t5, t4); // step 35
-            X3 = Fp.mul(t3, X3);
-            X3 = Fp.sub(X3, t0);
-            t0 = Fp.mul(t3, t1);
-            Z3 = Fp.mul(t5, Z3);
-            Z3 = Fp.add(Z3, t0); // step 40
-            return new Point(X3, Y3, Z3);
-        }
-        subtract(other) {
-            return this.add(other.negate());
-        }
-        is0() {
-            return this.equals(Point.ZERO);
-        }
-        wNAF(n) {
-            return wnaf.wNAFCached(this, pointPrecomputes, n, (comp) => {
-                const toInv = Fp.invertBatch(comp.map((p) => p.pz));
-                return comp.map((p, i) => p.toAffine(toInv[i])).map(Point.fromAffine);
-            });
-        }
-        /**
-         * Non-constant-time multiplication. Uses double-and-add algorithm.
-         * It's faster, but should only be used when you don't care about
-         * an exposed private key e.g. sig verification, which works over *public* keys.
-         */
-        multiplyUnsafe(n) {
-            const I = Point.ZERO;
-            if (n === _0n)
-                return I;
-            assertGE(n); // Will throw on 0
-            if (n === _1n)
-                return this;
-            const { endo } = CURVE;
-            if (!endo)
-                return wnaf.unsafeLadder(this, n);
-            // Apply endomorphism
-            let { k1neg, k1, k2neg, k2 } = endo.splitScalar(n);
-            let k1p = I;
-            let k2p = I;
-            let d = this;
-            while (k1 > _0n || k2 > _0n) {
-                if (k1 & _1n)
-                    k1p = k1p.add(d);
-                if (k2 & _1n)
-                    k2p = k2p.add(d);
-                d = d.double();
-                k1 >>= _1n;
-                k2 >>= _1n;
-            }
-            if (k1neg)
-                k1p = k1p.negate();
-            if (k2neg)
-                k2p = k2p.negate();
-            k2p = new Point(Fp.mul(k2p.px, endo.beta), k2p.py, k2p.pz);
-            return k1p.add(k2p);
-        }
-        /**
-         * Constant time multiplication.
-         * Uses wNAF method. Windowed method may be 10% faster,
-         * but takes 2x longer to generate and consumes 2x memory.
-         * Uses precomputes when available.
-         * Uses endomorphism for Koblitz curves.
-         * @param scalar by which the point would be multiplied
-         * @returns New point
-         */
-        multiply(scalar) {
-            assertGE(scalar);
-            let n = scalar;
-            let point, fake; // Fake point is used to const-time mult
-            const { endo } = CURVE;
-            if (endo) {
-                const { k1neg, k1, k2neg, k2 } = endo.splitScalar(n);
-                let { p: k1p, f: f1p } = this.wNAF(k1);
-                let { p: k2p, f: f2p } = this.wNAF(k2);
-                k1p = wnaf.constTimeNegate(k1neg, k1p);
-                k2p = wnaf.constTimeNegate(k2neg, k2p);
-                k2p = new Point(Fp.mul(k2p.px, endo.beta), k2p.py, k2p.pz);
-                point = k1p.add(k2p);
-                fake = f1p.add(f2p);
-            }
-            else {
-                const { p, f } = this.wNAF(n);
-                point = p;
-                fake = f;
-            }
-            // Normalize `z` for both points, but return only real one
-            return Point.normalizeZ([point, fake])[0];
-        }
-        /**
-         * Efficiently calculate `aP + bQ`. Unsafe, can expose private key, if used incorrectly.
-         * Not using Strauss-Shamir trick: precomputation tables are faster.
-         * The trick could be useful if both P and Q are not G (not in our case).
-         * @returns non-zero affine point
-         */
-        multiplyAndAddUnsafe(Q, a, b) {
-            const G = Point.BASE; // No Strauss-Shamir trick: we have 10% faster G precomputes
-            const mul = (P, a // Select faster multiply() method
-            ) => (a === _0n || a === _1n || !P.equals(G) ? P.multiplyUnsafe(a) : P.multiply(a));
-            const sum = mul(this, a).add(mul(Q, b));
-            return sum.is0() ? undefined : sum;
-        }
-        // Converts Projective point to affine (x, y) coordinates.
-        // Can accept precomputed Z^-1 - for example, from invertBatch.
-        // (x, y, z) ∋ (x=x/z, y=y/z)
-        toAffine(iz) {
-            const { px: x, py: y, pz: z } = this;
-            const is0 = this.is0();
-            // If invZ was 0, we return zero point. However we still want to execute
-            // all operations, so we replace invZ with a random number, 1.
-            if (iz == null)
-                iz = is0 ? Fp.ONE : Fp.inv(z);
-            const ax = Fp.mul(x, iz);
-            const ay = Fp.mul(y, iz);
-            const zz = Fp.mul(z, iz);
-            if (is0)
-                return { x: Fp.ZERO, y: Fp.ZERO };
-            if (!Fp.eql(zz, Fp.ONE))
-                throw new Error('invZ was invalid');
-            return { x: ax, y: ay };
-        }
-        isTorsionFree() {
-            const { h: cofactor, isTorsionFree } = CURVE;
-            if (cofactor === _1n)
-                return true; // No subgroups, always torsion-free
-            if (isTorsionFree)
-                return isTorsionFree(Point, this);
-            throw new Error('isTorsionFree() has not been declared for the elliptic curve');
-        }
-        clearCofactor() {
-            const { h: cofactor, clearCofactor } = CURVE;
-            if (cofactor === _1n)
-                return this; // Fast-path
-            if (clearCofactor)
-                return clearCofactor(Point, this);
-            return this.multiplyUnsafe(CURVE.h);
-        }
-        toRawBytes(isCompressed = true) {
-            this.assertValidity();
-            return toBytes(Point, this, isCompressed);
-        }
-        toHex(isCompressed = true) {
-            return ut.bytesToHex(this.toRawBytes(isCompressed));
-        }
-    }
-    Point.BASE = new Point(CURVE.Gx, CURVE.Gy, Fp.ONE);
-    Point.ZERO = new Point(Fp.ZERO, Fp.ONE, Fp.ZERO);
-    const _bits = CURVE.nBitLength;
-    const wnaf = (0, curve_js_1.wNAF)(Point, CURVE.endo ? Math.ceil(_bits / 2) : _bits);
-    // Validate if generator point is on curve
-    return {
-        CURVE,
-        ProjectivePoint: Point,
-        normPrivateKeyToScalar,
-        weierstrassEquation,
-        isWithinCurveOrder,
-    };
-}
-exports.weierstrassPoints = weierstrassPoints;
-function validateOpts(curve) {
-    const opts = (0, curve_js_1.validateBasic)(curve);
-    ut.validateObject(opts, {
-        hash: 'hash',
-        hmac: 'function',
-        randomBytes: 'function',
-    }, {
-        bits2int: 'function',
-        bits2int_modN: 'function',
-        lowS: 'boolean',
-    });
-    return Object.freeze({ lowS: true, ...opts });
-}
-function weierstrass(curveDef) {
-    const CURVE = validateOpts(curveDef);
-    const { Fp, n: CURVE_ORDER } = CURVE;
-    const compressedLen = Fp.BYTES + 1; // e.g. 33 for 32
-    const uncompressedLen = 2 * Fp.BYTES + 1; // e.g. 65 for 32
-    function isValidFieldElement(num) {
-        return _0n < num && num < Fp.ORDER; // 0 is banned since it's not invertible FE
-    }
-    function modN(a) {
-        return mod.mod(a, CURVE_ORDER);
-    }
-    function invN(a) {
-        return mod.invert(a, CURVE_ORDER);
-    }
-    const { ProjectivePoint: Point, normPrivateKeyToScalar, weierstrassEquation, isWithinCurveOrder, } = weierstrassPoints({
-        ...CURVE,
-        toBytes(c, point, isCompressed) {
-            const a = point.toAffine();
-            const x = Fp.toBytes(a.x);
-            const cat = ut.concatBytes;
-            if (isCompressed) {
-                return cat(Uint8Array.from([point.hasEvenY() ? 0x02 : 0x03]), x);
-            }
-            else {
-                return cat(Uint8Array.from([0x04]), x, Fp.toBytes(a.y));
-            }
-        },
-        fromBytes(bytes) {
-            const len = bytes.length;
-            const head = bytes[0];
-            const tail = bytes.subarray(1);
-            // this.assertValidity() is done inside of fromHex
-            if (len === compressedLen && (head === 0x02 || head === 0x03)) {
-                const x = ut.bytesToNumberBE(tail);
-                if (!isValidFieldElement(x))
-                    throw new Error('Point is not on curve');
-                const y2 = weierstrassEquation(x); // y² = x³ + ax + b
-                let y = Fp.sqrt(y2); // y = y² ^ (p+1)/4
-                const isYOdd = (y & _1n) === _1n;
-                // ECDSA
-                const isHeadOdd = (head & 1) === 1;
-                if (isHeadOdd !== isYOdd)
-                    y = Fp.neg(y);
-                return { x, y };
-            }
-            else if (len === uncompressedLen && head === 0x04) {
-                const x = Fp.fromBytes(tail.subarray(0, Fp.BYTES));
-                const y = Fp.fromBytes(tail.subarray(Fp.BYTES, 2 * Fp.BYTES));
-                return { x, y };
-            }
-            else {
-                throw new Error(`Point of length ${len} was invalid. Expected ${compressedLen} compressed bytes or ${uncompressedLen} uncompressed bytes`);
-            }
-        },
-    });
-    const numToNByteStr = (num) => ut.bytesToHex(ut.numberToBytesBE(num, CURVE.nByteLength));
-    function isBiggerThanHalfOrder(number) {
-        const HALF = CURVE_ORDER >> _1n;
-        return number > HALF;
-    }
-    function normalizeS(s) {
-        return isBiggerThanHalfOrder(s) ? modN(-s) : s;
-    }
-    // slice bytes num
-    const slcNum = (b, from, to) => ut.bytesToNumberBE(b.slice(from, to));
-    /**
-     * ECDSA signature with its (r, s) properties. Supports DER & compact representations.
-     */
-    class Signature {
-        constructor(r, s, recovery) {
-            this.r = r;
-            this.s = s;
-            this.recovery = recovery;
-            this.assertValidity();
-        }
-        // pair (bytes of r, bytes of s)
-        static fromCompact(hex) {
-            const l = CURVE.nByteLength;
-            hex = (0, utils_js_1.ensureBytes)('compactSignature', hex, l * 2);
-            return new Signature(slcNum(hex, 0, l), slcNum(hex, l, 2 * l));
-        }
-        // DER encoded ECDSA signature
-        // https://bitcoin.stackexchange.com/questions/57644/what-are-the-parts-of-a-bitcoin-transaction-input-script
-        static fromDER(hex) {
-            const { r, s } = exports.DER.toSig((0, utils_js_1.ensureBytes)('DER', hex));
-            return new Signature(r, s);
-        }
-        assertValidity() {
-            // can use assertGE here
-            if (!isWithinCurveOrder(this.r))
-                throw new Error('r must be 0 < r < CURVE.n');
-            if (!isWithinCurveOrder(this.s))
-                throw new Error('s must be 0 < s < CURVE.n');
-        }
-        addRecoveryBit(recovery) {
-            return new Signature(this.r, this.s, recovery);
-        }
-        recoverPublicKey(msgHash) {
-            const { r, s, recovery: rec } = this;
-            const h = bits2int_modN((0, utils_js_1.ensureBytes)('msgHash', msgHash)); // Truncate hash
-            if (rec == null || ![0, 1, 2, 3].includes(rec))
-                throw new Error('recovery id invalid');
-            const radj = rec === 2 || rec === 3 ? r + CURVE.n : r;
-            if (radj >= Fp.ORDER)
-                throw new Error('recovery id 2 or 3 invalid');
-            const prefix = (rec & 1) === 0 ? '02' : '03';
-            const R = Point.fromHex(prefix + numToNByteStr(radj));
-            const ir = invN(radj); // r^-1
-            const u1 = modN(-h * ir); // -hr^-1
-            const u2 = modN(s * ir); // sr^-1
-            const Q = Point.BASE.multiplyAndAddUnsafe(R, u1, u2); // (sr^-1)R-(hr^-1)G = -(hr^-1)G + (sr^-1)
-            if (!Q)
-                throw new Error('point at infinify'); // unsafe is fine: no priv data leaked
-            Q.assertValidity();
-            return Q;
-        }
-        // Signatures should be low-s, to prevent malleability.
-        hasHighS() {
-            return isBiggerThanHalfOrder(this.s);
-        }
-        normalizeS() {
-            return this.hasHighS() ? new Signature(this.r, modN(-this.s), this.recovery) : this;
-        }
-        // DER-encoded
-        toDERRawBytes() {
-            return ut.hexToBytes(this.toDERHex());
-        }
-        toDERHex() {
-            return exports.DER.hexFromSig({ r: this.r, s: this.s });
-        }
-        // padded bytes of r, then padded bytes of s
-        toCompactRawBytes() {
-            return ut.hexToBytes(this.toCompactHex());
-        }
-        toCompactHex() {
-            return numToNByteStr(this.r) + numToNByteStr(this.s);
-        }
-    }
-    const utils = {
-        isValidPrivateKey(privateKey) {
-            try {
-                normPrivateKeyToScalar(privateKey);
-                return true;
-            }
-            catch (error) {
-                return false;
-            }
-        },
-        normPrivateKeyToScalar: normPrivateKeyToScalar,
-        /**
-         * Produces cryptographically secure private key from random of size (nBitLength+64)
-         * as per FIPS 186 B.4.1 with modulo bias being neglible.
-         */
-        randomPrivateKey: () => {
-            const rand = CURVE.randomBytes(Fp.BYTES + 8);
-            const num = mod.hashToPrivateScalar(rand, CURVE_ORDER);
-            return ut.numberToBytesBE(num, CURVE.nByteLength);
-        },
-        /**
-         * Creates precompute table for an arbitrary EC point. Makes point "cached".
-         * Allows to massively speed-up `point.multiply(scalar)`.
-         * @returns cached point
-         * @example
-         * const fast = utils.precompute(8, ProjectivePoint.fromHex(someonesPubKey));
-         * fast.multiply(privKey); // much faster ECDH now
-         */
-        precompute(windowSize = 8, point = Point.BASE) {
-            point._setWindowSize(windowSize);
-            point.multiply(BigInt(3)); // 3 is arbitrary, just need any number here
-            return point;
-        },
-    };
-    /**
-     * Computes public key for a private key. Checks for validity of the private key.
-     * @param privateKey private key
-     * @param isCompressed whether to return compact (default), or full key
-     * @returns Public key, full when isCompressed=false; short when isCompressed=true
-     */
-    function getPublicKey(privateKey, isCompressed = true) {
-        return Point.fromPrivateKey(privateKey).toRawBytes(isCompressed);
-    }
-    /**
-     * Quick and dirty check for item being public key. Does not validate hex, or being on-curve.
-     */
-    function isProbPub(item) {
-        const arr = item instanceof Uint8Array;
-        const str = typeof item === 'string';
-        const len = (arr || str) && item.length;
-        if (arr)
-            return len === compressedLen || len === uncompressedLen;
-        if (str)
-            return len === 2 * compressedLen || len === 2 * uncompressedLen;
-        if (item instanceof Point)
-            return true;
-        return false;
-    }
-    /**
-     * ECDH (Elliptic Curve Diffie Hellman).
-     * Computes shared public key from private key and public key.
-     * Checks: 1) private key validity 2) shared key is on-curve.
-     * Does NOT hash the result.
-     * @param privateA private key
-     * @param publicB different public key
-     * @param isCompressed whether to return compact (default), or full key
-     * @returns shared public key
-     */
-    function getSharedSecret(privateA, publicB, isCompressed = true) {
-        if (isProbPub(privateA))
-            throw new Error('first arg must be private key');
-        if (!isProbPub(publicB))
-            throw new Error('second arg must be public key');
-        const b = Point.fromHex(publicB); // check for being on-curve
-        return b.multiply(normPrivateKeyToScalar(privateA)).toRawBytes(isCompressed);
-    }
-    // RFC6979: ensure ECDSA msg is X bytes and < N. RFC suggests optional truncating via bits2octets.
-    // FIPS 186-4 4.6 suggests the leftmost min(nBitLen, outLen) bits, which matches bits2int.
-    // bits2int can produce res>N, we can do mod(res, N) since the bitLen is the same.
-    // int2octets can't be used; pads small msgs with 0: unacceptatble for trunc as per RFC vectors
-    const bits2int = CURVE.bits2int ||
-        function (bytes) {
-            // For curves with nBitLength % 8 !== 0: bits2octets(bits2octets(m)) !== bits2octets(m)
-            // for some cases, since bytes.length * 8 is not actual bitLength.
-            const num = ut.bytesToNumberBE(bytes); // check for == u8 done here
-            const delta = bytes.length * 8 - CURVE.nBitLength; // truncate to nBitLength leftmost bits
-            return delta > 0 ? num >> BigInt(delta) : num;
-        };
-    const bits2int_modN = CURVE.bits2int_modN ||
-        function (bytes) {
-            return modN(bits2int(bytes)); // can't use bytesToNumberBE here
-        };
-    // NOTE: pads output with zero as per spec
-    const ORDER_MASK = ut.bitMask(CURVE.nBitLength);
-    /**
-     * Converts to bytes. Checks if num in `[0..ORDER_MASK-1]` e.g.: `[0..2^256-1]`.
-     */
-    function int2octets(num) {
-        if (typeof num !== 'bigint')
-            throw new Error('bigint expected');
-        if (!(_0n <= num && num < ORDER_MASK))
-            throw new Error(`bigint expected < 2^${CURVE.nBitLength}`);
-        // works with order, can have different size than numToField!
-        return ut.numberToBytesBE(num, CURVE.nByteLength);
-    }
-    // Steps A, D of RFC6979 3.2
-    // Creates RFC6979 seed; converts msg/privKey to numbers.
-    // Used only in sign, not in verify.
-    // NOTE: we cannot assume here that msgHash has same amount of bytes as curve order, this will be wrong at least for P521.
-    // Also it can be bigger for P224 + SHA256
-    function prepSig(msgHash, privateKey, opts = defaultSigOpts) {
-        if (['recovered', 'canonical'].some((k) => k in opts))
-            throw new Error('sign() legacy options not supported');
-        const { hash, randomBytes } = CURVE;
-        let { lowS, prehash, extraEntropy: ent } = opts; // generates low-s sigs by default
-        if (lowS == null)
-            lowS = true; // RFC6979 3.2: we skip step A, because we already provide hash
-        msgHash = (0, utils_js_1.ensureBytes)('msgHash', msgHash);
-        if (prehash)
-            msgHash = (0, utils_js_1.ensureBytes)('prehashed msgHash', hash(msgHash));
-        // We can't later call bits2octets, since nested bits2int is broken for curves
-        // with nBitLength % 8 !== 0. Because of that, we unwrap it here as int2octets call.
-        // const bits2octets = (bits) => int2octets(bits2int_modN(bits))
-        const h1int = bits2int_modN(msgHash);
-        const d = normPrivateKeyToScalar(privateKey); // validate private key, convert to bigint
-        const seedArgs = [int2octets(d), int2octets(h1int)];
-        // extraEntropy. RFC6979 3.6: additional k' (optional).
-        if (ent != null) {
-            // K = HMAC_K(V || 0x00 || int2octets(x) || bits2octets(h1) || k')
-            const e = ent === true ? randomBytes(Fp.BYTES) : ent; // generate random bytes OR pass as-is
-            seedArgs.push((0, utils_js_1.ensureBytes)('extraEntropy', e, Fp.BYTES)); // check for being of size BYTES
-        }
-        const seed = ut.concatBytes(...seedArgs); // Step D of RFC6979 3.2
-        const m = h1int; // NOTE: no need to call bits2int second time here, it is inside truncateHash!
-        // Converts signature params into point w r/s, checks result for validity.
-        function k2sig(kBytes) {
-            // RFC 6979 Section 3.2, step 3: k = bits2int(T)
-            const k = bits2int(kBytes); // Cannot use fields methods, since it is group element
-            if (!isWithinCurveOrder(k))
-                return; // Important: all mod() calls here must be done over N
-            const ik = invN(k); // k^-1 mod n
-            const q = Point.BASE.multiply(k).toAffine(); // q = Gk
-            const r = modN(q.x); // r = q.x mod n
-            if (r === _0n)
-                return;
-            // Can use scalar blinding b^-1(bm + bdr) where b ∈ [1,q−1] according to
-            // https://tches.iacr.org/index.php/TCHES/article/view/7337/6509. We've decided against it:
-            // a) dependency on CSPRNG b) 15% slowdown c) doesn't really help since bigints are not CT
-            const s = modN(ik * modN(m + r * d)); // Not using blinding here
-            if (s === _0n)
-                return;
-            let recovery = (q.x === r ? 0 : 2) | Number(q.y & _1n); // recovery bit (2 or 3, when q.x > n)
-            let normS = s;
-            if (lowS && isBiggerThanHalfOrder(s)) {
-                normS = normalizeS(s); // if lowS was passed, ensure s is always
-                recovery ^= 1; // // in the bottom half of N
-            }
-            return new Signature(r, normS, recovery); // use normS, not s
-        }
-        return { seed, k2sig };
-    }
-    const defaultSigOpts = { lowS: CURVE.lowS, prehash: false };
-    const defaultVerOpts = { lowS: CURVE.lowS, prehash: false };
-    /**
-     * Signs message hash with a private key.
-     * ```
-     * sign(m, d, k) where
-     *   (x, y) = G × k
-     *   r = x mod n
-     *   s = (m + dr)/k mod n
-     * ```
-     * @param msgHash NOT message. msg needs to be hashed to `msgHash`, or use `prehash`.
-     * @param privKey private key
-     * @param opts lowS for non-malleable sigs. extraEntropy for mixing randomness into k. prehash will hash first arg.
-     * @returns signature with recovery param
-     */
-    function sign(msgHash, privKey, opts = defaultSigOpts) {
-        const { seed, k2sig } = prepSig(msgHash, privKey, opts); // Steps A, D of RFC6979 3.2.
-        const C = CURVE;
-        const drbg = ut.createHmacDrbg(C.hash.outputLen, C.nByteLength, C.hmac);
-        return drbg(seed, k2sig); // Steps B, C, D, E, F, G
-    }
-    // Enable precomputes. Slows down first publicKey computation by 20ms.
-    Point.BASE._setWindowSize(8);
-    // utils.precompute(8, ProjectivePoint.BASE)
-    /**
-     * Verifies a signature against message hash and public key.
-     * Rejects lowS signatures by default: to override,
-     * specify option `{lowS: false}`. Implements section 4.1.4 from https://www.secg.org/sec1-v2.pdf:
-     *
-     * ```
-     * verify(r, s, h, P) where
-     *   U1 = hs^-1 mod n
-     *   U2 = rs^-1 mod n
-     *   R = U1⋅G - U2⋅P
-     *   mod(R.x, n) == r
-     * ```
-     */
-    function verify(signature, msgHash, publicKey, opts = defaultVerOpts) {
-        const sg = signature;
-        msgHash = (0, utils_js_1.ensureBytes)('msgHash', msgHash);
-        publicKey = (0, utils_js_1.ensureBytes)('publicKey', publicKey);
-        if ('strict' in opts)
-            throw new Error('options.strict was renamed to lowS');
-        const { lowS, prehash } = opts;
-        let _sig = undefined;
-        let P;
-        try {
-            if (typeof sg === 'string' || sg instanceof Uint8Array) {
-                // Signature can be represented in 2 ways: compact (2*nByteLength) & DER (variable-length).
-                // Since DER can also be 2*nByteLength bytes, we check for it first.
-                try {
-                    _sig = Signature.fromDER(sg);
-                }
-                catch (derError) {
-                    if (!(derError instanceof exports.DER.Err))
-                        throw derError;
-                    _sig = Signature.fromCompact(sg);
-                }
-            }
-            else if (typeof sg === 'object' && typeof sg.r === 'bigint' && typeof sg.s === 'bigint') {
-                const { r, s } = sg;
-                _sig = new Signature(r, s);
-            }
-            else {
-                throw new Error('PARSE');
-            }
-            P = Point.fromHex(publicKey);
-        }
-        catch (error) {
-            if (error.message === 'PARSE')
-                throw new Error(`signature must be Signature instance, Uint8Array or hex string`);
-            return false;
-        }
-        if (lowS && _sig.hasHighS())
-            return false;
-        if (prehash)
-            msgHash = CURVE.hash(msgHash);
-        const { r, s } = _sig;
-        const h = bits2int_modN(msgHash); // Cannot use fields methods, since it is group element
-        const is = invN(s); // s^-1
-        const u1 = modN(h * is); // u1 = hs^-1 mod n
-        const u2 = modN(r * is); // u2 = rs^-1 mod n
-        const R = Point.BASE.multiplyAndAddUnsafe(P, u1, u2)?.toAffine(); // R = u1⋅G + u2⋅P
-        if (!R)
-            return false;
-        const v = modN(R.x);
-        return v === r;
-    }
-    return {
-        CURVE,
-        getPublicKey,
-        getSharedSecret,
-        sign,
-        verify,
-        ProjectivePoint: Point,
-        Signature,
-        utils,
-    };
-}
-exports.weierstrass = weierstrass;
-/**
- * Implementation of the Shallue and van de Woestijne method for any weierstrass curve.
- * TODO: check if there is a way to merge this with uvRatio in Edwards; move to modular.
- * b = True and y = sqrt(u / v) if (u / v) is square in F, and
- * b = False and y = sqrt(Z * (u / v)) otherwise.
- * @param Fp
- * @param Z
- * @returns
- */
-function SWUFpSqrtRatio(Fp, Z) {
-    // Generic implementation
-    const q = Fp.ORDER;
-    let l = _0n;
-    for (let o = q - _1n; o % _2n === _0n; o /= _2n)
-        l += _1n;
-    const c1 = l; // 1. c1, the largest integer such that 2^c1 divides q - 1.
-    // We need 2n ** c1 and 2n ** (c1-1). We can't use **; but we can use <<.
-    // 2n ** c1 == 2n << (c1-1)
-    const _2n_pow_c1_1 = _2n << (c1 - _1n - _1n);
-    const _2n_pow_c1 = _2n_pow_c1_1 * _2n;
-    const c2 = (q - _1n) / _2n_pow_c1; // 2. c2 = (q - 1) / (2^c1)  # Integer arithmetic
-    const c3 = (c2 - _1n) / _2n; // 3. c3 = (c2 - 1) / 2            # Integer arithmetic
-    const c4 = _2n_pow_c1 - _1n; // 4. c4 = 2^c1 - 1                # Integer arithmetic
-    const c5 = _2n_pow_c1_1; // 5. c5 = 2^(c1 - 1)                  # Integer arithmetic
-    const c6 = Fp.pow(Z, c2); // 6. c6 = Z^c2
-    const c7 = Fp.pow(Z, (c2 + _1n) / _2n); // 7. c7 = Z^((c2 + 1) / 2)
-    let sqrtRatio = (u, v) => {
-        let tv1 = c6; // 1. tv1 = c6
-        let tv2 = Fp.pow(v, c4); // 2. tv2 = v^c4
-        let tv3 = Fp.sqr(tv2); // 3. tv3 = tv2^2
-        tv3 = Fp.mul(tv3, v); // 4. tv3 = tv3 * v
-        let tv5 = Fp.mul(u, tv3); // 5. tv5 = u * tv3
-        tv5 = Fp.pow(tv5, c3); // 6. tv5 = tv5^c3
-        tv5 = Fp.mul(tv5, tv2); // 7. tv5 = tv5 * tv2
-        tv2 = Fp.mul(tv5, v); // 8. tv2 = tv5 * v
-        tv3 = Fp.mul(tv5, u); // 9. tv3 = tv5 * u
-        let tv4 = Fp.mul(tv3, tv2); // 10. tv4 = tv3 * tv2
-        tv5 = Fp.pow(tv4, c5); // 11. tv5 = tv4^c5
-        let isQR = Fp.eql(tv5, Fp.ONE); // 12. isQR = tv5 == 1
-        tv2 = Fp.mul(tv3, c7); // 13. tv2 = tv3 * c7
-        tv5 = Fp.mul(tv4, tv1); // 14. tv5 = tv4 * tv1
-        tv3 = Fp.cmov(tv2, tv3, isQR); // 15. tv3 = CMOV(tv2, tv3, isQR)
-        tv4 = Fp.cmov(tv5, tv4, isQR); // 16. tv4 = CMOV(tv5, tv4, isQR)
-        // 17. for i in (c1, c1 - 1, ..., 2):
-        for (let i = c1; i > _1n; i--) {
-            let tv5 = i - _2n; // 18.    tv5 = i - 2
-            tv5 = _2n << (tv5 - _1n); // 19.    tv5 = 2^tv5
-            let tvv5 = Fp.pow(tv4, tv5); // 20.    tv5 = tv4^tv5
-            const e1 = Fp.eql(tvv5, Fp.ONE); // 21.    e1 = tv5 == 1
-            tv2 = Fp.mul(tv3, tv1); // 22.    tv2 = tv3 * tv1
-            tv1 = Fp.mul(tv1, tv1); // 23.    tv1 = tv1 * tv1
-            tvv5 = Fp.mul(tv4, tv1); // 24.    tv5 = tv4 * tv1
-            tv3 = Fp.cmov(tv2, tv3, e1); // 25.    tv3 = CMOV(tv2, tv3, e1)
-            tv4 = Fp.cmov(tvv5, tv4, e1); // 26.    tv4 = CMOV(tv5, tv4, e1)
-        }
-        return { isValid: isQR, value: tv3 };
-    };
-    if (Fp.ORDER % _4n === _3n) {
-        // sqrt_ratio_3mod4(u, v)
-        const c1 = (Fp.ORDER - _3n) / _4n; // 1. c1 = (q - 3) / 4     # Integer arithmetic
-        const c2 = Fp.sqrt(Fp.neg(Z)); // 2. c2 = sqrt(-Z)
-        sqrtRatio = (u, v) => {
-            let tv1 = Fp.sqr(v); // 1. tv1 = v^2
-            const tv2 = Fp.mul(u, v); // 2. tv2 = u * v
-            tv1 = Fp.mul(tv1, tv2); // 3. tv1 = tv1 * tv2
-            let y1 = Fp.pow(tv1, c1); // 4. y1 = tv1^c1
-            y1 = Fp.mul(y1, tv2); // 5. y1 = y1 * tv2
-            const y2 = Fp.mul(y1, c2); // 6. y2 = y1 * c2
-            const tv3 = Fp.mul(Fp.sqr(y1), v); // 7. tv3 = y1^2; 8. tv3 = tv3 * v
-            const isQR = Fp.eql(tv3, u); // 9. isQR = tv3 == u
-            let y = Fp.cmov(y2, y1, isQR); // 10. y = CMOV(y2, y1, isQR)
-            return { isValid: isQR, value: y }; // 11. return (isQR, y) isQR ? y : y*c2
-        };
-    }
-    // No curves uses that
-    // if (Fp.ORDER % _8n === _5n) // sqrt_ratio_5mod8
-    return sqrtRatio;
-}
-exports.SWUFpSqrtRatio = SWUFpSqrtRatio;
-/**
- * From draft-irtf-cfrg-hash-to-curve-16
- */
-function mapToCurveSimpleSWU(Fp, opts) {
-    mod.validateField(Fp);
-    if (!Fp.isValid(opts.A) || !Fp.isValid(opts.B) || !Fp.isValid(opts.Z))
-        throw new Error('mapToCurveSimpleSWU: invalid opts');
-    const sqrtRatio = SWUFpSqrtRatio(Fp, opts.Z);
-    if (!Fp.isOdd)
-        throw new Error('Fp.isOdd is not implemented!');
-    // Input: u, an element of F.
-    // Output: (x, y), a point on E.
-    return (u) => {
-        // prettier-ignore
-        let tv1, tv2, tv3, tv4, tv5, tv6, x, y;
-        tv1 = Fp.sqr(u); // 1.  tv1 = u^2
-        tv1 = Fp.mul(tv1, opts.Z); // 2.  tv1 = Z * tv1
-        tv2 = Fp.sqr(tv1); // 3.  tv2 = tv1^2
-        tv2 = Fp.add(tv2, tv1); // 4.  tv2 = tv2 + tv1
-        tv3 = Fp.add(tv2, Fp.ONE); // 5.  tv3 = tv2 + 1
-        tv3 = Fp.mul(tv3, opts.B); // 6.  tv3 = B * tv3
-        tv4 = Fp.cmov(opts.Z, Fp.neg(tv2), !Fp.eql(tv2, Fp.ZERO)); // 7.  tv4 = CMOV(Z, -tv2, tv2 != 0)
-        tv4 = Fp.mul(tv4, opts.A); // 8.  tv4 = A * tv4
-        tv2 = Fp.sqr(tv3); // 9.  tv2 = tv3^2
-        tv6 = Fp.sqr(tv4); // 10. tv6 = tv4^2
-        tv5 = Fp.mul(tv6, opts.A); // 11. tv5 = A * tv6
-        tv2 = Fp.add(tv2, tv5); // 12. tv2 = tv2 + tv5
-        tv2 = Fp.mul(tv2, tv3); // 13. tv2 = tv2 * tv3
-        tv6 = Fp.mul(tv6, tv4); // 14. tv6 = tv6 * tv4
-        tv5 = Fp.mul(tv6, opts.B); // 15. tv5 = B * tv6
-        tv2 = Fp.add(tv2, tv5); // 16. tv2 = tv2 + tv5
-        x = Fp.mul(tv1, tv3); // 17.   x = tv1 * tv3
-        const { isValid, value } = sqrtRatio(tv2, tv6); // 18. (is_gx1_square, y1) = sqrt_ratio(tv2, tv6)
-        y = Fp.mul(tv1, u); // 19.   y = tv1 * u  -> Z * u^3 * y1
-        y = Fp.mul(y, value); // 20.   y = y * y1
-        x = Fp.cmov(x, tv3, isValid); // 21.   x = CMOV(x, tv3, is_gx1_square)
-        y = Fp.cmov(y, value, isValid); // 22.   y = CMOV(y, y1, is_gx1_square)
-        const e1 = Fp.isOdd(u) === Fp.isOdd(y); // 23.  e1 = sgn0(u) == sgn0(y)
-        y = Fp.cmov(Fp.neg(y), y, e1); // 24.   y = CMOV(-y, y, e1)
-        x = Fp.div(x, tv4); // 25.   x = x / tv4
-        return { x, y };
-    };
-}
-exports.mapToCurveSimpleSWU = mapToCurveSimpleSWU;
-
-},{"./curve.js":165,"./modular.js":167,"./utils.js":168}],170:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.encodeToCurve = exports.hashToCurve = exports.schnorr = exports.secp256k1 = void 0;
-/*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) */
-const sha256_1 = require("@noble/hashes/sha256");
-const utils_1 = require("@noble/hashes/utils");
-const modular_js_1 = require("./abstract/modular.js");
-const weierstrass_js_1 = require("./abstract/weierstrass.js");
-const utils_js_1 = require("./abstract/utils.js");
-const hash_to_curve_js_1 = require("./abstract/hash-to-curve.js");
-const _shortw_utils_js_1 = require("./_shortw_utils.js");
-const secp256k1P = BigInt('0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f');
-const secp256k1N = BigInt('0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141');
-const _1n = BigInt(1);
-const _2n = BigInt(2);
-const divNearest = (a, b) => (a + b / _2n) / b;
-/**
- * √n = n^((p+1)/4) for fields p = 3 mod 4. We unwrap the loop and multiply bit-by-bit.
- * (P+1n/4n).toString(2) would produce bits [223x 1, 0, 22x 1, 4x 0, 11, 00]
- */
-function sqrtMod(y) {
-    const P = secp256k1P;
-    // prettier-ignore
-    const _3n = BigInt(3), _6n = BigInt(6), _11n = BigInt(11), _22n = BigInt(22);
-    // prettier-ignore
-    const _23n = BigInt(23), _44n = BigInt(44), _88n = BigInt(88);
-    const b2 = (y * y * y) % P; // x^3, 11
-    const b3 = (b2 * b2 * y) % P; // x^7
-    const b6 = ((0, modular_js_1.pow2)(b3, _3n, P) * b3) % P;
-    const b9 = ((0, modular_js_1.pow2)(b6, _3n, P) * b3) % P;
-    const b11 = ((0, modular_js_1.pow2)(b9, _2n, P) * b2) % P;
-    const b22 = ((0, modular_js_1.pow2)(b11, _11n, P) * b11) % P;
-    const b44 = ((0, modular_js_1.pow2)(b22, _22n, P) * b22) % P;
-    const b88 = ((0, modular_js_1.pow2)(b44, _44n, P) * b44) % P;
-    const b176 = ((0, modular_js_1.pow2)(b88, _88n, P) * b88) % P;
-    const b220 = ((0, modular_js_1.pow2)(b176, _44n, P) * b44) % P;
-    const b223 = ((0, modular_js_1.pow2)(b220, _3n, P) * b3) % P;
-    const t1 = ((0, modular_js_1.pow2)(b223, _23n, P) * b22) % P;
-    const t2 = ((0, modular_js_1.pow2)(t1, _6n, P) * b2) % P;
-    const root = (0, modular_js_1.pow2)(t2, _2n, P);
-    if (!Fp.eql(Fp.sqr(root), y))
-        throw new Error('Cannot find square root');
-    return root;
-}
-const Fp = (0, modular_js_1.Field)(secp256k1P, undefined, undefined, { sqrt: sqrtMod });
-exports.secp256k1 = (0, _shortw_utils_js_1.createCurve)({
-    a: BigInt(0),
-    b: BigInt(7),
-    Fp,
-    n: secp256k1N,
-    // Base point (x, y) aka generator point
-    Gx: BigInt('55066263022277343669578718895168534326250603453777594175500187360389116729240'),
-    Gy: BigInt('32670510020758816978083085130507043184471273380659243275938904335757337482424'),
-    h: BigInt(1),
-    lowS: true,
-    /**
-     * secp256k1 belongs to Koblitz curves: it has efficiently computable endomorphism.
-     * Endomorphism uses 2x less RAM, speeds up precomputation by 2x and ECDH / key recovery by 20%.
-     * For precomputed wNAF it trades off 1/2 init time & 1/3 ram for 20% perf hit.
-     * Explanation: https://gist.github.com/paulmillr/eb670806793e84df628a7c434a873066
-     */
-    endo: {
-        beta: BigInt('0x7ae96a2b657c07106e64479eac3434e99cf0497512f58995c1396c28719501ee'),
-        splitScalar: (k) => {
-            const n = secp256k1N;
-            const a1 = BigInt('0x3086d221a7d46bcde86c90e49284eb15');
-            const b1 = -_1n * BigInt('0xe4437ed6010e88286f547fa90abfe4c3');
-            const a2 = BigInt('0x114ca50f7a8e2f3f657c1108d9d44cfd8');
-            const b2 = a1;
-            const POW_2_128 = BigInt('0x100000000000000000000000000000000'); // (2n**128n).toString(16)
-            const c1 = divNearest(b2 * k, n);
-            const c2 = divNearest(-b1 * k, n);
-            let k1 = (0, modular_js_1.mod)(k - c1 * a1 - c2 * a2, n);
-            let k2 = (0, modular_js_1.mod)(-c1 * b1 - c2 * b2, n);
-            const k1neg = k1 > POW_2_128;
-            const k2neg = k2 > POW_2_128;
-            if (k1neg)
-                k1 = n - k1;
-            if (k2neg)
-                k2 = n - k2;
-            if (k1 > POW_2_128 || k2 > POW_2_128) {
-                throw new Error('splitScalar: Endomorphism failed, k=' + k);
-            }
-            return { k1neg, k1, k2neg, k2 };
-        },
-    },
-}, sha256_1.sha256);
-// Schnorr signatures are superior to ECDSA from above. Below is Schnorr-specific BIP0340 code.
-// https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki
-const _0n = BigInt(0);
-const fe = (x) => typeof x === 'bigint' && _0n < x && x < secp256k1P;
-const ge = (x) => typeof x === 'bigint' && _0n < x && x < secp256k1N;
-/** An object mapping tags to their tagged hash prefix of [SHA256(tag) | SHA256(tag)] */
-const TAGGED_HASH_PREFIXES = {};
-function taggedHash(tag, ...messages) {
-    let tagP = TAGGED_HASH_PREFIXES[tag];
-    if (tagP === undefined) {
-        const tagH = (0, sha256_1.sha256)(Uint8Array.from(tag, (c) => c.charCodeAt(0)));
-        tagP = (0, utils_js_1.concatBytes)(tagH, tagH);
-        TAGGED_HASH_PREFIXES[tag] = tagP;
-    }
-    return (0, sha256_1.sha256)((0, utils_js_1.concatBytes)(tagP, ...messages));
-}
-// ECDSA compact points are 33-byte. Schnorr is 32: we strip first byte 0x02 or 0x03
-const pointToBytes = (point) => point.toRawBytes(true).slice(1);
-const numTo32b = (n) => (0, utils_js_1.numberToBytesBE)(n, 32);
-const modP = (x) => (0, modular_js_1.mod)(x, secp256k1P);
-const modN = (x) => (0, modular_js_1.mod)(x, secp256k1N);
-const Point = exports.secp256k1.ProjectivePoint;
-const GmulAdd = (Q, a, b) => Point.BASE.multiplyAndAddUnsafe(Q, a, b);
-// Calculate point, scalar and bytes
-function schnorrGetExtPubKey(priv) {
-    let d_ = exports.secp256k1.utils.normPrivateKeyToScalar(priv); // same method executed in fromPrivateKey
-    let p = Point.fromPrivateKey(d_); // P = d'⋅G; 0 < d' < n check is done inside
-    const scalar = p.hasEvenY() ? d_ : modN(-d_);
-    return { scalar: scalar, bytes: pointToBytes(p) };
-}
-/**
- * lift_x from BIP340. Convert 32-byte x coordinate to elliptic curve point.
- * @returns valid point checked for being on-curve
- */
-function lift_x(x) {
-    if (!fe(x))
-        throw new Error('bad x: need 0 < x < p'); // Fail if x ≥ p.
-    const xx = modP(x * x);
-    const c = modP(xx * x + BigInt(7)); // Let c = x³ + 7 mod p.
-    let y = sqrtMod(c); // Let y = c^(p+1)/4 mod p.
-    if (y % _2n !== _0n)
-        y = modP(-y); // Return the unique point P such that x(P) = x and
-    const p = new Point(x, y, _1n); // y(P) = y if y mod 2 = 0 or y(P) = p-y otherwise.
-    p.assertValidity();
-    return p;
-}
-/**
- * Create tagged hash, convert it to bigint, reduce modulo-n.
- */
-function challenge(...args) {
-    return modN((0, utils_js_1.bytesToNumberBE)(taggedHash('BIP0340/challenge', ...args)));
-}
-/**
- * Schnorr public key is just `x` coordinate of Point as per BIP340.
- */
-function schnorrGetPublicKey(privateKey) {
-    return schnorrGetExtPubKey(privateKey).bytes; // d'=int(sk). Fail if d'=0 or d'≥n. Ret bytes(d'⋅G)
-}
-/**
- * Creates Schnorr signature as per BIP340. Verifies itself before returning anything.
- * auxRand is optional and is not the sole source of k generation: bad CSPRNG won't be dangerous.
- */
-function schnorrSign(message, privateKey, auxRand = (0, utils_1.randomBytes)(32)) {
-    const m = (0, utils_js_1.ensureBytes)('message', message);
-    const { bytes: px, scalar: d } = schnorrGetExtPubKey(privateKey); // checks for isWithinCurveOrder
-    const a = (0, utils_js_1.ensureBytes)('auxRand', auxRand, 32); // Auxiliary random data a: a 32-byte array
-    const t = numTo32b(d ^ (0, utils_js_1.bytesToNumberBE)(taggedHash('BIP0340/aux', a))); // Let t be the byte-wise xor of bytes(d) and hash/aux(a)
-    const rand = taggedHash('BIP0340/nonce', t, px, m); // Let rand = hash/nonce(t || bytes(P) || m)
-    const k_ = modN((0, utils_js_1.bytesToNumberBE)(rand)); // Let k' = int(rand) mod n
-    if (k_ === _0n)
-        throw new Error('sign failed: k is zero'); // Fail if k' = 0.
-    const { bytes: rx, scalar: k } = schnorrGetExtPubKey(k_); // Let R = k'⋅G.
-    const e = challenge(rx, px, m); // Let e = int(hash/challenge(bytes(R) || bytes(P) || m)) mod n.
-    const sig = new Uint8Array(64); // Let sig = bytes(R) || bytes((k + ed) mod n).
-    sig.set(rx, 0);
-    sig.set(numTo32b(modN(k + e * d)), 32);
-    // If Verify(bytes(P), m, sig) (see below) returns failure, abort
-    if (!schnorrVerify(sig, m, px))
-        throw new Error('sign: Invalid signature produced');
-    return sig;
-}
-/**
- * Verifies Schnorr signature.
- * Will swallow errors & return false except for initial type validation of arguments.
- */
-function schnorrVerify(signature, message, publicKey) {
-    const sig = (0, utils_js_1.ensureBytes)('signature', signature, 64);
-    const m = (0, utils_js_1.ensureBytes)('message', message);
-    const pub = (0, utils_js_1.ensureBytes)('publicKey', publicKey, 32);
-    try {
-        const P = lift_x((0, utils_js_1.bytesToNumberBE)(pub)); // P = lift_x(int(pk)); fail if that fails
-        const r = (0, utils_js_1.bytesToNumberBE)(sig.subarray(0, 32)); // Let r = int(sig[0:32]); fail if r ≥ p.
-        if (!fe(r))
-            return false;
-        const s = (0, utils_js_1.bytesToNumberBE)(sig.subarray(32, 64)); // Let s = int(sig[32:64]); fail if s ≥ n.
-        if (!ge(s))
-            return false;
-        const e = challenge(numTo32b(r), pointToBytes(P), m); // int(challenge(bytes(r)||bytes(P)||m))%n
-        const R = GmulAdd(P, s, modN(-e)); // R = s⋅G - e⋅P
-        if (!R || !R.hasEvenY() || R.toAffine().x !== r)
-            return false; // -eP == (n-e)P
-        return true; // Fail if is_infinite(R) / not has_even_y(R) / x(R) ≠ r.
-    }
-    catch (error) {
-        return false;
-    }
-}
-exports.schnorr = (() => ({
-    getPublicKey: schnorrGetPublicKey,
-    sign: schnorrSign,
-    verify: schnorrVerify,
-    utils: {
-        randomPrivateKey: exports.secp256k1.utils.randomPrivateKey,
-        lift_x,
-        pointToBytes,
-        numberToBytesBE: utils_js_1.numberToBytesBE,
-        bytesToNumberBE: utils_js_1.bytesToNumberBE,
-        taggedHash,
-        mod: modular_js_1.mod,
-    },
-}))();
-const isoMap = /* @__PURE__ */ (() => (0, hash_to_curve_js_1.isogenyMap)(Fp, [
-    // xNum
-    [
-        '0x8e38e38e38e38e38e38e38e38e38e38e38e38e38e38e38e38e38e38daaaaa8c7',
-        '0x7d3d4c80bc321d5b9f315cea7fd44c5d595d2fc0bf63b92dfff1044f17c6581',
-        '0x534c328d23f234e6e2a413deca25caece4506144037c40314ecbd0b53d9dd262',
-        '0x8e38e38e38e38e38e38e38e38e38e38e38e38e38e38e38e38e38e38daaaaa88c',
-    ],
-    // xDen
-    [
-        '0xd35771193d94918a9ca34ccbb7b640dd86cd409542f8487d9fe6b745781eb49b',
-        '0xedadc6f64383dc1df7c4b2d51b54225406d36b641f5e41bbc52a56612a8c6d14',
-        '0x0000000000000000000000000000000000000000000000000000000000000001', // LAST 1
-    ],
-    // yNum
-    [
-        '0x4bda12f684bda12f684bda12f684bda12f684bda12f684bda12f684b8e38e23c',
-        '0xc75e0c32d5cb7c0fa9d0a54b12a0a6d5647ab046d686da6fdffc90fc201d71a3',
-        '0x29a6194691f91a73715209ef6512e576722830a201be2018a765e85a9ecee931',
-        '0x2f684bda12f684bda12f684bda12f684bda12f684bda12f684bda12f38e38d84',
-    ],
-    // yDen
-    [
-        '0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffff93b',
-        '0x7a06534bb8bdb49fd5e9e6632722c2989467c1bfc8e8d978dfb425d2685c2573',
-        '0x6484aa716545ca2cf3a70c3fa8fe337e0a3d21162f0d6299a7bf8192bfd2a76f',
-        '0x0000000000000000000000000000000000000000000000000000000000000001', // LAST 1
-    ],
-].map((i) => i.map((j) => BigInt(j)))))();
-const mapSWU = /* @__PURE__ */ (() => (0, weierstrass_js_1.mapToCurveSimpleSWU)(Fp, {
-    A: BigInt('0x3f8731abdd661adca08a5558f0f5d272e953d363cb6f0e5d405447c01a444533'),
-    B: BigInt('1771'),
-    Z: Fp.create(BigInt('-11')),
-}))();
-const htf = /* @__PURE__ */ (() => (0, hash_to_curve_js_1.createHasher)(exports.secp256k1.ProjectivePoint, (scalars) => {
-    const { x, y } = mapSWU(Fp.create(scalars[0]));
-    return isoMap(x, y);
-}, {
-    DST: 'secp256k1_XMD:SHA-256_SSWU_RO_',
-    encodeDST: 'secp256k1_XMD:SHA-256_SSWU_NU_',
-    p: Fp.ORDER,
-    m: 1,
-    k: 128,
-    expand: 'xmd',
-    hash: sha256_1.sha256,
-}))();
-exports.hashToCurve = (() => htf.hashToCurve)();
-exports.encodeToCurve = (() => htf.encodeToCurve)();
-
-},{"./_shortw_utils.js":164,"./abstract/hash-to-curve.js":166,"./abstract/modular.js":167,"./abstract/utils.js":168,"./abstract/weierstrass.js":169,"@noble/hashes/sha256":176,"@noble/hashes/utils":178}],171:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.output = exports.exists = exports.hash = exports.bytes = exports.bool = exports.number = void 0;
-function number(n) {
-    if (!Number.isSafeInteger(n) || n < 0)
-        throw new Error(`Wrong positive integer: ${n}`);
-}
-exports.number = number;
-function bool(b) {
-    if (typeof b !== 'boolean')
-        throw new Error(`Expected boolean, not ${b}`);
-}
-exports.bool = bool;
-function bytes(b, ...lengths) {
-    if (!(b instanceof Uint8Array))
-        throw new Error('Expected Uint8Array');
-    if (lengths.length > 0 && !lengths.includes(b.length))
-        throw new Error(`Expected Uint8Array of length ${lengths}, not of length=${b.length}`);
-}
-exports.bytes = bytes;
-function hash(hash) {
-    if (typeof hash !== 'function' || typeof hash.create !== 'function')
-        throw new Error('Hash should be wrapped by utils.wrapConstructor');
-    number(hash.outputLen);
-    number(hash.blockLen);
-}
-exports.hash = hash;
-function exists(instance, checkFinished = true) {
-    if (instance.destroyed)
-        throw new Error('Hash instance has been destroyed');
-    if (checkFinished && instance.finished)
-        throw new Error('Hash#digest() has already been called');
-}
-exports.exists = exists;
-function output(out, instance) {
-    bytes(out);
-    const min = instance.outputLen;
-    if (out.length < min) {
-        throw new Error(`digestInto() expects output buffer of length at least ${min}`);
-    }
-}
-exports.output = output;
-const assert = {
-    number,
-    bool,
-    bytes,
-    hash,
-    exists,
-    output,
-};
-exports.default = assert;
-
-},{}],172:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.SHA2 = void 0;
-const _assert_js_1 = require("./_assert.js");
-const utils_js_1 = require("./utils.js");
-// Polyfill for Safari 14
-function setBigUint64(view, byteOffset, value, isLE) {
-    if (typeof view.setBigUint64 === 'function')
-        return view.setBigUint64(byteOffset, value, isLE);
-    const _32n = BigInt(32);
-    const _u32_max = BigInt(0xffffffff);
-    const wh = Number((value >> _32n) & _u32_max);
-    const wl = Number(value & _u32_max);
-    const h = isLE ? 4 : 0;
-    const l = isLE ? 0 : 4;
-    view.setUint32(byteOffset + h, wh, isLE);
-    view.setUint32(byteOffset + l, wl, isLE);
-}
-// Base SHA2 class (RFC 6234)
-class SHA2 extends utils_js_1.Hash {
-    constructor(blockLen, outputLen, padOffset, isLE) {
-        super();
-        this.blockLen = blockLen;
-        this.outputLen = outputLen;
-        this.padOffset = padOffset;
-        this.isLE = isLE;
-        this.finished = false;
-        this.length = 0;
-        this.pos = 0;
-        this.destroyed = false;
-        this.buffer = new Uint8Array(blockLen);
-        this.view = (0, utils_js_1.createView)(this.buffer);
-    }
-    update(data) {
-        _assert_js_1.default.exists(this);
-        const { view, buffer, blockLen } = this;
-        data = (0, utils_js_1.toBytes)(data);
-        const len = data.length;
-        for (let pos = 0; pos < len;) {
-            const take = Math.min(blockLen - this.pos, len - pos);
-            // Fast path: we have at least one block in input, cast it to view and process
-            if (take === blockLen) {
-                const dataView = (0, utils_js_1.createView)(data);
-                for (; blockLen <= len - pos; pos += blockLen)
-                    this.process(dataView, pos);
-                continue;
-            }
-            buffer.set(data.subarray(pos, pos + take), this.pos);
-            this.pos += take;
-            pos += take;
-            if (this.pos === blockLen) {
-                this.process(view, 0);
-                this.pos = 0;
-            }
-        }
-        this.length += data.length;
-        this.roundClean();
-        return this;
-    }
-    digestInto(out) {
-        _assert_js_1.default.exists(this);
-        _assert_js_1.default.output(out, this);
-        this.finished = true;
-        // Padding
-        // We can avoid allocation of buffer for padding completely if it
-        // was previously not allocated here. But it won't change performance.
-        const { buffer, view, blockLen, isLE } = this;
-        let { pos } = this;
-        // append the bit '1' to the message
-        buffer[pos++] = 0b10000000;
-        this.buffer.subarray(pos).fill(0);
-        // we have less than padOffset left in buffer, so we cannot put length in current block, need process it and pad again
-        if (this.padOffset > blockLen - pos) {
-            this.process(view, 0);
-            pos = 0;
-        }
-        // Pad until full block byte with zeros
-        for (let i = pos; i < blockLen; i++)
-            buffer[i] = 0;
-        // Note: sha512 requires length to be 128bit integer, but length in JS will overflow before that
-        // You need to write around 2 exabytes (u64_max / 8 / (1024**6)) for this to happen.
-        // So we just write lowest 64 bits of that value.
-        setBigUint64(view, blockLen - 8, BigInt(this.length * 8), isLE);
-        this.process(view, 0);
-        const oview = (0, utils_js_1.createView)(out);
-        const len = this.outputLen;
-        // NOTE: we do division by 4 later, which should be fused in single op with modulo by JIT
-        if (len % 4)
-            throw new Error('_sha2: outputLen should be aligned to 32bit');
-        const outLen = len / 4;
-        const state = this.get();
-        if (outLen > state.length)
-            throw new Error('_sha2: outputLen bigger than state');
-        for (let i = 0; i < outLen; i++)
-            oview.setUint32(4 * i, state[i], isLE);
-    }
-    digest() {
-        const { buffer, outputLen } = this;
-        this.digestInto(buffer);
-        const res = buffer.slice(0, outputLen);
-        this.destroy();
-        return res;
-    }
-    _cloneInto(to) {
-        to || (to = new this.constructor());
-        to.set(...this.get());
-        const { blockLen, buffer, length, finished, destroyed, pos } = this;
-        to.length = length;
-        to.pos = pos;
-        to.finished = finished;
-        to.destroyed = destroyed;
-        if (length % blockLen)
-            to.buffer.set(buffer);
-        return to;
-    }
-}
-exports.SHA2 = SHA2;
-
-},{"./_assert.js":171,"./utils.js":178}],173:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.add = exports.toBig = exports.split = exports.fromBig = void 0;
-const U32_MASK64 = BigInt(2 ** 32 - 1);
-const _32n = BigInt(32);
-// We are not using BigUint64Array, because they are extremely slow as per 2022
-function fromBig(n, le = false) {
-    if (le)
-        return { h: Number(n & U32_MASK64), l: Number((n >> _32n) & U32_MASK64) };
-    return { h: Number((n >> _32n) & U32_MASK64) | 0, l: Number(n & U32_MASK64) | 0 };
-}
-exports.fromBig = fromBig;
-function split(lst, le = false) {
-    let Ah = new Uint32Array(lst.length);
-    let Al = new Uint32Array(lst.length);
-    for (let i = 0; i < lst.length; i++) {
-        const { h, l } = fromBig(lst[i], le);
-        [Ah[i], Al[i]] = [h, l];
-    }
-    return [Ah, Al];
-}
-exports.split = split;
-const toBig = (h, l) => (BigInt(h >>> 0) << _32n) | BigInt(l >>> 0);
-exports.toBig = toBig;
-// for Shift in [0, 32)
-const shrSH = (h, l, s) => h >>> s;
-const shrSL = (h, l, s) => (h << (32 - s)) | (l >>> s);
-// Right rotate for Shift in [1, 32)
-const rotrSH = (h, l, s) => (h >>> s) | (l << (32 - s));
-const rotrSL = (h, l, s) => (h << (32 - s)) | (l >>> s);
-// Right rotate for Shift in (32, 64), NOTE: 32 is special case.
-const rotrBH = (h, l, s) => (h << (64 - s)) | (l >>> (s - 32));
-const rotrBL = (h, l, s) => (h >>> (s - 32)) | (l << (64 - s));
-// Right rotate for shift===32 (just swaps l&h)
-const rotr32H = (h, l) => l;
-const rotr32L = (h, l) => h;
-// Left rotate for Shift in [1, 32)
-const rotlSH = (h, l, s) => (h << s) | (l >>> (32 - s));
-const rotlSL = (h, l, s) => (l << s) | (h >>> (32 - s));
-// Left rotate for Shift in (32, 64), NOTE: 32 is special case.
-const rotlBH = (h, l, s) => (l << (s - 32)) | (h >>> (64 - s));
-const rotlBL = (h, l, s) => (h << (s - 32)) | (l >>> (64 - s));
-// JS uses 32-bit signed integers for bitwise operations which means we cannot
-// simple take carry out of low bit sum by shift, we need to use division.
-// Removing "export" has 5% perf penalty -_-
-function add(Ah, Al, Bh, Bl) {
-    const l = (Al >>> 0) + (Bl >>> 0);
-    return { h: (Ah + Bh + ((l / 2 ** 32) | 0)) | 0, l: l | 0 };
-}
-exports.add = add;
-// Addition with more than 2 elements
-const add3L = (Al, Bl, Cl) => (Al >>> 0) + (Bl >>> 0) + (Cl >>> 0);
-const add3H = (low, Ah, Bh, Ch) => (Ah + Bh + Ch + ((low / 2 ** 32) | 0)) | 0;
-const add4L = (Al, Bl, Cl, Dl) => (Al >>> 0) + (Bl >>> 0) + (Cl >>> 0) + (Dl >>> 0);
-const add4H = (low, Ah, Bh, Ch, Dh) => (Ah + Bh + Ch + Dh + ((low / 2 ** 32) | 0)) | 0;
-const add5L = (Al, Bl, Cl, Dl, El) => (Al >>> 0) + (Bl >>> 0) + (Cl >>> 0) + (Dl >>> 0) + (El >>> 0);
-const add5H = (low, Ah, Bh, Ch, Dh, Eh) => (Ah + Bh + Ch + Dh + Eh + ((low / 2 ** 32) | 0)) | 0;
-// prettier-ignore
-const u64 = {
-    fromBig, split, toBig: exports.toBig,
-    shrSH, shrSL,
-    rotrSH, rotrSL, rotrBH, rotrBL,
-    rotr32H, rotr32L,
-    rotlSH, rotlSL, rotlBH, rotlBL,
-    add, add3L, add3H, add4L, add4H, add5H, add5L,
-};
-exports.default = u64;
-
-},{}],174:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.crypto = void 0;
-exports.crypto = typeof globalThis === 'object' && 'crypto' in globalThis ? globalThis.crypto : undefined;
-
-},{}],175:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.hmac = exports.HMAC = void 0;
-const _assert_js_1 = require("./_assert.js");
-const utils_js_1 = require("./utils.js");
-// HMAC (RFC 2104)
-class HMAC extends utils_js_1.Hash {
-    constructor(hash, _key) {
-        super();
-        this.finished = false;
-        this.destroyed = false;
-        _assert_js_1.default.hash(hash);
-        const key = (0, utils_js_1.toBytes)(_key);
-        this.iHash = hash.create();
-        if (typeof this.iHash.update !== 'function')
-            throw new Error('Expected instance of class which extends utils.Hash');
-        this.blockLen = this.iHash.blockLen;
-        this.outputLen = this.iHash.outputLen;
-        const blockLen = this.blockLen;
-        const pad = new Uint8Array(blockLen);
-        // blockLen can be bigger than outputLen
-        pad.set(key.length > blockLen ? hash.create().update(key).digest() : key);
-        for (let i = 0; i < pad.length; i++)
-            pad[i] ^= 0x36;
-        this.iHash.update(pad);
-        // By doing update (processing of first block) of outer hash here we can re-use it between multiple calls via clone
-        this.oHash = hash.create();
-        // Undo internal XOR && apply outer XOR
-        for (let i = 0; i < pad.length; i++)
-            pad[i] ^= 0x36 ^ 0x5c;
-        this.oHash.update(pad);
-        pad.fill(0);
-    }
-    update(buf) {
-        _assert_js_1.default.exists(this);
-        this.iHash.update(buf);
-        return this;
-    }
-    digestInto(out) {
-        _assert_js_1.default.exists(this);
-        _assert_js_1.default.bytes(out, this.outputLen);
-        this.finished = true;
-        this.iHash.digestInto(out);
-        this.oHash.update(out);
-        this.oHash.digestInto(out);
-        this.destroy();
-    }
-    digest() {
-        const out = new Uint8Array(this.oHash.outputLen);
-        this.digestInto(out);
-        return out;
-    }
-    _cloneInto(to) {
-        // Create new instance without calling constructor since key already in state and we don't know it.
-        to || (to = Object.create(Object.getPrototypeOf(this), {}));
-        const { oHash, iHash, finished, destroyed, blockLen, outputLen } = this;
-        to = to;
-        to.finished = finished;
-        to.destroyed = destroyed;
-        to.blockLen = blockLen;
-        to.outputLen = outputLen;
-        to.oHash = oHash._cloneInto(to.oHash);
-        to.iHash = iHash._cloneInto(to.iHash);
-        return to;
-    }
-    destroy() {
-        this.destroyed = true;
-        this.oHash.destroy();
-        this.iHash.destroy();
-    }
-}
-exports.HMAC = HMAC;
-/**
- * HMAC: RFC2104 message authentication code.
- * @param hash - function that would be used e.g. sha256
- * @param key - message key
- * @param message - message data
- */
-const hmac = (hash, key, message) => new HMAC(hash, key).update(message).digest();
-exports.hmac = hmac;
-exports.hmac.create = (hash, key) => new HMAC(hash, key);
-
-},{"./_assert.js":171,"./utils.js":178}],176:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.sha224 = exports.sha256 = void 0;
-const _sha2_js_1 = require("./_sha2.js");
-const utils_js_1 = require("./utils.js");
-// Choice: a ? b : c
-const Chi = (a, b, c) => (a & b) ^ (~a & c);
-// Majority function, true if any two inpust is true
-const Maj = (a, b, c) => (a & b) ^ (a & c) ^ (b & c);
-// Round constants:
-// first 32 bits of the fractional parts of the cube roots of the first 64 primes 2..311)
-// prettier-ignore
-const SHA256_K = new Uint32Array([
-    0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
-    0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
-    0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
-    0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
-    0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
-    0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
-    0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
-    0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
-]);
-// Initial state (first 32 bits of the fractional parts of the square roots of the first 8 primes 2..19):
-// prettier-ignore
-const IV = new Uint32Array([
-    0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
-]);
-// Temporary buffer, not used to store anything between runs
-// Named this way because it matches specification.
-const SHA256_W = new Uint32Array(64);
-class SHA256 extends _sha2_js_1.SHA2 {
-    constructor() {
-        super(64, 32, 8, false);
-        // We cannot use array here since array allows indexing by variable
-        // which means optimizer/compiler cannot use registers.
-        this.A = IV[0] | 0;
-        this.B = IV[1] | 0;
-        this.C = IV[2] | 0;
-        this.D = IV[3] | 0;
-        this.E = IV[4] | 0;
-        this.F = IV[5] | 0;
-        this.G = IV[6] | 0;
-        this.H = IV[7] | 0;
-    }
-    get() {
-        const { A, B, C, D, E, F, G, H } = this;
-        return [A, B, C, D, E, F, G, H];
-    }
-    // prettier-ignore
-    set(A, B, C, D, E, F, G, H) {
-        this.A = A | 0;
-        this.B = B | 0;
-        this.C = C | 0;
-        this.D = D | 0;
-        this.E = E | 0;
-        this.F = F | 0;
-        this.G = G | 0;
-        this.H = H | 0;
-    }
-    process(view, offset) {
-        // Extend the first 16 words into the remaining 48 words w[16..63] of the message schedule array
-        for (let i = 0; i < 16; i++, offset += 4)
-            SHA256_W[i] = view.getUint32(offset, false);
-        for (let i = 16; i < 64; i++) {
-            const W15 = SHA256_W[i - 15];
-            const W2 = SHA256_W[i - 2];
-            const s0 = (0, utils_js_1.rotr)(W15, 7) ^ (0, utils_js_1.rotr)(W15, 18) ^ (W15 >>> 3);
-            const s1 = (0, utils_js_1.rotr)(W2, 17) ^ (0, utils_js_1.rotr)(W2, 19) ^ (W2 >>> 10);
-            SHA256_W[i] = (s1 + SHA256_W[i - 7] + s0 + SHA256_W[i - 16]) | 0;
-        }
-        // Compression function main loop, 64 rounds
-        let { A, B, C, D, E, F, G, H } = this;
-        for (let i = 0; i < 64; i++) {
-            const sigma1 = (0, utils_js_1.rotr)(E, 6) ^ (0, utils_js_1.rotr)(E, 11) ^ (0, utils_js_1.rotr)(E, 25);
-            const T1 = (H + sigma1 + Chi(E, F, G) + SHA256_K[i] + SHA256_W[i]) | 0;
-            const sigma0 = (0, utils_js_1.rotr)(A, 2) ^ (0, utils_js_1.rotr)(A, 13) ^ (0, utils_js_1.rotr)(A, 22);
-            const T2 = (sigma0 + Maj(A, B, C)) | 0;
-            H = G;
-            G = F;
-            F = E;
-            E = (D + T1) | 0;
-            D = C;
-            C = B;
-            B = A;
-            A = (T1 + T2) | 0;
-        }
-        // Add the compressed chunk to the current hash value
-        A = (A + this.A) | 0;
-        B = (B + this.B) | 0;
-        C = (C + this.C) | 0;
-        D = (D + this.D) | 0;
-        E = (E + this.E) | 0;
-        F = (F + this.F) | 0;
-        G = (G + this.G) | 0;
-        H = (H + this.H) | 0;
-        this.set(A, B, C, D, E, F, G, H);
-    }
-    roundClean() {
-        SHA256_W.fill(0);
-    }
-    destroy() {
-        this.set(0, 0, 0, 0, 0, 0, 0, 0);
-        this.buffer.fill(0);
-    }
-}
-// Constants from https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf
-class SHA224 extends SHA256 {
-    constructor() {
-        super();
-        this.A = 0xc1059ed8 | 0;
-        this.B = 0x367cd507 | 0;
-        this.C = 0x3070dd17 | 0;
-        this.D = 0xf70e5939 | 0;
-        this.E = 0xffc00b31 | 0;
-        this.F = 0x68581511 | 0;
-        this.G = 0x64f98fa7 | 0;
-        this.H = 0xbefa4fa4 | 0;
-        this.outputLen = 28;
-    }
-}
-/**
- * SHA2-256 hash function
- * @param message - data that would be hashed
- */
-exports.sha256 = (0, utils_js_1.wrapConstructor)(() => new SHA256());
-exports.sha224 = (0, utils_js_1.wrapConstructor)(() => new SHA224());
-
-},{"./_sha2.js":172,"./utils.js":178}],177:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.shake256 = exports.shake128 = exports.keccak_512 = exports.keccak_384 = exports.keccak_256 = exports.keccak_224 = exports.sha3_512 = exports.sha3_384 = exports.sha3_256 = exports.sha3_224 = exports.Keccak = exports.keccakP = void 0;
-const _assert_js_1 = require("./_assert.js");
-const _u64_js_1 = require("./_u64.js");
-const utils_js_1 = require("./utils.js");
-// Various per round constants calculations
-const [SHA3_PI, SHA3_ROTL, _SHA3_IOTA] = [[], [], []];
-const _0n = BigInt(0);
-const _1n = BigInt(1);
-const _2n = BigInt(2);
-const _7n = BigInt(7);
-const _256n = BigInt(256);
-const _0x71n = BigInt(0x71);
-for (let round = 0, R = _1n, x = 1, y = 0; round < 24; round++) {
-    // Pi
-    [x, y] = [y, (2 * x + 3 * y) % 5];
-    SHA3_PI.push(2 * (5 * y + x));
-    // Rotational
-    SHA3_ROTL.push((((round + 1) * (round + 2)) / 2) % 64);
-    // Iota
-    let t = _0n;
-    for (let j = 0; j < 7; j++) {
-        R = ((R << _1n) ^ ((R >> _7n) * _0x71n)) % _256n;
-        if (R & _2n)
-            t ^= _1n << ((_1n << BigInt(j)) - _1n);
-    }
-    _SHA3_IOTA.push(t);
-}
-const [SHA3_IOTA_H, SHA3_IOTA_L] = _u64_js_1.default.split(_SHA3_IOTA, true);
-// Left rotation (without 0, 32, 64)
-const rotlH = (h, l, s) => s > 32 ? _u64_js_1.default.rotlBH(h, l, s) : _u64_js_1.default.rotlSH(h, l, s);
-const rotlL = (h, l, s) => s > 32 ? _u64_js_1.default.rotlBL(h, l, s) : _u64_js_1.default.rotlSL(h, l, s);
-// Same as keccakf1600, but allows to skip some rounds
-function keccakP(s, rounds = 24) {
-    const B = new Uint32Array(5 * 2);
-    // NOTE: all indices are x2 since we store state as u32 instead of u64 (bigints to slow in js)
-    for (let round = 24 - rounds; round < 24; round++) {
-        // Theta θ
-        for (let x = 0; x < 10; x++)
-            B[x] = s[x] ^ s[x + 10] ^ s[x + 20] ^ s[x + 30] ^ s[x + 40];
-        for (let x = 0; x < 10; x += 2) {
-            const idx1 = (x + 8) % 10;
-            const idx0 = (x + 2) % 10;
-            const B0 = B[idx0];
-            const B1 = B[idx0 + 1];
-            const Th = rotlH(B0, B1, 1) ^ B[idx1];
-            const Tl = rotlL(B0, B1, 1) ^ B[idx1 + 1];
-            for (let y = 0; y < 50; y += 10) {
-                s[x + y] ^= Th;
-                s[x + y + 1] ^= Tl;
-            }
-        }
-        // Rho (ρ) and Pi (π)
-        let curH = s[2];
-        let curL = s[3];
-        for (let t = 0; t < 24; t++) {
-            const shift = SHA3_ROTL[t];
-            const Th = rotlH(curH, curL, shift);
-            const Tl = rotlL(curH, curL, shift);
-            const PI = SHA3_PI[t];
-            curH = s[PI];
-            curL = s[PI + 1];
-            s[PI] = Th;
-            s[PI + 1] = Tl;
-        }
-        // Chi (χ)
-        for (let y = 0; y < 50; y += 10) {
-            for (let x = 0; x < 10; x++)
-                B[x] = s[y + x];
-            for (let x = 0; x < 10; x++)
-                s[y + x] ^= ~B[(x + 2) % 10] & B[(x + 4) % 10];
-        }
-        // Iota (ι)
-        s[0] ^= SHA3_IOTA_H[round];
-        s[1] ^= SHA3_IOTA_L[round];
-    }
-    B.fill(0);
-}
-exports.keccakP = keccakP;
-class Keccak extends utils_js_1.Hash {
-    // NOTE: we accept arguments in bytes instead of bits here.
-    constructor(blockLen, suffix, outputLen, enableXOF = false, rounds = 24) {
-        super();
-        this.blockLen = blockLen;
-        this.suffix = suffix;
-        this.outputLen = outputLen;
-        this.enableXOF = enableXOF;
-        this.rounds = rounds;
-        this.pos = 0;
-        this.posOut = 0;
-        this.finished = false;
-        this.destroyed = false;
-        // Can be passed from user as dkLen
-        _assert_js_1.default.number(outputLen);
-        // 1600 = 5x5 matrix of 64bit.  1600 bits === 200 bytes
-        if (0 >= this.blockLen || this.blockLen >= 200)
-            throw new Error('Sha3 supports only keccak-f1600 function');
-        this.state = new Uint8Array(200);
-        this.state32 = (0, utils_js_1.u32)(this.state);
-    }
-    keccak() {
-        keccakP(this.state32, this.rounds);
-        this.posOut = 0;
-        this.pos = 0;
-    }
-    update(data) {
-        _assert_js_1.default.exists(this);
-        const { blockLen, state } = this;
-        data = (0, utils_js_1.toBytes)(data);
-        const len = data.length;
-        for (let pos = 0; pos < len;) {
-            const take = Math.min(blockLen - this.pos, len - pos);
-            for (let i = 0; i < take; i++)
-                state[this.pos++] ^= data[pos++];
-            if (this.pos === blockLen)
-                this.keccak();
-        }
-        return this;
-    }
-    finish() {
-        if (this.finished)
-            return;
-        this.finished = true;
-        const { state, suffix, pos, blockLen } = this;
-        // Do the padding
-        state[pos] ^= suffix;
-        if ((suffix & 0x80) !== 0 && pos === blockLen - 1)
-            this.keccak();
-        state[blockLen - 1] ^= 0x80;
-        this.keccak();
-    }
-    writeInto(out) {
-        _assert_js_1.default.exists(this, false);
-        _assert_js_1.default.bytes(out);
-        this.finish();
-        const bufferOut = this.state;
-        const { blockLen } = this;
-        for (let pos = 0, len = out.length; pos < len;) {
-            if (this.posOut >= blockLen)
-                this.keccak();
-            const take = Math.min(blockLen - this.posOut, len - pos);
-            out.set(bufferOut.subarray(this.posOut, this.posOut + take), pos);
-            this.posOut += take;
-            pos += take;
-        }
-        return out;
-    }
-    xofInto(out) {
-        // Sha3/Keccak usage with XOF is probably mistake, only SHAKE instances can do XOF
-        if (!this.enableXOF)
-            throw new Error('XOF is not possible for this instance');
-        return this.writeInto(out);
-    }
-    xof(bytes) {
-        _assert_js_1.default.number(bytes);
-        return this.xofInto(new Uint8Array(bytes));
-    }
-    digestInto(out) {
-        _assert_js_1.default.output(out, this);
-        if (this.finished)
-            throw new Error('digest() was already called');
-        this.writeInto(out);
-        this.destroy();
-        return out;
-    }
-    digest() {
-        return this.digestInto(new Uint8Array(this.outputLen));
-    }
-    destroy() {
-        this.destroyed = true;
-        this.state.fill(0);
-    }
-    _cloneInto(to) {
-        const { blockLen, suffix, outputLen, rounds, enableXOF } = this;
-        to || (to = new Keccak(blockLen, suffix, outputLen, enableXOF, rounds));
-        to.state32.set(this.state32);
-        to.pos = this.pos;
-        to.posOut = this.posOut;
-        to.finished = this.finished;
-        to.rounds = rounds;
-        // Suffix can change in cSHAKE
-        to.suffix = suffix;
-        to.outputLen = outputLen;
-        to.enableXOF = enableXOF;
-        to.destroyed = this.destroyed;
-        return to;
-    }
-}
-exports.Keccak = Keccak;
-const gen = (suffix, blockLen, outputLen) => (0, utils_js_1.wrapConstructor)(() => new Keccak(blockLen, suffix, outputLen));
-exports.sha3_224 = gen(0x06, 144, 224 / 8);
-/**
- * SHA3-256 hash function
- * @param message - that would be hashed
- */
-exports.sha3_256 = gen(0x06, 136, 256 / 8);
-exports.sha3_384 = gen(0x06, 104, 384 / 8);
-exports.sha3_512 = gen(0x06, 72, 512 / 8);
-exports.keccak_224 = gen(0x01, 144, 224 / 8);
-/**
- * keccak-256 hash function. Different from SHA3-256.
- * @param message - that would be hashed
- */
-exports.keccak_256 = gen(0x01, 136, 256 / 8);
-exports.keccak_384 = gen(0x01, 104, 384 / 8);
-exports.keccak_512 = gen(0x01, 72, 512 / 8);
-const genShake = (suffix, blockLen, outputLen) => (0, utils_js_1.wrapXOFConstructorWithOpts)((opts = {}) => new Keccak(blockLen, suffix, opts.dkLen === undefined ? outputLen : opts.dkLen, true));
-exports.shake128 = genShake(0x1f, 168, 128 / 8);
-exports.shake256 = genShake(0x1f, 136, 256 / 8);
-
-},{"./_assert.js":171,"./_u64.js":173,"./utils.js":178}],178:[function(require,module,exports){
-"use strict";
-/*! noble-hashes - MIT License (c) 2022 Paul Miller (paulmillr.com) */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.randomBytes = exports.wrapXOFConstructorWithOpts = exports.wrapConstructorWithOpts = exports.wrapConstructor = exports.checkOpts = exports.Hash = exports.concatBytes = exports.toBytes = exports.utf8ToBytes = exports.asyncLoop = exports.nextTick = exports.hexToBytes = exports.bytesToHex = exports.isLE = exports.rotr = exports.createView = exports.u32 = exports.u8 = void 0;
-// We use WebCrypto aka globalThis.crypto, which exists in browsers and node.js 16+.
-// node.js versions earlier than v19 don't declare it in global scope.
-// For node.js, package.json#exports field mapping rewrites import
-// from `crypto` to `cryptoNode`, which imports native module.
-// Makes the utils un-importable in browsers without a bundler.
-// Once node.js 18 is deprecated, we can just drop the import.
-const crypto_1 = require("@noble/hashes/crypto");
-const u8a = (a) => a instanceof Uint8Array;
-// Cast array to different type
-const u8 = (arr) => new Uint8Array(arr.buffer, arr.byteOffset, arr.byteLength);
-exports.u8 = u8;
-const u32 = (arr) => new Uint32Array(arr.buffer, arr.byteOffset, Math.floor(arr.byteLength / 4));
-exports.u32 = u32;
-// Cast array to view
-const createView = (arr) => new DataView(arr.buffer, arr.byteOffset, arr.byteLength);
-exports.createView = createView;
-// The rotate right (circular right shift) operation for uint32
-const rotr = (word, shift) => (word << (32 - shift)) | (word >>> shift);
-exports.rotr = rotr;
-// big-endian hardware is rare. Just in case someone still decides to run hashes:
-// early-throw an error because we don't support BE yet.
-exports.isLE = new Uint8Array(new Uint32Array([0x11223344]).buffer)[0] === 0x44;
-if (!exports.isLE)
-    throw new Error('Non little-endian hardware is not supported');
-const hexes = Array.from({ length: 256 }, (v, i) => i.toString(16).padStart(2, '0'));
-/**
- * @example bytesToHex(Uint8Array.from([0xca, 0xfe, 0x01, 0x23])) // 'cafe0123'
- */
-function bytesToHex(bytes) {
-    if (!u8a(bytes))
-        throw new Error('Uint8Array expected');
-    // pre-caching improves the speed 6x
-    let hex = '';
-    for (let i = 0; i < bytes.length; i++) {
-        hex += hexes[bytes[i]];
-    }
-    return hex;
-}
-exports.bytesToHex = bytesToHex;
-/**
- * @example hexToBytes('cafe0123') // Uint8Array.from([0xca, 0xfe, 0x01, 0x23])
- */
-function hexToBytes(hex) {
-    if (typeof hex !== 'string')
-        throw new Error('hex string expected, got ' + typeof hex);
-    const len = hex.length;
-    if (len % 2)
-        throw new Error('padded hex string expected, got unpadded hex of length ' + len);
-    const array = new Uint8Array(len / 2);
-    for (let i = 0; i < array.length; i++) {
-        const j = i * 2;
-        const hexByte = hex.slice(j, j + 2);
-        const byte = Number.parseInt(hexByte, 16);
-        if (Number.isNaN(byte) || byte < 0)
-            throw new Error('Invalid byte sequence');
-        array[i] = byte;
-    }
-    return array;
-}
-exports.hexToBytes = hexToBytes;
-// There is no setImmediate in browser and setTimeout is slow.
-// call of async fn will return Promise, which will be fullfiled only on
-// next scheduler queue processing step and this is exactly what we need.
-const nextTick = async () => { };
-exports.nextTick = nextTick;
-// Returns control to thread each 'tick' ms to avoid blocking
-async function asyncLoop(iters, tick, cb) {
-    let ts = Date.now();
-    for (let i = 0; i < iters; i++) {
-        cb(i);
-        // Date.now() is not monotonic, so in case if clock goes backwards we return return control too
-        const diff = Date.now() - ts;
-        if (diff >= 0 && diff < tick)
-            continue;
-        await (0, exports.nextTick)();
-        ts += diff;
-    }
-}
-exports.asyncLoop = asyncLoop;
-/**
- * @example utf8ToBytes('abc') // new Uint8Array([97, 98, 99])
- */
-function utf8ToBytes(str) {
-    if (typeof str !== 'string')
-        throw new Error(`utf8ToBytes expected string, got ${typeof str}`);
-    return new Uint8Array(new TextEncoder().encode(str)); // https://bugzil.la/1681809
-}
-exports.utf8ToBytes = utf8ToBytes;
-/**
- * Normalizes (non-hex) string or Uint8Array to Uint8Array.
- * Warning: when Uint8Array is passed, it would NOT get copied.
- * Keep in mind for future mutable operations.
- */
-function toBytes(data) {
-    if (typeof data === 'string')
-        data = utf8ToBytes(data);
-    if (!u8a(data))
-        throw new Error(`expected Uint8Array, got ${typeof data}`);
-    return data;
-}
-exports.toBytes = toBytes;
-/**
- * Copies several Uint8Arrays into one.
- */
-function concatBytes(...arrays) {
-    const r = new Uint8Array(arrays.reduce((sum, a) => sum + a.length, 0));
-    let pad = 0; // walk through each item, ensure they have proper type
-    arrays.forEach((a) => {
-        if (!u8a(a))
-            throw new Error('Uint8Array expected');
-        r.set(a, pad);
-        pad += a.length;
-    });
-    return r;
-}
-exports.concatBytes = concatBytes;
-// For runtime check if class implements interface
-class Hash {
-    // Safe version that clones internal state
-    clone() {
-        return this._cloneInto();
-    }
-}
-exports.Hash = Hash;
-// Check if object doens't have custom constructor (like Uint8Array/Array)
-const isPlainObject = (obj) => Object.prototype.toString.call(obj) === '[object Object]' && obj.constructor === Object;
-function checkOpts(defaults, opts) {
-    if (opts !== undefined && (typeof opts !== 'object' || !isPlainObject(opts)))
-        throw new Error('Options should be object or undefined');
-    const merged = Object.assign(defaults, opts);
-    return merged;
-}
-exports.checkOpts = checkOpts;
-function wrapConstructor(hashCons) {
-    const hashC = (msg) => hashCons().update(toBytes(msg)).digest();
-    const tmp = hashCons();
-    hashC.outputLen = tmp.outputLen;
-    hashC.blockLen = tmp.blockLen;
-    hashC.create = () => hashCons();
-    return hashC;
-}
-exports.wrapConstructor = wrapConstructor;
-function wrapConstructorWithOpts(hashCons) {
-    const hashC = (msg, opts) => hashCons(opts).update(toBytes(msg)).digest();
-    const tmp = hashCons({});
-    hashC.outputLen = tmp.outputLen;
-    hashC.blockLen = tmp.blockLen;
-    hashC.create = (opts) => hashCons(opts);
-    return hashC;
-}
-exports.wrapConstructorWithOpts = wrapConstructorWithOpts;
-function wrapXOFConstructorWithOpts(hashCons) {
-    const hashC = (msg, opts) => hashCons(opts).update(toBytes(msg)).digest();
-    const tmp = hashCons({});
-    hashC.outputLen = tmp.outputLen;
-    hashC.blockLen = tmp.blockLen;
-    hashC.create = (opts) => hashCons(opts);
-    return hashC;
-}
-exports.wrapXOFConstructorWithOpts = wrapXOFConstructorWithOpts;
-/**
- * Secure PRNG. Uses `crypto.getRandomValues`, which defers to OS.
- */
-function randomBytes(bytesLength = 32) {
-    if (crypto_1.crypto && typeof crypto_1.crypto.getRandomValues === 'function') {
-        return crypto_1.crypto.getRandomValues(new Uint8Array(bytesLength));
-    }
-    throw new Error('crypto.getRandomValues must be defined');
-}
-exports.randomBytes = randomBytes;
-
-},{"@noble/hashes/crypto":174}],179:[function(require,module,exports){
+},{"./lang-cz":115,"./lang-en":116,"./lang-es":117,"./lang-fr":118,"./lang-it":119,"./lang-ja":120,"./lang-ko":121,"./lang-zh":122}],125:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -25153,31 +19133,24 @@ exports.clearConfig = clearConfig;
 exports.config = config;
 
 
-},{"@onflow/util-actor":185,"@onflow/util-invariant":187,"@onflow/util-logger":188}],180:[function(require,module,exports){
+},{"@onflow/util-actor":131,"@onflow/util-invariant":133,"@onflow/util-logger":134}],126:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var _slicedToArray = require('@babel/runtime/helpers/slicedToArray');
-var _asyncToGenerator = require('@babel/runtime/helpers/asyncToGenerator');
-var _regeneratorRuntime = require('@babel/runtime/regenerator');
-var config = require('@onflow/config');
-var utilInvariant = require('@onflow/util-invariant');
 var sdk = require('@onflow/sdk');
-var _typeof = require('@babel/runtime/helpers/typeof');
 var t$1 = require('@onflow/types');
-var fetchTransport = require('node-fetch');
+var utilInvariant = require('@onflow/util-invariant');
+var fetchTransport = require('cross-fetch');
+var config = require('@onflow/config');
 var utilAddress = require('@onflow/util-address');
-var _createForOfIteratorHelper = require('@babel/runtime/helpers/createForOfIteratorHelper');
-var _defineProperty = require('@babel/runtime/helpers/defineProperty');
-var _objectSpread = require('@babel/runtime/helpers/objectSpread2');
-var utilActor = require('@onflow/util-actor');
-var rlp = require('@onflow/rlp');
-var _toConsumableArray = require('@babel/runtime/helpers/toConsumableArray');
 var utilLogger = require('@onflow/util-logger');
-var utilUid = require('@onflow/util-uid');
+var rlp = require('@onflow/rlp');
+var utilActor = require('@onflow/util-actor');
 var require$$0 = require('buffer');
 var utilTemplate = require('@onflow/util-template');
+var semver = require('@onflow/util-semver');
+var utilUid = require('@onflow/util-uid');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -25199,2926 +19172,214 @@ function _interopNamespace(e) {
   return Object.freeze(n);
 }
 
-var _slicedToArray__default = /*#__PURE__*/_interopDefaultLegacy(_slicedToArray);
-var _asyncToGenerator__default = /*#__PURE__*/_interopDefaultLegacy(_asyncToGenerator);
-var _regeneratorRuntime__default = /*#__PURE__*/_interopDefaultLegacy(_regeneratorRuntime);
 var sdk__namespace = /*#__PURE__*/_interopNamespace(sdk);
-var _typeof__default = /*#__PURE__*/_interopDefaultLegacy(_typeof);
 var t__namespace = /*#__PURE__*/_interopNamespace(t$1);
 var fetchTransport__default = /*#__PURE__*/_interopDefaultLegacy(fetchTransport);
-var _createForOfIteratorHelper__default = /*#__PURE__*/_interopDefaultLegacy(_createForOfIteratorHelper);
-var _defineProperty__default = /*#__PURE__*/_interopDefaultLegacy(_defineProperty);
-var _objectSpread__default = /*#__PURE__*/_interopDefaultLegacy(_objectSpread);
 var rlp__namespace = /*#__PURE__*/_interopNamespace(rlp);
-var _toConsumableArray__default = /*#__PURE__*/_interopDefaultLegacy(_toConsumableArray);
 var require$$0__default = /*#__PURE__*/_interopDefaultLegacy(require$$0);
+var semver__namespace = /*#__PURE__*/_interopNamespace(semver);
 
-var isServerSide = function isServerSide() {
-  return typeof window === "undefined";
-};
+const VERSION = "1.7.0" ;
 
-var SESSION_STORAGE = {
-  can: !isServerSide(),
-  get: function () {
-    var _get = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(key) {
-      return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
-        while (1) {
-          switch (_context.prev = _context.next) {
-            case 0:
-              return _context.abrupt("return", JSON.parse(sessionStorage.getItem(key)));
-
-            case 1:
-            case "end":
-              return _context.stop();
-          }
-        }
-      }, _callee);
-    }));
-
-    function get(_x) {
-      return _get.apply(this, arguments);
-    }
-
-    return get;
-  }(),
-  put: function () {
-    var _put = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee2(key, value) {
-      return _regeneratorRuntime__default["default"].wrap(function _callee2$(_context2) {
-        while (1) {
-          switch (_context2.prev = _context2.next) {
-            case 0:
-              return _context2.abrupt("return", sessionStorage.setItem(key, JSON.stringify(value)));
-
-            case 1:
-            case "end":
-              return _context2.stop();
-          }
-        }
-      }, _callee2);
-    }));
-
-    function put(_x2, _x3) {
-      return _put.apply(this, arguments);
-    }
-
-    return put;
-  }()
-};
-config.config({
-  "discovery.wallet.method.default": "IFRAME/RPC",
-  "fcl.storage.default": SESSION_STORAGE
-});
-function configLens(_x4) {
-  return _configLens.apply(this, arguments);
-}
-
-function _configLens() {
-  _configLens = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee3(regex) {
-    return _regeneratorRuntime__default["default"].wrap(function _callee3$(_context3) {
-      while (1) {
-        switch (_context3.prev = _context3.next) {
-          case 0:
-            _context3.t0 = Object;
-            _context3.t1 = Object;
-            _context3.next = 4;
-            return config.config().where(regex);
-
-          case 4:
-            _context3.t2 = _context3.sent;
-            _context3.t3 = _context3.t1.entries.call(_context3.t1, _context3.t2).map(function (_ref) {
-              var _ref2 = _slicedToArray__default["default"](_ref, 2),
-                  key = _ref2[0],
-                  value = _ref2[1];
-
-              return [key.replace(regex, ""), value];
-            });
-            return _context3.abrupt("return", _context3.t0.fromEntries.call(_context3.t0, _context3.t3));
-
-          case 7:
-          case "end":
-            return _context3.stop();
-        }
-      }
-    }, _callee3);
-  }));
-  return _configLens.apply(this, arguments);
-}
-
-var VERSION = "1.3.2" ;
-
-var is = function is(type) {
-  return function (d) {
-    return _typeof__default["default"](d) === type;
-  };
-};
-
-var isRequired = function isRequired(d) {
-  return d != null;
-};
-var isObject = is("object");
-var isString = is("string");
-var isFunc = is("function");
-var isNumber = is("number");
+const is = type => d => typeof d === type;
+const isRequired = d => d != null;
+const isObject = is("object");
+const isString = is("string");
+const isFunc = is("function");
+const isNumber = is("number");
 
 function normalizeArgs(ax) {
   if (isFunc(ax)) return ax(sdk__namespace.arg, t__namespace);
   return [];
 }
 
-function httpDocumentResolver(_x) {
-  return _httpDocumentResolver.apply(this, arguments);
+async function httpDocumentResolver(_ref) {
+  let {
+    url
+  } = _ref;
+  utilInvariant.invariant(typeof url !== "undefined", "retrieve({ url }) -- url must be defined");
+  let res;
+  try {
+    res = await fetchTransport__default["default"](url);
+  } catch (e) {
+    throw new Error("httpDocumentResolver Error: Failed to retrieve document.");
+  }
+  let document = res.ok ? await res.json() : null;
+  return document;
 }
-
-function _httpDocumentResolver() {
-  _httpDocumentResolver = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(_ref) {
-    var url, res, document;
-    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            url = _ref.url;
-            utilInvariant.invariant(typeof url !== "undefined", "retrieve({ url }) -- url must be defined");
-            _context.prev = 2;
-            _context.next = 5;
-            return fetchTransport__default["default"](url);
-
-          case 5:
-            res = _context.sent;
-            _context.next = 11;
-            break;
-
-          case 8:
-            _context.prev = 8;
-            _context.t0 = _context["catch"](2);
-            throw new Error("httpDocumentResolver Error: Failed to retrieve document.");
-
-          case 11:
-            if (!res.ok) {
-              _context.next = 17;
-              break;
-            }
-
-            _context.next = 14;
-            return res.json();
-
-          case 14:
-            _context.t1 = _context.sent;
-            _context.next = 18;
-            break;
-
-          case 17:
-            _context.t1 = null;
-
-          case 18:
-            document = _context.t1;
-            return _context.abrupt("return", document);
-
-          case 20:
-          case "end":
-            return _context.stop();
-        }
-      }
-    }, _callee, null, [[2, 8]]);
-  }));
-  return _httpDocumentResolver.apply(this, arguments);
-}
-
-var DOCUMENT_RESOLVERS = new Map([["http", httpDocumentResolver], ["https", httpDocumentResolver]]);
-function retrieve(_x2) {
-  return _retrieve.apply(this, arguments);
-}
-
-function _retrieve() {
-  _retrieve = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee2(_ref2) {
-    var url, documentResolversFromConfig, urlParts, protocol, resolver, document;
-    return _regeneratorRuntime__default["default"].wrap(function _callee2$(_context2) {
-      while (1) {
-        switch (_context2.prev = _context2.next) {
-          case 0:
-            url = _ref2.url;
-            utilInvariant.invariant(typeof url !== "undefined", "retrieve({ url }) -- url must be defined");
-            utilInvariant.invariant(typeof url === "string", "retrieve({ url }) -- url must be a string");
-            _context2.next = 5;
-            return config.config().where(/^document\.resolver\./);
-
-          case 5:
-            documentResolversFromConfig = _context2.sent;
-            Object.keys(documentResolversFromConfig).map(function (key) {
-              var resolverFromConfig = documentResolversFromConfig[key];
-              var resolverProtocol = key.replace(/^document\.resolver\./, "");
-              DOCUMENT_RESOLVERS.set(resolverProtocol, resolverFromConfig);
-            });
-            urlParts = /^(.*):\/\/([A-Za-z0-9\-\.]+)(:[0-9]+)?(.*)$/.exec(url);
-            utilInvariant.invariant(urlParts, "Failed to parse URL");
-            protocol = urlParts[1];
-            utilInvariant.invariant(urlParts, "Failed to parse URL protocol");
-            resolver = DOCUMENT_RESOLVERS.get(protocol);
-            utilInvariant.invariant(resolver, "No resolver found for protcol=".concat(protocol));
-            _context2.next = 15;
-            return resolver({
-              url: url
-            });
-
-          case 15:
-            document = _context2.sent;
-            return _context2.abrupt("return", document);
-
-          case 17:
-          case "end":
-            return _context2.stop();
-        }
-      }
-    }, _callee2);
-  }));
-  return _retrieve.apply(this, arguments);
+const DOCUMENT_RESOLVERS = new Map([["http", httpDocumentResolver], ["https", httpDocumentResolver]]);
+async function retrieve(_ref2) {
+  let {
+    url
+  } = _ref2;
+  utilInvariant.invariant(typeof url !== "undefined", "retrieve({ url }) -- url must be defined");
+  utilInvariant.invariant(typeof url === "string", "retrieve({ url }) -- url must be a string");
+  const documentResolversFromConfig = await config.config().where(/^document\.resolver\./);
+  Object.keys(documentResolversFromConfig).map(key => {
+    const resolverFromConfig = documentResolversFromConfig[key];
+    const resolverProtocol = key.replace(/^document\.resolver\./, "");
+    DOCUMENT_RESOLVERS.set(resolverProtocol, resolverFromConfig);
+  });
+  const urlParts = /^(.*):\/\/([A-Za-z0-9\-\.]+)(:[0-9]+)?(.*)$/.exec(url);
+  utilInvariant.invariant(urlParts, "Failed to parse URL");
+  const protocol = urlParts[1];
+  utilInvariant.invariant(urlParts, "Failed to parse URL protocol");
+  const resolver = DOCUMENT_RESOLVERS.get(protocol);
+  utilInvariant.invariant(resolver, `No resolver found for protcol=${protocol}`);
+  let document = await resolver({
+    url
+  });
+  return document;
 }
 
 function normalizeInteractionTemplate(template) {
   if (template == null) return null;
-
   switch (template["f_version"]) {
     case "1.0.0":
       return template;
-
     default:
       throw new Error("normalizeInteractionTemplate Error: Invalid InteractionTemplate");
   }
 }
 
+/**
+ * @description Fills import addresses in Cadence for network
+ * 
+ * @param {object} params
+ * @param {string} params.network - Network to derive Cadence for
+ * @param {object} params.template - Interaction Template to derive Cadence from
+ * @returns {string} - Cadence
+ */
 function deriveCadenceByNetwork(_ref) {
-  var _template, _template$data;
-
-  var network = _ref.network,
-      template = _ref.template;
+  let {
+    network,
+    template
+  } = _ref;
   sdk.invariant(network != undefined, "deriveCadenceByNetwork({ network }) -- network must be defined");
   sdk.invariant(typeof network === "string", "deriveCadenceByNetwork({ network }) -- network must be a string");
   sdk.invariant(template != undefined, "generateDependencyPin({ template }) -- template must be defined");
-  sdk.invariant(_typeof__default["default"](template) === "object", "generateDependencyPin({ template }) -- template must be an object");
+  sdk.invariant(typeof template === "object", "generateDependencyPin({ template }) -- template must be an object");
   sdk.invariant(template.f_type === "InteractionTemplate", "generateDependencyPin({ template }) -- template must be an InteractionTemplate");
   template = normalizeInteractionTemplate(template);
-
   switch (template.f_version) {
     case "1.0.0":
-      var networkDependencies = Object.keys((_template = template) === null || _template === void 0 ? void 0 : (_template$data = _template.data) === null || _template$data === void 0 ? void 0 : _template$data.dependencies).map(function (dependencyPlaceholder) {
-        var _template2, _template2$data, _template2$data$depen;
-
-        var dependencyNetworkContracts = Object.values((_template2 = template) === null || _template2 === void 0 ? void 0 : (_template2$data = _template2.data) === null || _template2$data === void 0 ? void 0 : (_template2$data$depen = _template2$data.dependencies) === null || _template2$data$depen === void 0 ? void 0 : _template2$data$depen[dependencyPlaceholder]);
-        sdk.invariant(dependencyNetworkContracts, "deriveCadenceByNetwork -- Could not find contracts for dependency placeholder: ".concat(dependencyPlaceholder));
-        sdk.invariant(dependencyNetworkContracts.length === 0, "deriveCadenceByNetwork -- Could not find contracts for dependency placeholder: ".concat(dependencyPlaceholder));
-        var dependencyContract = dependencyNetworkContracts[0];
-        var dependencyContractForNetwork = dependencyContract === null || dependencyContract === void 0 ? void 0 : dependencyContract[network];
-        sdk.invariant(dependencyContractForNetwork, "deriveCadenceByNetwork -- Could not find ".concat(network, " network information for dependency: ").concat(dependencyPlaceholder));
+      let networkDependencies = Object.keys(template?.data?.dependencies).map(dependencyPlaceholder => {
+        let dependencyNetworkContracts = Object.values(template?.data?.dependencies?.[dependencyPlaceholder]);
+        sdk.invariant(dependencyNetworkContracts, `deriveCadenceByNetwork -- Could not find contracts for dependency placeholder: ${dependencyPlaceholder}`);
+        sdk.invariant(dependencyNetworkContracts.length === 0, `deriveCadenceByNetwork -- Could not find contracts for dependency placeholder: ${dependencyPlaceholder}`);
+        let dependencyContract = dependencyNetworkContracts[0];
+        let dependencyContractForNetwork = dependencyContract?.[network];
+        sdk.invariant(dependencyContractForNetwork, `deriveCadenceByNetwork -- Could not find ${network} network information for dependency: ${dependencyPlaceholder}`);
         return [dependencyPlaceholder, dependencyContractForNetwork.address];
       });
-      return networkDependencies.reduce(function (cadence, _ref2) {
-        var _ref3 = _slicedToArray__default["default"](_ref2, 2),
-            placeholder = _ref3[0],
-            address = _ref3[1];
-
-        var regex = new RegExp("(\\b" + placeholder + "\\b)", "g");
+      return networkDependencies.reduce((cadence, _ref2) => {
+        let [placeholder, address] = _ref2;
+        const regex = new RegExp("(\\b" + placeholder + "\\b)", "g");
         return cadence.replace(regex, address);
       }, template.data.cadence);
-
     default:
       throw new Error("deriveCadenceByNetwork Error: Unsupported template version");
   }
 }
 
-function deriveDependencies(_x) {
-  return _deriveDependencies.apply(this, arguments);
+async function fetchChainId() {
+  let opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  const response = await sdk__namespace.send([sdk__namespace.getNetworkParameters()], opts).then(sdk__namespace.decode);
+  return response.chainId;
 }
 
-function _deriveDependencies() {
-  _deriveDependencies = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(_ref) {
-    var _template$data;
+// Cache of chainId promises for each access node value
+// key: access node, value: chainId promise
+let chainIdCache = {};
+let hasWarnedEnv = false;
 
-    var template, network, derivedDependencies, dependencyPlaceholderKeys, _i, _dependencyPlaceholde, _template$data2, dependencyPlaceholderKey, dependencyPlaceholder, dependencyPlaceholderContractsKeys, dependencyPlaceholderContract, dependency;
-
-    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            template = _ref.template;
-            _context.next = 3;
-            return config.config.get("flow.network");
-
-          case 3:
-            network = _context.sent;
-            utilInvariant.invariant(network, "FCL configureDependencies Error: Missing configuration value for 'flow.network'");
-            derivedDependencies = {};
-            _context.t0 = template["f_version"];
-            _context.next = _context.t0 === "1.0.0" ? 9 : 12;
-            break;
-
-          case 9:
-            dependencyPlaceholderKeys = Object.keys(template === null || template === void 0 ? void 0 : (_template$data = template.data) === null || _template$data === void 0 ? void 0 : _template$data.dependencies);
-
-            for (_i = 0, _dependencyPlaceholde = dependencyPlaceholderKeys; _i < _dependencyPlaceholde.length; _i++) {
-              dependencyPlaceholderKey = _dependencyPlaceholde[_i];
-              dependencyPlaceholder = template === null || template === void 0 ? void 0 : (_template$data2 = template.data) === null || _template$data2 === void 0 ? void 0 : _template$data2.dependencies[dependencyPlaceholderKey];
-              dependencyPlaceholderContractsKeys = Object.keys(dependencyPlaceholder);
-              utilInvariant.invariant(dependencyPlaceholderContractsKeys.length > 0, "FCL configureDependencies Error: No contracts found in template for placeholder=".concat(dependencyPlaceholderKey));
-              dependencyPlaceholderContract = dependencyPlaceholder[dependencyPlaceholderContractsKeys[0]];
-              dependency = dependencyPlaceholderContract[network];
-              utilInvariant.invariant(dependency, "FCL configureDependencies Error: No dependency information for placeholder=".concat(dependencyPlaceholderKey, " contract=").concat(dependencyPlaceholderContractsKeys[0], " network=").concat(network));
-              utilInvariant.invariant(dependency === null || dependency === void 0 ? void 0 : dependency.address, "FCL configureDependencies Error: No address information for placeholder=".concat(dependencyPlaceholderKey, " contract=").concat(dependencyPlaceholderContractsKeys[0], " network=").concat(network));
-              derivedDependencies[dependencyPlaceholderKey] = utilAddress.withPrefix(dependency === null || dependency === void 0 ? void 0 : dependency.address);
-            }
-
-            return _context.abrupt("return", derivedDependencies);
-
-          case 12:
-            throw new Error("FCL configureDependencies Error: Unsupported template version");
-
-          case 13:
-          case "end":
-            return _context.stop();
-        }
-      }
-    }, _callee);
-  }));
-  return _deriveDependencies.apply(this, arguments);
-}
-
-function prepTemplateOpts(_x) {
-  return _prepTemplateOpts.apply(this, arguments);
-}
-
-function _prepTemplateOpts() {
-  _prepTemplateOpts = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(opts) {
-    var dependencies, cadence;
-    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            if (!isString(opts === null || opts === void 0 ? void 0 : opts.template)) {
-              _context.next = 4;
-              break;
-            }
-
-            _context.next = 3;
-            return retrieve({
-              url: opts === null || opts === void 0 ? void 0 : opts.template
-            });
-
-          case 3:
-            opts.template = _context.sent;
-
-          case 4:
-            dependencies = {};
-
-            if (!(opts !== null && opts !== void 0 && opts.template)) {
-              _context.next = 10;
-              break;
-            }
-
-            opts.template = normalizeInteractionTemplate(opts === null || opts === void 0 ? void 0 : opts.template);
-            _context.next = 9;
-            return deriveDependencies({
-              template: opts.template
-            });
-
-          case 9:
-            dependencies = _context.sent;
-
-          case 10:
-            _context.t0 = opts.cadence;
-
-            if (_context.t0) {
-              _context.next = 19;
-              break;
-            }
-
-            _context.t1 = deriveCadenceByNetwork;
-            _context.t2 = opts.template;
-            _context.next = 16;
-            return sdk__namespace.config().get("flow.network");
-
-          case 16:
-            _context.t3 = _context.sent;
-            _context.t4 = {
-              template: _context.t2,
-              network: _context.t3
-            };
-            _context.t0 = (0, _context.t1)(_context.t4);
-
-          case 19:
-            cadence = _context.t0;
-            opts.cadence = cadence;
-            opts.dependencies = dependencies;
-            return _context.abrupt("return", opts);
-
-          case 23:
-          case "end":
-            return _context.stop();
-        }
-      }
-    }, _callee);
-  }));
-  return _prepTemplateOpts.apply(this, arguments);
-}
-
-function pre(_x, _x2) {
-  return _pre.apply(this, arguments);
-}
-
-function _pre() {
-  _pre = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(type, opts) {
-    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            // prettier-ignore
-            utilInvariant.invariant(isRequired(opts), "".concat(type, "(opts) -- opts is required")); // prettier-ignore
-
-            utilInvariant.invariant(isObject(opts), "".concat(type, "(opts) -- opts must be an object")); // prettier-ignore
-
-            utilInvariant.invariant(!(opts.cadence && opts.template), "".concat(type, "({ template, cadence }) -- cannot pass both cadence and template")); // prettier-ignore
-
-            utilInvariant.invariant(isRequired(opts.cadence || (opts === null || opts === void 0 ? void 0 : opts.template)), "".concat(type, "({ cadence }) -- cadence is required")); // // prettier-ignore
-
-            utilInvariant.invariant(isString(opts.cadence) || (opts === null || opts === void 0 ? void 0 : opts.template), "".concat(type, "({ cadence }) -- cadence must be a string")); // prettier-ignore
-
-            _context.t0 = utilInvariant.invariant;
-            _context.t1 = opts.cadence;
-
-            if (_context.t1) {
-              _context.next = 11;
-              break;
-            }
-
-            _context.next = 10;
-            return sdk__namespace.config().get("flow.network");
-
-          case 10:
-            _context.t1 = _context.sent;
-
-          case 11:
-            _context.t2 = _context.t1;
-            _context.t3 = "".concat(type, "(opts) -- Required value for \"flow.network\" not defined in config. See: ", "https://github.com/onflow/flow-js-sdk/blob/master/packages/fcl/src/exec/query.md#configuration");
-            (0, _context.t0)(_context.t2, _context.t3);
-            _context.t4 = utilInvariant.invariant;
-            _context.next = 17;
-            return sdk__namespace.config().get("accessNode.api");
-
-          case 17:
-            _context.t5 = _context.sent;
-            _context.t6 = "".concat(type, "(opts) -- Required value for \"accessNode.api\" not defined in config. See: ", "https://github.com/onflow/flow-js-sdk/blob/master/packages/fcl/src/exec/query.md#configuration");
-            (0, _context.t4)(_context.t5, _context.t6);
-
-          case 20:
-          case "end":
-            return _context.stop();
-        }
-      }
-    }, _callee);
-  }));
-  return _pre.apply(this, arguments);
-}
-
-function preMutate(_x3) {
-  return _preMutate.apply(this, arguments);
-}
-
-function _preMutate() {
-  _preMutate = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee2(opts) {
-    return _regeneratorRuntime__default["default"].wrap(function _callee2$(_context2) {
-      while (1) {
-        switch (_context2.prev = _context2.next) {
-          case 0:
-            return _context2.abrupt("return", pre("mutate", opts));
-
-          case 1:
-          case "end":
-            return _context2.stop();
-        }
-      }
-    }, _callee2);
-  }));
-  return _preMutate.apply(this, arguments);
-}
-
-function preQuery(_x4) {
-  return _preQuery.apply(this, arguments);
-}
-
-function _preQuery() {
-  _preQuery = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee3(opts) {
-    return _regeneratorRuntime__default["default"].wrap(function _callee3$(_context3) {
-      while (1) {
-        switch (_context3.prev = _context3.next) {
-          case 0:
-            return _context3.abrupt("return", pre("query", opts));
-
-          case 1:
-          case "end":
-            return _context3.stop();
-        }
-      }
-    }, _callee3);
-  }));
-  return _preQuery.apply(this, arguments);
-}
-
-/** Query the Flow Blockchain
+/**
+ * @description
+ * Gets the chain ID if its set, otherwise gets the chain ID from the access node
  *
- *  @arg {Object} opts         - Query Options and configuration
- *  @arg {string} opts.cadence - Cadence Script used to query Flow
- *  @arg {ArgsFn} opts.args    - Arguments passed to cadence script
- *  @arg {Object} opts.template - Interaction Template for a script
- *  @arg {number} opts.limit   - Compute Limit for Query
- *  @returns {Promise<Response>}
+ * @param {object} opts - Optional parameters
+ * @returns {Promise<string>} The chain ID of the access node
+ * @throws {Error} If the chain ID is not found
  *
- *  Where:
- *    @callback ArgsFn
- *    @arg {ArgFn}  arg - Argument function to define a single argument
- *    @arg {Object} t   - Cadence Types object used to define the type
- *    @returns {args[]}
- *
- *    @callback ArgFn
- *    @arg {Any}  value - the value of the argument
- *    @arg {Type} type  - the cadence type of the value
- *    @returns {arg}
- *
- *  Example:
- *    const cadence = `
- *      cadence: `
- *        pub fun main(a: Int, b: Int, c: Address): Int {
- *          log(c)
- *          return a + b
- *        }
- *    `.trim()
- *
- *    const args = (arg, t) => [
- *      arg(5, t.Int),
- *      arg(7, t.Int),
- *      arg("0xb2db43ad6bc345fec9", t.Address),
- *    ]
- *
- *    await query({ cadence, args })
+ * @example
+ * // returns "testnet"
+ * getChainId()
  */
-
-function query() {
-  return _query.apply(this, arguments);
-}
-
-function _query() {
-  _query = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee2() {
-    var opts,
-        _args2 = arguments;
-    return _regeneratorRuntime__default["default"].wrap(function _callee2$(_context2) {
-      while (1) {
-        switch (_context2.prev = _context2.next) {
-          case 0:
-            opts = _args2.length > 0 && _args2[0] !== undefined ? _args2[0] : {};
-            _context2.next = 3;
-            return preQuery(opts);
-
-          case 3:
-            _context2.next = 5;
-            return prepTemplateOpts(opts);
-
-          case 5:
-            opts = _context2.sent;
-            return _context2.abrupt("return", sdk__namespace.config().overload(opts.dependencies || {}, /*#__PURE__*/_asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee() {
-              return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
-                while (1) {
-                  switch (_context.prev = _context.next) {
-                    case 0:
-                      return _context.abrupt("return", // prettier-ignore
-                      sdk__namespace.send([sdk__namespace.script(opts.cadence), sdk__namespace.args(normalizeArgs(opts.args || [])), opts.limit && typeof opts.limit === "number" && sdk__namespace.limit(opts.limit)]).then(sdk__namespace.decode));
-
-                    case 1:
-                    case "end":
-                      return _context.stop();
-                  }
-                }
-              }, _callee);
-            }))));
-
-          case 7:
-          case "end":
-            return _context2.stop();
-        }
-      }
-    }, _callee2);
-  }));
-  return _query.apply(this, arguments);
-}
-
-function fetchServices(_x, _x2) {
-  return _fetchServices.apply(this, arguments);
-}
-
-function _fetchServices() {
-  _fetchServices = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(servicesURL, code) {
-    var url, resp, services, _iterator, _step, service;
-
-    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            if (!(servicesURL == null || code == null)) {
-              _context.next = 2;
-              break;
-            }
-
-            return _context.abrupt("return", []);
-
-          case 2:
-            url = new URL(servicesURL);
-            url.searchParams.append("code", code);
-            _context.next = 6;
-            return fetch(url, {
-              method: "GET",
-              headers: {
-                "Content-Type": "application/json"
-              }
-            }).then(function (d) {
-              return d.json();
-            });
-
-          case 6:
-            resp = _context.sent;
-
-            if (!Array.isArray(resp)) {
-              _context.next = 9;
-              break;
-            }
-
-            return _context.abrupt("return", resp);
-
-          case 9:
-            // Backwards compatibility for First-Gen Wallet Providers
-            services = []; // Convert authorizations into authz services
-
-            if (Array.isArray(resp.authorizations)) {
-              _iterator = _createForOfIteratorHelper__default["default"](resp.authorizations);
-
-              try {
-                for (_iterator.s(); !(_step = _iterator.n()).done;) {
-                  service = _step.value;
-                  services.push(_objectSpread__default["default"]({
-                    type: "authz",
-                    keyId: resp.keyId
-                  }, service));
-                }
-              } catch (err) {
-                _iterator.e(err);
-              } finally {
-                _iterator.f();
-              }
-            } // Convert Provider info into an authn service
-
-
-            if (resp.provider != null) {
-              services.push(_objectSpread__default["default"]({
-                type: "authn",
-                id: "wallet-provider#authn"
-              }, resp.provider));
-            }
-
-            return _context.abrupt("return", services);
-
-          case 13:
-          case "end":
-            return _context.stop();
-        }
-      }
-    }, _callee);
-  }));
-  return _fetchServices.apply(this, arguments);
-}
-
-function mergeServices() {
-  var sx1 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
-  var sx2 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
-  // TODO: Make this smarter
-  return [].concat(_toConsumableArray__default["default"](sx1), _toConsumableArray__default["default"](sx2));
-}
-
-var SERVICE_PRAGMA = {
-  f_type: "Service",
-  f_vsn: "1.0.0"
-};
-var IDENTITY_PRAGMA = {
-  f_type: "Identity",
-  f_vsn: "1.0.0"
-};
-var USER_PRAGMA = {
-  f_type: "USER",
-  f_vsn: "1.0.0"
-};
-var POLLING_RESPONSE_PRAGMA = {
-  f_type: "PollingResponse",
-  f_vsn: "1.0.0"
-};
-var COMPOSITE_SIGNATURE_PRAGMA = {
-  f_type: "CompositeSignature",
-  f_vsn: "1.0.0"
-};
-
-//   "f_type": "Service",
-//   "f_vsn": "1.0.0",
-//   "type": "authn",
-//   "uid": "uniqueDedupeKey",
-//   "endpoint": "https://rawr",
-//   "id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", // wallets internal id for the user
-//   "identity": {
-//     "address": "0x____"
-//   },
-//   "provider": {
-//     "address": "0x____",
-//     "name": "Best Wallet",
-//     "description": "The Best Wallet"
-//     "icon": "https://",
-//   }
-// }
-
-function normalizeAuthn(service) {
-  if (service == null) return null;
-
-  switch (service["f_vsn"]) {
-    case "1.0.0":
-      return service;
-
-    default:
-      return _objectSpread__default["default"](_objectSpread__default["default"]({}, SERVICE_PRAGMA), {}, {
-        type: service.type,
-        uid: service.id,
-        endpoint: service.authn,
-        id: service.pid,
-        provider: {
-          address: utilAddress.withPrefix(service.addr),
-          name: service.name,
-          icon: service.icon
-        }
-      });
+async function getChainId() {
+  let opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  let flowNetworkCfg = await config.config.get("flow.network");
+  let envCfg = await config.config.get("env");
+  if (envCfg && !hasWarnedEnv) {
+    utilLogger.log.deprecate({
+      pkg: "FCL",
+      subject: 'Using the "env" configuration key for specifying the flow network',
+      message: "Configuring to specify flow network is no longer required",
+      transition: "https://github.com/onflow/flow-js-sdk/blob/master/packages/fcl/TRANSITIONS.md#0001-deprecate-env-config-key"
+    });
+    hasWarnedEnv = true;
   }
-}
-
-//   "f_type": "service",
-//   "f_vsn": "1.0.0",
-//   "type": "authz",
-//   "uid": "uniqueDedupeKey",
-//   "endpoint": "https://rawr",
-//   "method": "HTTP/POST", // HTTP/POST | IFRAME/RPC | HTTP/RPC
-//   "identity": {
-//      "address": "0x______",
-//      "keyId": 0,
-//   },
-//   "data": {}, // included in body of authz request
-//   "params": {}, // included as query params on endpoint url
-// }
-
-function normalizeAuthz(service) {
-  if (service == null) return null;
-
-  switch (service["f_vsn"]) {
-    case "1.0.0":
-      return service;
-
-    default:
-      return _objectSpread__default["default"](_objectSpread__default["default"]({}, SERVICE_PRAGMA), {}, {
-        type: service.type,
-        uid: service.id,
-        endpoint: service.endpoint,
-        method: service.method,
-        identity: _objectSpread__default["default"](_objectSpread__default["default"]({}, IDENTITY_PRAGMA), {}, {
-          address: utilAddress.withPrefix(service.addr),
-          keyId: service.keyId
-        }),
-        params: service.params,
-        data: service.data
-      });
+  const accessNode = opts.node || (await config.config.get("accessNode.api"));
+  if (!accessNode) {
+    // Fall back to deprecated flow.network and env config keys
+    // This probably should have been done before trying to fetch the chainId from the access node
+    // However, this was the behaviour with the initial implementation of getChainId()
+    if (flowNetworkCfg) {
+      return flowNetworkCfg;
+    } else if (envCfg) {
+      return envCfg;
+    }
+    throw new Error(`Either the "accessNode.api" config key or opts.node must be set`);
   }
-}
 
-//   "f_type": "service",
-//   "f_vsn": "1.0.0",
-//   "type": "pre-authz",
-//   "uid": "uniqueDedupeKey",
-//   "endpoint": "https://rawr",
-//   "method": "HTTP/POST", // HTTP/POST | IFRAME/RPC | HTTP/RPC
-//   "identity": {
-//      "address": "0x______",
-//      "keyId": 0,
-//   },
-//   "data": {}, // included in body of pre-authz request
-//   "params": {}, // included as query params on endpoint url
-// }
-
-function normalizePreAuthz(service) {
-  if (service == null) return null;
-
-  switch (service["f_vsn"]) {
-    case "1.0.0":
-      return service;
-
-    default:
-      return _objectSpread__default["default"](_objectSpread__default["default"]({}, SERVICE_PRAGMA), {}, {
-        type: service.type,
-        uid: service.id,
-        endpoint: service.endpoint,
-        method: service.method,
-        identity: _objectSpread__default["default"](_objectSpread__default["default"]({}, IDENTITY_PRAGMA), {}, {
-          address: utilAddress.withPrefix(service.addr),
-          keyId: service.keyId
-        }),
-        params: service.params,
-        data: service.data
-      });
+  // Try using cached chainId first if it exists and access node is the same
+  if (chainIdCache[accessNode]) {
+    try {
+      return await chainIdCache[accessNode];
+    } catch {}
   }
-}
 
-//    "f_type": "Service",
-//    "f_vsn": "1.0.0",
-//    "type": "frame",
-//    "endpoint": "https://rawr",
-//    "data": {},   // Sent to frame when ready
-//    "params": {}, // include in query params on frame
-// }
-
-function normalizeFrame(service) {
-  if (service == null) return null;
-
-  switch (service["f_vsn"]) {
-    case "1.0.0":
-      return service;
-
-    default:
-      return _objectSpread__default["default"](_objectSpread__default["default"]({
-        old: service
-      }, SERVICE_PRAGMA), {}, {
-        type: "frame",
-        endpoint: service.endpoint,
-        params: service.params || {},
-        data: service.data || {}
-      });
-  }
-}
-
-//    "f_type": "Service",
-//    "f_vsn": "1.0.0",
-//    "type": "back-channel-rpc",
-//    "endpoint": "https://rawr",
-//    "method": "HTTP/GET", // HTTP/GET | HTTP/POST
-//    "data": {},           // included in body of rpc
-//    "params": {},         // included as query params on endpoint url
-// }
-
-function normalizeBackChannelRpc(service) {
-  if (service == null) return null;
-
-  switch (service["f_vsn"]) {
-    case "1.0.0":
-      return service;
-
-    default:
-      return _objectSpread__default["default"](_objectSpread__default["default"]({}, SERVICE_PRAGMA), {}, {
-        type: "back-channel-rpc",
-        endpoint: service.endpoint,
-        method: service.method,
-        params: service.params || {},
-        data: service.data || {}
-      });
-  }
-}
-
-//   "f_type": "Service",
-//   "f_vsn": "1.0.0",
-//   "type": "open-id",
-//   "uid": "uniqueDedupeKey",
-//   "method: "data",
-//   "data": {
-//      "profile": {
-//        "name": "Bob",
-//        "family_name": "Builder",
-//        "given_name": "Robert",
-//        "middle_name": "the",
-//        "nickname": "Bob the Builder",
-//        "perferred_username": "bob",
-//        "profile": "https://www.bobthebuilder.com/",
-//        "picture": "https://avatars.onflow.org/avatar/bob",
-//        "gender": "...",
-//        "birthday": "2001-01-18",
-//        "zoneinfo": "America/Vancouver",
-//        "locale": "en-us",
-//        "updated_at": "1614970797388"
-//      },
-//      "email": {
-//        "email": "bob@bob.bob",
-//        "email_verified": true
-//      },
-//      "address": {
-//        "address": "One Apple Park Way, Cupertino, CA 95014, USA"
-//      },
-//      "phone": {
-//        "phone_number": "+1 (xxx) yyy-zzzz",
-//        "phone_number_verified": true
-//      },
-//      "social": {
-//        "twitter": "@_qvvg",
-//        "twitter_verified": true
-//      },
-//   }
-// }
-
-function normalizeOpenId(service) {
-  if (service == null) return null;
-
-  switch (service["f_vsn"]) {
-    case "1.0.0":
-      return service;
-
-    default:
-      return null;
-  }
-}
-
-// {
-//   "f_type": "Service",
-//   "f_vsn": "1.0.0",
-//   "type": "user-signature",
-//   "uid": "uniqueDedupeKey",
-//   "endpoint": "https://rawr",
-//   "method": "IFRAME/RPC", // HTTP/POST | IFRAME/RPC | HTTP/RPC
-//   "id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", // wallets internal id for the user
-//   "data": {}, // included in body of user-signature request
-//   "params": {}, // included as query params on endpoint url
-// }
-function normalizeUserSignature(service) {
-  if (service == null) return null;
-
-  switch (service["f_vsn"]) {
-    case "1.0.0":
-      return service;
-
-    default:
-      throw new Error("Invalid user-signature service");
-  }
-}
-
-//    "f_type": "Service",
-//    "f_vsn": "1.0.0",
-//    type: "local-view",
-//    method: "VIEW/IFRAME",
-//    endpoint: "https://woot.org/authz/local",
-//    data: {},
-//    params: {},
-// }
-
-function normalizeLocalView(resp) {
-  if (resp == null) return null;
-
-  if (resp.method == null) {
-    resp = _objectSpread__default["default"](_objectSpread__default["default"]({}, resp), {}, {
-      type: "local-view",
-      method: "VIEW/IFRAME"
+  // If no cached chainId, value is stale, or last attempt failed, try getting chainId from access node
+  // Check if another getChainId() call has already started a new promise, if not, start a new one
+  // There may have been concurrent calls to getChainId() while the first call was waiting for the response
+  if (!chainIdCache[accessNode]) {
+    chainIdCache[accessNode] = fetchChainId(opts).catch(error => {
+      // If there was an error, reset the promise so that the next call will try again
+      chainIdCache[accessNode] = null;
+      throw error;
     });
   }
 
-  switch (resp["f_vsn"]) {
-    case "1.0.0":
-      return resp;
-
-    default:
-      return _objectSpread__default["default"](_objectSpread__default["default"]({}, SERVICE_PRAGMA), {}, {
-        type: resp.type || "local-view",
-        method: resp.method,
-        endpoint: resp.endpoint,
-        data: resp.data || {},
-        params: resp.params || {}
-      });
-  }
-}
-
-// {
-//   "f_type": "Service",                    // Its a service!
-//   "f_vsn": "1.0.0",                       // Follows the v1.0.0 spec for the service
-//   "type": "account-proof",                // the type of service it is
-//   "method": "DATA",                       // Its data!
-//   "uid": "awesome-wallet#account-proof",  // A unique identifier for the service
-//   "data": {
-//     "f_type": "account-proof",
-//     "f_vsn": "1.0.0",
-//     "nonce": "0A1BC2FF",                  // Nonce signed by the current account-proof (minimum 32 bytes in total, i.e 64 hex characters)
-//     "address": "0xUSER",                  // The user's address (8 bytes, i.e 16 hex characters)
-//     "signature": CompositeSignature,      // address (sans-prefix), keyId, signature (hex)
-// }
-function normalizeAccountProof(service) {
-  if (service == null) return null;
-
-  switch (service["f_vsn"]) {
-    case "1.0.0":
-      return service;
-
-    default:
-      throw new Error("FCL Normalizer Error: Invalid account-proof service");
-  }
-}
-
-// {
-//   "f_type": "Service",
-//   "f_vsn": "1.0.0",
-//   "type": "authn-refresh",
-//   "uid": "uniqueDedupeKey",
-//   "endpoint": "https://rawr",
-//   "method": "HTTP/POST",  // "HTTP/POST", // HTTP/POST | IFRAME/RPC | HTTP/RPC
-//   "id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", // wallets internal id for the user
-//   "data": {}, // included in body of request
-//   "params": {}, // included as query params on endpoint url
-// }
-function normalizeAuthnRefresh(service) {
-  if (service == null) return null;
-
-  switch (service["f_vsn"]) {
-    case "1.0.0":
-      return service;
-
-    default:
-      throw new Error("Invalid authn-refresh service");
-  }
-}
-
-var serviceNormalizers = {
-  "back-channel-rpc": normalizeBackChannelRpc,
-  "pre-authz": normalizePreAuthz,
-  authz: normalizeAuthz,
-  authn: normalizeAuthn,
-  frame: normalizeFrame,
-  "open-id": normalizeOpenId,
-  "user-signature": normalizeUserSignature,
-  "local-view": normalizeLocalView,
-  "account-proof": normalizeAccountProof,
-  "authn-refresh": normalizeAuthnRefresh
-};
-function normalizeService(service, data) {
+  // Use newly created promise
   try {
-    var normalized = serviceNormalizers[service.type](service, data);
-    return normalized;
-  } catch (error) {
-    console.error("Unrecognized FCL Service Type [".concat(service.type, "]"), service, error);
-    return service;
+    return await chainIdCache[accessNode];
+  } catch (e) {
+    // Fall back to deprecated flow.network and env config keys
+    // This probably should have been done before trying to fetch the chainId from the access node
+    // However, this was the behaviour with the initial implementation of getChainId()
+    if (flowNetworkCfg) {
+      return flowNetworkCfg;
+    } else if (envCfg) {
+      return envCfg;
+    }
+    throw new Error(`Error getting chainId from access node - are you using the correct access node endpoint.  If running locally, is your emulator up-to-date? ${e.message}`);
   }
 }
 
-function deriveCompositeId(authn) {
-  return rlp__namespace.encode([authn.provider.address || authn.provider.name || "UNSPECIFIED", authn.id]).toString("hex");
-}
-
-function normalizeData(data) {
-  data.addr = data.addr ? utilAddress.withPrefix(data.addr) : null;
-  data.paddr = data.paddr ? utilAddress.withPrefix(data.paddr) : null;
-  return data;
-}
-
-function findService(type, services) {
-  return services.find(function (d) {
-    return d.type === type;
+/**
+ * @description
+ * Watches the config for changes to access node and updates the chain id accordingly
+ *
+ * @returns {Function} A function that unsubscribes the listener
+ *
+ */
+function watchForChainIdChanges() {
+  return config.config.subscribe(() => {
+    // Call getChainId to update the chainId cache if access node has changed
+    getChainId({
+      enableRequestLogging: false
+    }).catch(() => {});
   });
 }
-
-function buildUser(_x) {
-  return _buildUser.apply(this, arguments);
-}
-
-function _buildUser() {
-  _buildUser = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(data) {
-    var services, authn;
-    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            data = normalizeData(data);
-            _context.t0 = mergeServices;
-            _context.t1 = data.services || [];
-            _context.next = 5;
-            return fetchServices(data.hks, data.code);
-
-          case 5:
-            _context.t2 = _context.sent;
-            services = (0, _context.t0)(_context.t1, _context.t2).map(function (service) {
-              return normalizeService(service, data);
-            });
-            authn = findService("authn", services);
-            return _context.abrupt("return", _objectSpread__default["default"](_objectSpread__default["default"]({}, USER_PRAGMA), {}, {
-              addr: utilAddress.withPrefix(data.addr),
-              cid: deriveCompositeId(authn),
-              loggedIn: true,
-              services: services,
-              expiresAt: data.expires
-            }));
-
-          case 9:
-          case "end":
-            return _context.stop();
-        }
-      }
-    }, _callee);
-  }));
-  return _buildUser.apply(this, arguments);
-}
-
-function serviceOfType() {
-  var services = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
-  var type = arguments.length > 1 ? arguments[1] : undefined;
-  return services.find(function (service) {
-    return service.type === type;
-  });
-}
-
-function serviceEndpoint(service) {
-  var url = new URL(service.endpoint);
-  url.searchParams.append("l6n", window.location.origin);
-
-  if (service.params != null) {
-    for (var _i = 0, _Object$entries = Object.entries(service.params || {}); _i < _Object$entries.length; _i++) {
-      var _Object$entries$_i = _slicedToArray__default["default"](_Object$entries[_i], 2),
-          key = _Object$entries$_i[0],
-          value = _Object$entries$_i[1];
-
-      url.searchParams.append(key, value);
-    }
-  }
-
-  return url;
-}
-
-function fetchService(service) {
-  var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-  var method = opts.method || "POST";
-  var body = method === "GET" ? undefined : JSON.stringify(opts.data || service.data || {});
-  return fetch(serviceEndpoint(service), {
-    method: method,
-    headers: _objectSpread__default["default"](_objectSpread__default["default"](_objectSpread__default["default"]({}, service.headers || {}), opts.headers || {}), {}, {
-      "Content-Type": "application/json"
-    }),
-    body: body
-  }).then(function (d) {
-    return d.json();
-  });
-}
-
-//    "f_type": "PollingResponse",
-//    "f_vsn": "1.0.0",
-//    "status": "PENDING", // PENDING | APPROVED | DECLINED | REDIRECT
-//    "reason": null,      // Reason for Declining Transaction
-//    "data": null,        // Return value for APPROVED
-//    "updates": BackChannelRpc,
-//    "local": Frame,
-// }
-
-function normalizePollingResponse(resp) {
-  var _resp$status, _resp$reason;
-
-  if (resp == null) return null;
-
-  switch (resp["f_vsn"]) {
-    case "1.0.0":
-      return resp;
-
-    default:
-      return _objectSpread__default["default"](_objectSpread__default["default"]({}, POLLING_RESPONSE_PRAGMA), {}, {
-        status: (_resp$status = resp.status) !== null && _resp$status !== void 0 ? _resp$status : "APPROVED",
-        reason: (_resp$reason = resp.reason) !== null && _resp$reason !== void 0 ? _resp$reason : null,
-        data: resp.compositeSignature || resp.data || _objectSpread__default["default"]({}, resp) || {},
-        updates: normalizeBackChannelRpc(resp.authorizationUpdates),
-        local: normalizeFrame((resp.local || [])[0])
-      });
-  }
-}
-
-var OPTIONS = {
-  "HTTP/GET": "GET",
-  "HTTP/POST": "POST"
-};
-
-var serviceMethod = function serviceMethod(service) {
-  utilInvariant.invariant(OPTIONS[service.method], "Invalid Service Method for type back-channel-rpc", {
-    service: service
-  });
-  return OPTIONS[service.method];
-};
-
-function poll(_x) {
-  return _poll.apply(this, arguments);
-}
-
-function _poll() {
-  _poll = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(service) {
-    var canContinue,
-        resp,
-        _args = arguments;
-    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            canContinue = _args.length > 1 && _args[1] !== undefined ? _args[1] : function () {
-              return true;
-            };
-            utilInvariant.invariant(service, "Missing Polling Service", {
-              service: service
-            });
-
-            if (canContinue()) {
-              _context.next = 4;
-              break;
-            }
-
-            throw new Error("Externally Halted");
-
-          case 4:
-            _context.next = 6;
-            return fetchService(service, {
-              method: serviceMethod(service)
-            }).then(normalizePollingResponse);
-
-          case 6:
-            resp = _context.sent;
-            _context.t0 = resp.status;
-            _context.next = _context.t0 === "APPROVED" ? 10 : _context.t0 === "DECLINED" ? 11 : 12;
-            break;
-
-          case 10:
-            return _context.abrupt("return", resp.data);
-
-          case 11:
-            throw new Error("Declined: ".concat(resp.reason || "No reason supplied."));
-
-          case 12:
-            _context.next = 14;
-            return new Promise(function (r) {
-              return setTimeout(r, 500);
-            });
-
-          case 14:
-            return _context.abrupt("return", poll(resp.updates, canContinue));
-
-          case 15:
-          case "end":
-            return _context.stop();
-        }
-      }
-    }, _callee);
-  }));
-  return _poll.apply(this, arguments);
-}
-
-var FRAME = "FCL_IFRAME";
-var FRAME_STYLES = "\n  position:fixed;\n  top: 0px;\n  right: 0px;\n  bottom: 0px;\n  left: 0px;\n  height: 100%;\n  width: 100vw;\n  display:block;\n  background:rgba(0,0,0,0.25);\n  z-index: 2147483647;\n  box-sizing: border-box;\n  color-scheme: light;\n";
-function renderFrame(src) {
-  utilInvariant.invariant(!document.getElementById(FRAME), "Attempt at triggering multiple Frames", {
-    src: src
-  });
-  var $frame = document.createElement("iframe");
-  $frame.src = src;
-  $frame.id = FRAME;
-  $frame.allow = "usb *; hid *";
-  $frame.frameBorder = "0";
-  $frame.style.cssText = FRAME_STYLES;
-  document.body.append($frame);
-
-  var unmount = function unmount() {
-    if (document.getElementById(FRAME)) {
-      document.getElementById(FRAME).remove();
-    }
-  };
-
-  return [$frame.contentWindow, unmount];
-}
-
-var POP = "FCL_POP";
-var popup = null;
-var previousUrl$1 = null;
-
-function popupWindow(url, windowName, win, w, h) {
-  var y = win.top.outerHeight / 2 + win.top.screenY - h / 2;
-  var x = win.top.outerWidth / 2 + win.top.screenX - w / 2;
-  var popup = win.open(url, windowName, "toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=".concat(w, ", height=").concat(h, ", top=").concat(y, ", left=").concat(x));
-  if (!popup) throw new Error("Popup failed to open (was it blocked by a popup blocker?)");
-  return popup;
-}
-
-function renderPop(src) {
-  var _popup;
-
-  if (popup == null || (_popup = popup) !== null && _popup !== void 0 && _popup.closed) {
-    popup = popupWindow(src, POP, window, 640, 770);
-  } else if (previousUrl$1 !== src) {
-    popup.location.replace(src);
-    popup.focus();
-  } else {
-    popup.focus();
-  }
-
-  previousUrl$1 = src;
-
-  var unmount = function unmount() {
-    if (popup && !popup.closed) {
-      popup.close();
-    }
-
-    popup = null;
-  };
-
-  return [popup, unmount];
-}
-
-var tab$1 = null;
-var previousUrl = null;
-function renderTab(src) {
-  var _tab;
-
-  if (tab$1 == null || (_tab = tab$1) !== null && _tab !== void 0 && _tab.closed) {
-    tab$1 = window.open(src, "_blank");
-    if (!tab$1) throw new Error("Tab failed to open (was it blocked by the browser?)");
-  } else if (previousUrl !== src) {
-    tab$1.location.replace(src);
-    tab$1.focus();
-  } else {
-    tab$1.focus();
-  }
-
-  previousUrl = src;
-
-  var unmount = function unmount() {
-    if (tab$1 && !tab$1.closed) {
-      tab$1.close();
-    }
-
-    tab$1 = null;
-  };
-
-  return [tab$1, unmount];
-}
-
-var VIEWS = {
-  "VIEW/IFRAME": renderFrame,
-  "VIEW/POP": renderPop,
-  "VIEW/TAB": renderTab
-};
-function execLocal(_x) {
-  return _execLocal.apply(this, arguments);
-}
-
-function _execLocal() {
-  _execLocal = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(service) {
-    var opts,
-        _args = arguments;
-    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            opts = _args.length > 1 && _args[1] !== undefined ? _args[1] : {};
-            _context.prev = 1;
-            return _context.abrupt("return", VIEWS[service.method](serviceEndpoint(service), opts));
-
-          case 5:
-            _context.prev = 5;
-            _context.t0 = _context["catch"](1);
-            console.error("execLocal({service, opts = {}})", _context.t0, {
-              service: service,
-              opts: opts
-            });
-            throw _context.t0;
-
-          case 9:
-          case "end":
-            return _context.stop();
-        }
-      }
-    }, _callee, null, [[1, 5]]);
-  }));
-  return _execLocal.apply(this, arguments);
-}
-
-function execHttpPost(_x) {
-  return _execHttpPost.apply(this, arguments);
-}
-
-function _execHttpPost() {
-  _execHttpPost = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(_ref) {
-    var service, body, config, resp, canContinue, _yield$execLocal, _yield$execLocal2, unmount, close;
-
-    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            service = _ref.service, body = _ref.body, config = _ref.config, _ref.opts;
-            _context.next = 3;
-            return fetchService(service, {
-              data: _objectSpread__default["default"]({
-                fclVersion: VERSION,
-                service: {
-                  params: service.params,
-                  data: service.data,
-                  type: service.type
-                },
-                config: config
-              }, body)
-            }).then(normalizePollingResponse);
-
-          case 3:
-            resp = _context.sent;
-
-            if (!(resp.status === "APPROVED")) {
-              _context.next = 8;
-              break;
-            }
-
-            return _context.abrupt("return", resp.data);
-
-          case 8:
-            if (!(resp.status === "DECLINED")) {
-              _context.next = 12;
-              break;
-            }
-
-            throw new Error("Declined: ".concat(resp.reason || "No reason supplied."));
-
-          case 12:
-            if (!(resp.status === "REDIRECT")) {
-              _context.next = 16;
-              break;
-            }
-
-            return _context.abrupt("return", resp);
-
-          case 16:
-            if (!(resp.status === "PENDING")) {
-              _context.next = 28;
-              break;
-            }
-
-            canContinue = true;
-            _context.next = 20;
-            return execLocal(normalizeLocalView(resp.local));
-
-          case 20:
-            _yield$execLocal = _context.sent;
-            _yield$execLocal2 = _slicedToArray__default["default"](_yield$execLocal, 2);
-            _yield$execLocal2[0];
-            unmount = _yield$execLocal2[1];
-
-            close = function close() {
-              try {
-                unmount();
-                canContinue = false;
-              } catch (error) {
-                console.error("Frame Close Error", error);
-              }
-            };
-
-            return _context.abrupt("return", poll(resp.updates, function () {
-              return canContinue;
-            }).then(function (serviceResponse) {
-              close();
-              return serviceResponse;
-            })["catch"](function (error) {
-              console.error(error);
-              close();
-              throw error;
-            }));
-
-          case 28:
-            console.error("Auto Decline: Invalid Response", {
-              service: service,
-              resp: resp
-            });
-            throw new Error("Auto Decline: Invalid Response");
-
-          case 30:
-          case "end":
-            return _context.stop();
-        }
-      }
-    }, _callee);
-  }));
-  return _execHttpPost.apply(this, arguments);
-}
-
-var CLOSE_EVENT = "FCL:VIEW:CLOSE";
-var READY_EVENT = "FCL:VIEW:READY";
-var RESPONSE_EVENT = "FCL:VIEW:RESPONSE";
-
-var _ = function _(e) {
-  return typeof e === "string" && e.toLowerCase();
-};
-
-var IGNORE = new Set(["monetizationstart", "monetizationpending", "monetizationprogress", "monetizationstop"]);
-
-var deprecate = function deprecate(was, want) {
-  return console.warn("DEPRECATION NOTICE", "Received ".concat(was, ", please use ").concat(want, " for this and future versions of FCL"));
-};
-
-var buildMessageHandler = function buildMessageHandler(_ref) {
-  var close = _ref.close,
-      send = _ref.send,
-      onReady = _ref.onReady,
-      onResponse = _ref.onResponse,
-      onMessage = _ref.onMessage;
-  return function (e) {
-    try {
-      if (_typeof__default["default"](e.data) !== "object") return;
-      if (IGNORE.has(e.data.type)) return;
-      if (_(e.data.type) === _(CLOSE_EVENT)) close();
-      if (_(e.data.type) === _(READY_EVENT)) onReady(e, {
-        send: send,
-        close: close
-      });
-      if (_(e.data.type) === _(RESPONSE_EVENT)) onResponse(e, {
-        send: send,
-        close: close
-      });
-      onMessage(e, {
-        send: send,
-        close: close
-      }); // Backwards Compatible
-
-      if (_(e.data.type) === _("FCL:FRAME:READY")) {
-        deprecate(e.data.type, READY_EVENT);
-        onReady(e, {
-          send: send,
-          close: close
-        });
-      }
-
-      if (_(e.data.type) === _("FCL:FRAME:RESPONSE")) {
-        deprecate(e.data.type, RESPONSE_EVENT);
-        onResponse(e, {
-          send: send,
-          close: close
-        });
-      }
-
-      if (_(e.data.type) === _("FCL:FRAME:CLOSE")) {
-        deprecate(e.data.type, CLOSE_EVENT);
-        close();
-      } //
-
-
-      if (_(e.data.type) === _("FCL::CHALLENGE::RESPONSE")) {
-        deprecate(e.data.type, RESPONSE_EVENT);
-        onResponse(e, {
-          send: send,
-          close: close
-        });
-      }
-
-      if (_(e.data.type) === _("FCL::AUTHZ_READY")) {
-        deprecate(e.data.type, READY_EVENT);
-        onReady(e, {
-          send: send,
-          close: close
-        });
-      }
-
-      if (_(e.data.type) === _("FCL::CHALLENGE::CANCEL")) {
-        deprecate(e.data.type, CLOSE_EVENT);
-        close();
-      }
-
-      if (_(e.data.type) === _("FCL::CANCEL")) {
-        deprecate(e.data.type, CLOSE_EVENT);
-        close();
-      }
-    } catch (error) {
-      console.error("Frame Callback Error", error);
-      close();
-    }
-  };
-};
-
-var noop$3 = function noop() {};
-
-function frame(service) {
-  var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-  if (service == null) return {
-    send: noop$3,
-    close: noop$3
-  };
-  var onClose = opts.onClose || noop$3;
-  var onMessage = opts.onMessage || noop$3;
-  var onReady = opts.onReady || noop$3;
-  var onResponse = opts.onResponse || noop$3;
-  var handler = buildMessageHandler({
-    close: close,
-    send: send,
-    onReady: onReady,
-    onResponse: onResponse,
-    onMessage: onMessage
-  });
-  window.addEventListener("message", handler);
-
-  var _renderFrame = renderFrame(serviceEndpoint(service)),
-      _renderFrame2 = _slicedToArray__default["default"](_renderFrame, 2),
-      $frame = _renderFrame2[0],
-      unmount = _renderFrame2[1];
-
-  return {
-    send: send,
-    close: close
-  };
-
-  function close() {
-    try {
-      window.removeEventListener("message", handler);
-      unmount();
-      onClose();
-    } catch (error) {
-      console.error("Frame Close Error", error);
-    }
-  }
-
-  function send(msg) {
-    try {
-      $frame.postMessage(JSON.parse(JSON.stringify(msg || {})), "*");
-    } catch (error) {
-      console.error("Frame Send Error", msg, error);
-    }
-  }
-}
-
-function execIframeRPC(_ref) {
-  var service = _ref.service,
-      body = _ref.body,
-      config = _ref.config,
-      opts = _ref.opts;
-  return new Promise(function (resolve, reject) {
-    var id = utilUid.uid();
-    var includeOlderJsonRpcCall = opts.includeOlderJsonRpcCall;
-    frame(service, {
-      onReady: function onReady(_, _ref2) {
-        return _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee() {
-          var send;
-          return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
-            while (1) {
-              switch (_context.prev = _context.next) {
-                case 0:
-                  send = _ref2.send;
-                  _context.prev = 1;
-                  send({
-                    type: "FCL:VIEW:READY:RESPONSE",
-                    fclVersion: VERSION,
-                    body: body,
-                    service: {
-                      params: service.params,
-                      data: service.data,
-                      type: service.type
-                    },
-                    config: config
-                  });
-                  send({
-                    fclVersion: VERSION,
-                    type: "FCL:FRAME:READY:RESPONSE",
-                    body: body,
-                    service: {
-                      params: service.params,
-                      data: service.data,
-                      type: service.type
-                    },
-                    config: config,
-                    deprecated: {
-                      message: "FCL:FRAME:READY:RESPONSE is deprecated and replaced with type: FCL:VIEW:READY:RESPONSE"
-                    }
-                  });
-
-                  if (includeOlderJsonRpcCall) {
-                    send({
-                      jsonrpc: "2.0",
-                      id: id,
-                      method: "fcl:sign",
-                      params: [body, service.params],
-                      deprecated: {
-                        message: "jsonrpc is deprecated and replaced with type: FCL:VIEW:READY:RESPONSE"
-                      }
-                    });
-                  }
-
-                  _context.next = 10;
-                  break;
-
-                case 7:
-                  _context.prev = 7;
-                  _context.t0 = _context["catch"](1);
-                  throw _context.t0;
-
-                case 10:
-                case "end":
-                  return _context.stop();
-              }
-            }
-          }, _callee, null, [[1, 7]]);
-        }))();
-      },
-      onResponse: function onResponse(e, _ref3) {
-        var close = _ref3.close;
-
-        try {
-          if (_typeof__default["default"](e.data) !== "object") return;
-          var resp = normalizePollingResponse(e.data);
-
-          switch (resp.status) {
-            case "APPROVED":
-              resolve(resp.data);
-              close();
-              break;
-
-            case "DECLINED":
-              reject("Declined: ".concat(resp.reason || "No reason supplied"));
-              close();
-              break;
-
-            case "REDIRECT":
-              resolve(resp);
-              close();
-              break;
-
-            default:
-              reject("Declined: No reason supplied");
-              close();
-              break;
-          }
-        } catch (error) {
-          console.error("execIframeRPC onResponse error", error);
-          throw error;
-        }
-      },
-      onMessage: function onMessage(e, _ref4) {
-        var close = _ref4.close;
-
-        try {
-          if (_typeof__default["default"](e.data) !== "object") return;
-          if (e.data.jsonrpc !== "2.0") return;
-          if (e.data.id !== id) return;
-          var resp = normalizePollingResponse(e.data.result);
-
-          switch (resp.status) {
-            case "APPROVED":
-              resolve(resp.data);
-              close();
-              break;
-
-            case "DECLINED":
-              reject("Declined: ".concat(resp.reason || "No reason supplied"));
-              close();
-              break;
-
-            case "REDIRECT":
-              resolve(resp);
-              close();
-              break;
-
-            default:
-              reject("Declined: No reason supplied");
-              close();
-              break;
-          }
-        } catch (error) {
-          console.error("execIframeRPC onMessage error", error);
-          throw error;
-        }
-      },
-      onClose: function onClose() {
-        reject("Declined: Externally Halted");
-      }
-    });
-  });
-}
-
-var noop$2 = function noop() {};
-
-function pop(service) {
-  var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-  if (service == null) return {
-    send: noop$2,
-    close: noop$2
-  };
-  var onClose = opts.onClose || noop$2;
-  var onMessage = opts.onMessage || noop$2;
-  var onReady = opts.onReady || noop$2;
-  var onResponse = opts.onResponse || noop$2;
-  var handler = buildMessageHandler({
-    close: close,
-    send: send,
-    onReady: onReady,
-    onResponse: onResponse,
-    onMessage: onMessage
-  });
-  window.addEventListener("message", handler);
-
-  var _renderPop = renderPop(serviceEndpoint(service)),
-      _renderPop2 = _slicedToArray__default["default"](_renderPop, 2),
-      $pop = _renderPop2[0],
-      unmount = _renderPop2[1];
-
-  var timer = setInterval(function () {
-    if ($pop && $pop.closed) {
-      close();
-    }
-  }, 500);
-  return {
-    send: send,
-    close: close
-  };
-
-  function close() {
-    try {
-      window.removeEventListener("message", handler);
-      clearInterval(timer);
-      unmount();
-      onClose();
-    } catch (error) {
-      console.error("Popup Close Error", error);
-    }
-  }
-
-  function send(msg) {
-    try {
-      $pop.postMessage(JSON.parse(JSON.stringify(msg || {})), "*");
-    } catch (error) {
-      console.error("Popup Send Error", msg, error);
-    }
-  }
-}
-
-function execPopRPC(_ref) {
-  var service = _ref.service,
-      body = _ref.body,
-      config = _ref.config,
-      opts = _ref.opts;
-  return new Promise(function (resolve, reject) {
-    var id = utilUid.uid();
-    var redir = opts.redir,
-        includeOlderJsonRpcCall = opts.includeOlderJsonRpcCall;
-    pop(service, {
-      onReady: function onReady(_, _ref2) {
-        return _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee() {
-          var send;
-          return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
-            while (1) {
-              switch (_context.prev = _context.next) {
-                case 0:
-                  send = _ref2.send;
-                  _context.prev = 1;
-                  send({
-                    fclVersion: VERSION,
-                    type: "FCL:VIEW:READY:RESPONSE",
-                    body: body,
-                    service: {
-                      params: service.params,
-                      data: service.data,
-                      type: service.type
-                    },
-                    config: config
-                  });
-                  send({
-                    fclVersion: VERSION,
-                    type: "FCL:FRAME:READY:RESPONSE",
-                    body: body,
-                    service: {
-                      params: service.params,
-                      data: service.data,
-                      type: service.type
-                    },
-                    config: config,
-                    deprecated: {
-                      message: "FCL:FRAME:READY:RESPONSE is deprecated and replaced with type: FCL:VIEW:READY:RESPONSE"
-                    }
-                  });
-
-                  if (includeOlderJsonRpcCall) {
-                    send({
-                      jsonrpc: "2.0",
-                      id: id,
-                      method: "fcl:sign",
-                      params: [body, service.params]
-                    });
-                  }
-
-                  _context.next = 10;
-                  break;
-
-                case 7:
-                  _context.prev = 7;
-                  _context.t0 = _context["catch"](1);
-                  throw _context.t0;
-
-                case 10:
-                case "end":
-                  return _context.stop();
-              }
-            }
-          }, _callee, null, [[1, 7]]);
-        }))();
-      },
-      onResponse: function onResponse(e, _ref3) {
-        var close = _ref3.close;
-
-        try {
-          if (_typeof__default["default"](e.data) !== "object") return;
-          var resp = normalizePollingResponse(e.data);
-
-          switch (resp.status) {
-            case "APPROVED":
-              resolve(resp.data);
-              !redir && close();
-              break;
-
-            case "DECLINED":
-              reject("Declined: ".concat(resp.reason || "No reason supplied"));
-              close();
-              break;
-
-            case "REDIRECT":
-              resolve(resp);
-              close();
-              break;
-
-            default:
-              reject("Declined: No reason supplied");
-              close();
-              break;
-          }
-        } catch (error) {
-          console.error("execPopRPC onResponse error", error);
-          throw error;
-        }
-      },
-      onMessage: function onMessage(e, _ref4) {
-        var close = _ref4.close;
-
-        try {
-          if (_typeof__default["default"](e.data) !== "object") return;
-          if (e.data.jsonrpc !== "2.0") return;
-          if (e.data.id !== id) return;
-          var resp = normalizePollingResponse(e.data.result);
-
-          switch (resp.status) {
-            case "APPROVED":
-              resolve(resp.data);
-              !redir && close();
-              break;
-
-            case "DECLINED":
-              reject("Declined: ".concat(resp.reason || "No reason supplied"));
-              close();
-              break;
-
-            case "REDIRECT":
-              resolve(resp);
-              close();
-              break;
-
-            default:
-              reject("Declined: No reason supplied");
-              close();
-              break;
-          }
-        } catch (error) {
-          console.error("execPopRPC onMessage error", error);
-          throw error;
-        }
-      },
-      onClose: function onClose() {
-        reject("Declined: Externally Halted");
-      }
-    });
-  });
-}
-
-var noop$1 = function noop() {};
-
-function tab(service) {
-  var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-  if (service == null) return {
-    send: noop$1,
-    close: noop$1
-  };
-  var onClose = opts.onClose || noop$1;
-  var onMessage = opts.onMessage || noop$1;
-  var onReady = opts.onReady || noop$1;
-  var onResponse = opts.onResponse || noop$1;
-  var handler = buildMessageHandler({
-    close: close,
-    send: send,
-    onReady: onReady,
-    onResponse: onResponse,
-    onMessage: onMessage
-  });
-  window.addEventListener("message", handler);
-
-  var _renderTab = renderTab(serviceEndpoint(service)),
-      _renderTab2 = _slicedToArray__default["default"](_renderTab, 2),
-      $tab = _renderTab2[0],
-      unmount = _renderTab2[1];
-
-  var timer = setInterval(function () {
-    if ($tab && $tab.closed) {
-      close();
-    }
-  }, 500);
-  return {
-    send: send,
-    close: close
-  };
-
-  function close() {
-    try {
-      window.removeEventListener("message", handler);
-      clearInterval(timer);
-      unmount();
-      onClose();
-    } catch (error) {
-      console.error("Tab Close Error", error);
-    }
-  }
-
-  function send(msg) {
-    try {
-      $tab.postMessage(JSON.parse(JSON.stringify(msg || {})), "*");
-    } catch (error) {
-      console.error("Tab Send Error", msg, error);
-    }
-  }
-}
-
-function execTabRPC(_ref) {
-  var service = _ref.service,
-      body = _ref.body,
-      config = _ref.config,
-      opts = _ref.opts;
-  return new Promise(function (resolve, reject) {
-    var id = utilUid.uid();
-    var redir = opts.redir,
-        includeOlderJsonRpcCall = opts.includeOlderJsonRpcCall;
-    tab(service, {
-      onReady: function onReady(_, _ref2) {
-        return _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee() {
-          var send;
-          return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
-            while (1) {
-              switch (_context.prev = _context.next) {
-                case 0:
-                  send = _ref2.send;
-                  _context.prev = 1;
-                  send({
-                    fclVersion: VERSION,
-                    type: "FCL:VIEW:READY:RESPONSE",
-                    body: body,
-                    service: {
-                      params: service.params,
-                      data: service.data,
-                      type: service.type
-                    },
-                    config: config
-                  });
-                  send({
-                    fclVersion: VERSION,
-                    type: "FCL:FRAME:READY:RESPONSE",
-                    body: body,
-                    service: {
-                      params: service.params,
-                      data: service.data,
-                      type: service.type
-                    },
-                    config: config,
-                    deprecated: {
-                      message: "FCL:FRAME:READY:RESPONSE is deprecated and replaced with type: FCL:VIEW:READY:RESPONSE"
-                    }
-                  });
-
-                  if (includeOlderJsonRpcCall) {
-                    send({
-                      jsonrpc: "2.0",
-                      id: id,
-                      method: "fcl:sign",
-                      params: [body, service.params]
-                    });
-                  }
-
-                  _context.next = 10;
-                  break;
-
-                case 7:
-                  _context.prev = 7;
-                  _context.t0 = _context["catch"](1);
-                  throw _context.t0;
-
-                case 10:
-                case "end":
-                  return _context.stop();
-              }
-            }
-          }, _callee, null, [[1, 7]]);
-        }))();
-      },
-      onResponse: function onResponse(e, _ref3) {
-        var close = _ref3.close;
-
-        try {
-          if (_typeof__default["default"](e.data) !== "object") return;
-          var resp = normalizePollingResponse(e.data);
-
-          switch (resp.status) {
-            case "APPROVED":
-              resolve(resp.data);
-              !redir && close();
-              break;
-
-            case "DECLINED":
-              reject("Declined: ".concat(resp.reason || "No reason supplied"));
-              close();
-              break;
-
-            case "REDIRECT":
-              resolve(resp);
-              close();
-              break;
-
-            default:
-              reject("Declined: No reason supplied");
-              close();
-              break;
-          }
-        } catch (error) {
-          console.error("execPopRPC onResponse error", error);
-          throw error;
-        }
-      },
-      onMessage: function onMessage(e, _ref4) {
-        var close = _ref4.close;
-
-        try {
-          if (_typeof__default["default"](e.data) !== "object") return;
-          if (e.data.jsonrpc !== "2.0") return;
-          if (e.data.id !== id) return;
-          var resp = normalizePollingResponse(e.data.result);
-
-          switch (resp.status) {
-            case "APPROVED":
-              resolve(resp.data);
-              !redir && close();
-              break;
-
-            case "DECLINED":
-              reject("Declined: ".concat(resp.reason || "No reason supplied"));
-              close();
-              break;
-
-            case "REDIRECT":
-              resolve(resp);
-              close();
-              break;
-
-            default:
-              reject("Declined: No reason supplied");
-              close();
-              break;
-          }
-        } catch (error) {
-          console.error("execPopRPC onMessage error", error);
-          throw error;
-        }
-      },
-      onClose: function onClose() {
-        reject("Declined: Externally Halted");
-      }
-    });
-  });
-}
-
-var noop = function noop() {};
-
-function extension(service) {
-  var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-  if (service == null) return {
-    send: noop,
-    close: noop
-  };
-  var onClose = opts.onClose || noop;
-  var onMessage = opts.onMessage || noop;
-  var onReady = opts.onReady || noop;
-  var onResponse = opts.onResponse || noop;
-  var handler = buildMessageHandler({
-    close: close,
-    send: send,
-    onReady: onReady,
-    onResponse: onResponse,
-    onMessage: onMessage
-  });
-  window.addEventListener("message", handler);
-  send({
-    service: service
-  });
-  return {
-    send: send,
-    close: close
-  };
-
-  function close() {
-    try {
-      window.removeEventListener("message", handler);
-      onClose();
-    } catch (error) {
-      console.error("Ext Close Error", error);
-    }
-  }
-
-  function send(msg) {
-    try {
-      window && window.postMessage(JSON.parse(JSON.stringify(msg || {})), "*");
-    } catch (error) {
-      console.error("Ext Send Error", msg, error);
-    }
-  }
-}
-
-function execExtRPC(_ref) {
-  var service = _ref.service,
-      body = _ref.body,
-      config = _ref.config;
-      _ref.opts;
-  return new Promise(function (resolve, reject) {
-    extension(service, {
-      onReady: function onReady(_, _ref2) {
-        return _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee() {
-          var send;
-          return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
-            while (1) {
-              switch (_context.prev = _context.next) {
-                case 0:
-                  send = _ref2.send;
-                  _context.prev = 1;
-                  send({
-                    fclVersion: VERSION,
-                    type: "FCL:VIEW:READY:RESPONSE",
-                    body: body,
-                    service: {
-                      params: service.params,
-                      data: service.data,
-                      type: service.type
-                    },
-                    config: config
-                  });
-                  _context.next = 8;
-                  break;
-
-                case 5:
-                  _context.prev = 5;
-                  _context.t0 = _context["catch"](1);
-                  throw _context.t0;
-
-                case 8:
-                case "end":
-                  return _context.stop();
-              }
-            }
-          }, _callee, null, [[1, 5]]);
-        }))();
-      },
-      onResponse: function onResponse(e, _ref3) {
-        var close = _ref3.close;
-
-        try {
-          if (_typeof__default["default"](e.data) !== "object") return;
-          var resp = normalizePollingResponse(e.data);
-
-          switch (resp.status) {
-            case "APPROVED":
-              resolve(resp.data);
-              close();
-              break;
-
-            case "DECLINED":
-              reject("Declined: ".concat(resp.reason || "No reason supplied"));
-              close();
-              break;
-
-            case "REDIRECT":
-              resolve(resp);
-              close();
-              break;
-
-            default:
-              reject("Declined: No reason supplied");
-              close();
-              break;
-          }
-        } catch (error) {
-          console.error("execExtRPC onResponse error", error);
-          throw error;
-        }
-      },
-      onClose: function onClose() {
-        reject("Declined: Externally Halted");
-      }
-    });
-  });
-}
-
-var CORE_STRATEGIES = {
-  "HTTP/RPC": execHttpPost,
-  "HTTP/POST": execHttpPost,
-  "IFRAME/RPC": execIframeRPC,
-  "POP/RPC": execPopRPC,
-  "TAB/RPC": execTabRPC,
-  "EXT/RPC": execExtRPC
-};
-var supportedPlugins = ["ServicePlugin"];
-var supportedServicePlugins = ["discovery-service"];
-
-var validateDiscoveryPlugin = function validateDiscoveryPlugin(servicePlugin) {
-  var services = servicePlugin.services,
-      serviceStrategy = servicePlugin.serviceStrategy;
-  utilInvariant.invariant(Array.isArray(services) && services.length, "Array of Discovery Services is required");
-
-  var _iterator = _createForOfIteratorHelper__default["default"](services),
-      _step;
-
-  try {
-    for (_iterator.s(); !(_step = _iterator.n()).done;) {
-      var ds = _step.value;
-      utilInvariant.invariant(isRequired(ds.f_type) && ds.f_type === "Service", "Service is required");
-      utilInvariant.invariant(isRequired(ds.type) && ds.type === "authn", "Service must be type authn. Received ".concat(ds.type));
-      utilInvariant.invariant(ds.method in CORE_STRATEGIES || serviceStrategy.method === ds.method, "Service method ".concat(ds.method, " is not supported"));
-    }
-  } catch (err) {
-    _iterator.e(err);
-  } finally {
-    _iterator.f();
-  }
-
-  utilInvariant.invariant(isRequired(serviceStrategy), "Service strategy is required");
-  utilInvariant.invariant(isRequired(serviceStrategy.method) && isString(serviceStrategy.method), "Service strategy method is required");
-  utilInvariant.invariant(isRequired(serviceStrategy.exec) && isFunc(serviceStrategy.exec), "Service strategy exec function is required");
-  return {
-    discoveryServices: services,
-    serviceStrategy: serviceStrategy
-  };
-};
-
-var ServiceRegistry = function ServiceRegistry() {
-  var services = new Set();
-  var strategies = new Map(Object.entries(CORE_STRATEGIES));
-
-  var add = function add(servicePlugin) {
-    utilInvariant.invariant(supportedServicePlugins.includes(servicePlugin.type), "Service Plugin type ".concat(servicePlugin.type, " is not supported"));
-
-    if (servicePlugin.type === "discovery-service") {
-      var _validateDiscoveryPlu = validateDiscoveryPlugin(servicePlugin),
-          discoveryServices = _validateDiscoveryPlu.discoveryServices,
-          serviceStrategy = _validateDiscoveryPlu.serviceStrategy;
-
-      setServices(discoveryServices);
-
-      if (!strategies.has(serviceStrategy.method)) {
-        strategies.set(serviceStrategy.method, serviceStrategy.exec);
-      } else {
-        utilLogger.log({
-          title: "Add Service Plugin",
-          message: "Service strategy for ".concat(serviceStrategy.method, " already exists"),
-          level: utilLogger.LEVELS.warn
-        });
-      }
-    }
-  };
-
-  var setServices = function setServices(discoveryServices) {
-    return services = new Set(_toConsumableArray__default["default"](discoveryServices));
-  };
-
-  var getServices = function getServices() {
-    return _toConsumableArray__default["default"](services);
-  };
-
-  var getStrategy = function getStrategy(method) {
-    return strategies.get(method);
-  };
-
-  var getStrategies = function getStrategies() {
-    return _toConsumableArray__default["default"](strategies.keys());
-  };
-
-  return Object.freeze({
-    add: add,
-    getServices: getServices,
-    getStrategy: getStrategy,
-    getStrategies: getStrategies
-  });
-};
-
-var validatePlugins = function validatePlugins(plugins) {
-  var pluginsArray;
-  utilInvariant.invariant(plugins, "No plugins supplied");
-
-  if (!Array.isArray(plugins)) {
-    pluginsArray = [plugins];
-  } else {
-    pluginsArray = _toConsumableArray__default["default"](plugins);
-  }
-
-  var _iterator2 = _createForOfIteratorHelper__default["default"](pluginsArray),
-      _step2;
-
-  try {
-    for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
-      var p = _step2.value;
-      utilInvariant.invariant(isRequired(p.name), "Plugin name is required");
-      utilInvariant.invariant(isRequired(p.f_type), "Plugin f_type is required");
-      utilInvariant.invariant(supportedPlugins.includes(p.f_type), "Plugin type ".concat(p.f_type, " is not supported"));
-    }
-  } catch (err) {
-    _iterator2.e(err);
-  } finally {
-    _iterator2.f();
-  }
-
-  return pluginsArray;
-};
-
-var PluginRegistry = function PluginRegistry() {
-  var pluginsMap = new Map();
-
-  var getPlugins = function getPlugins() {
-    return pluginsMap;
-  };
-
-  var add = function add(plugins) {
-    var pluginsArray = validatePlugins(plugins);
-
-    var _iterator3 = _createForOfIteratorHelper__default["default"](pluginsArray),
-        _step3;
-
-    try {
-      for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
-        var p = _step3.value;
-        pluginsMap.set(p.name, p);
-
-        if (p.f_type === "ServicePlugin") {
-          serviceRegistry.add(p);
-        }
-      }
-    } catch (err) {
-      _iterator3.e(err);
-    } finally {
-      _iterator3.f();
-    }
-  };
-
-  return Object.freeze({
-    add: add,
-    getPlugins: getPlugins
-  });
-};
-
-var serviceRegistry = ServiceRegistry();
-var pluginRegistry = PluginRegistry();
-
-var execStrategy = /*#__PURE__*/function () {
-  var _ref2 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(_ref) {
-    var service, body, config, opts, strategy;
-    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            service = _ref.service, body = _ref.body, config = _ref.config, opts = _ref.opts;
-            strategy = serviceRegistry.getStrategy(service.method);
-            return _context.abrupt("return", strategy({
-              service: service,
-              body: body,
-              config: config,
-              opts: opts
-            }));
-
-          case 3:
-          case "end":
-            return _context.stop();
-        }
-      }
-    }, _callee);
-  }));
-
-  return function execStrategy(_x) {
-    return _ref2.apply(this, arguments);
-  };
-}();
-
-function execService(_x2) {
-  return _execService.apply(this, arguments);
-}
-
-function _execService() {
-  _execService = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee2(_ref3) {
-    var _window$location$host, _window, _window$location;
-
-    var service, _ref3$msg, msg, _ref3$config, config, _ref3$opts, opts, execConfig, res;
-
-    return _regeneratorRuntime__default["default"].wrap(function _callee2$(_context2) {
-      while (1) {
-        switch (_context2.prev = _context2.next) {
-          case 0:
-            service = _ref3.service, _ref3$msg = _ref3.msg, msg = _ref3$msg === void 0 ? {} : _ref3$msg, _ref3$config = _ref3.config, config = _ref3$config === void 0 ? {} : _ref3$config, _ref3$opts = _ref3.opts, opts = _ref3$opts === void 0 ? {} : _ref3$opts;
-            msg.data = service.data;
-            _context2.next = 4;
-            return configLens(/^service\./);
-
-          case 4:
-            _context2.t0 = _context2.sent;
-            _context2.next = 7;
-            return configLens(/^app\.detail\./);
-
-          case 7:
-            _context2.t1 = _context2.sent;
-            _context2.t2 = _objectSpread__default["default"](_objectSpread__default["default"]({}, config.client), {}, {
-              fclVersion: VERSION,
-              fclLibrary: "https://github.com/onflow/fcl-js",
-              hostname: (_window$location$host = (_window = window) === null || _window === void 0 ? void 0 : (_window$location = _window.location) === null || _window$location === void 0 ? void 0 : _window$location.hostname) !== null && _window$location$host !== void 0 ? _window$location$host : null
-            });
-            execConfig = {
-              services: _context2.t0,
-              app: _context2.t1,
-              client: _context2.t2
-            };
-            _context2.prev = 10;
-            _context2.next = 13;
-            return execStrategy({
-              service: service,
-              body: msg,
-              config: execConfig,
-              opts: opts
-            });
-
-          case 13:
-            res = _context2.sent;
-
-            if (!(res.status === "REDIRECT")) {
-              _context2.next = 21;
-              break;
-            }
-
-            utilInvariant.invariant(service.type === res.data.type, "Cannot shift recursive service type in execService");
-            _context2.next = 18;
-            return execService({
-              service: res.data,
-              msg: msg,
-              config: execConfig,
-              opts: opts
-            });
-
-          case 18:
-            return _context2.abrupt("return", _context2.sent);
-
-          case 21:
-            return _context2.abrupt("return", res);
-
-          case 22:
-            _context2.next = 28;
-            break;
-
-          case 24:
-            _context2.prev = 24;
-            _context2.t3 = _context2["catch"](10);
-            utilLogger.log({
-              title: "Error on execService ".concat(service === null || service === void 0 ? void 0 : service.type),
-              message: _context2.t3,
-              level: utilLogger.LEVELS.error
-            });
-            throw _context2.t3;
-
-          case 28:
-          case "end":
-            return _context2.stop();
-        }
-      }
-    }, _callee2, null, [[10, 24]]);
-  }));
-  return _execService.apply(this, arguments);
-}
-
-//    "f_type": "CompositeSignature",
-//    "f_vsn": "1.0.0",
-//    "addr": "_____",         // sans-prefix
-//    "signature": "adfe1234", // hex
-//    "keyId": 3,
-// }
-
-function normalizeCompositeSignature(resp) {
-  if (resp == null) return null;
-
-  switch (resp["f_vsn"]) {
-    case "1.0.0":
-      return resp;
-
-    default:
-      return _objectSpread__default["default"](_objectSpread__default["default"]({}, COMPOSITE_SIGNATURE_PRAGMA), {}, {
-        addr: utilAddress.sansPrefix(resp.addr || resp.address),
-        signature: resp.signature || resp.sig,
-        keyId: resp.keyId
-      });
-  }
-}
-
-var makeDiscoveryServices = /*#__PURE__*/function () {
-  var _ref = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee() {
-    var _window;
-
-    var extensionServices;
-    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            extensionServices = ((_window = window) === null || _window === void 0 ? void 0 : _window.fcl_extensions) || [];
-            return _context.abrupt("return", [].concat(_toConsumableArray__default["default"](extensionServices), _toConsumableArray__default["default"](serviceRegistry.getServices())));
-
-          case 2:
-          case "end":
-            return _context.stop();
-        }
-      }
-    }, _callee);
-  }));
-
-  return function makeDiscoveryServices() {
-    return _ref.apply(this, arguments);
-  };
-}();
-function getDiscoveryService(_x) {
-  return _getDiscoveryService.apply(this, arguments);
-}
-
-function _getDiscoveryService() {
-  _getDiscoveryService = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee2(service) {
-    var _service$endpoint;
-
-    var discoveryAuthnInclude, discoveryWalletMethod, method, endpoint;
-    return _regeneratorRuntime__default["default"].wrap(function _callee2$(_context2) {
-      while (1) {
-        switch (_context2.prev = _context2.next) {
-          case 0:
-            _context2.next = 2;
-            return config.config.get("discovery.authn.include", []);
-
-          case 2:
-            discoveryAuthnInclude = _context2.sent;
-            _context2.next = 5;
-            return config.config.first(["discovery.wallet.method", "discovery.wallet.method.default"]);
-
-          case 5:
-            discoveryWalletMethod = _context2.sent;
-            method = service !== null && service !== void 0 && service.method ? service.method : discoveryWalletMethod;
-
-            if (!((_service$endpoint = service === null || service === void 0 ? void 0 : service.endpoint) !== null && _service$endpoint !== void 0)) {
-              _context2.next = 11;
-              break;
-            }
-
-            _context2.t0 = _service$endpoint;
-            _context2.next = 14;
-            break;
-
-          case 11:
-            _context2.next = 13;
-            return config.config.first(["discovery.wallet", "challenge.handshake"]);
-
-          case 13:
-            _context2.t0 = _context2.sent;
-
-          case 14:
-            endpoint = _context2.t0;
-            utilInvariant.invariant(endpoint, "\n    If no service is passed to \"authenticate,\" then \"discovery.wallet\" must be defined in fcl config.\n    See: \"https://docs.onflow.org/fcl/reference/api/#setting-configuration-values\"\n    ");
-            return _context2.abrupt("return", _objectSpread__default["default"](_objectSpread__default["default"]({}, service), {}, {
-              type: "authn",
-              endpoint: endpoint,
-              method: method,
-              discoveryAuthnInclude: discoveryAuthnInclude
-            }));
-
-          case 17:
-          case "end":
-            return _context2.stop();
-        }
-      }
-    }, _callee2);
-  }));
-  return _getDiscoveryService.apply(this, arguments);
-}
-
-function getServices(_x) {
-  return _getServices.apply(this, arguments);
-}
-
-function _getServices() {
-  _getServices = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(_ref) {
-    var _window, _window$navigator;
-
-    var types, endpoint, include, url;
-    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            types = _ref.types;
-            _context.next = 3;
-            return config.config.get("discovery.authn.endpoint");
-
-          case 3:
-            endpoint = _context.sent;
-            utilInvariant.invariant(Boolean(endpoint), "\"discovery.authn.endpoint\" in config must be defined.");
-            _context.next = 7;
-            return config.config.get("discovery.authn.include", []);
-
-          case 7:
-            include = _context.sent;
-            url = new URL(endpoint);
-            _context.t0 = fetch;
-            _context.t1 = url;
-            _context.t2 = {
-              "Content-Type": "application/json"
-            };
-            _context.t3 = JSON;
-            _context.t4 = types;
-            _context.t5 = VERSION;
-            _context.t6 = include;
-            _context.next = 18;
-            return makeDiscoveryServices();
-
-          case 18:
-            _context.t7 = _context.sent;
-            _context.t8 = serviceRegistry.getStrategies();
-            _context.t9 = (_window = window) === null || _window === void 0 ? void 0 : (_window$navigator = _window.navigator) === null || _window$navigator === void 0 ? void 0 : _window$navigator.userAgent;
-            _context.t10 = {
-              type: _context.t4,
-              fclVersion: _context.t5,
-              include: _context.t6,
-              clientServices: _context.t7,
-              supportedStrategies: _context.t8,
-              userAgent: _context.t9
-            };
-            _context.t11 = _context.t3.stringify.call(_context.t3, _context.t10);
-            _context.t12 = {
-              method: "POST",
-              headers: _context.t2,
-              body: _context.t11
-            };
-            return _context.abrupt("return", (0, _context.t0)(_context.t1, _context.t12).then(function (d) {
-              return d.json();
-            }));
-
-          case 25:
-          case "end":
-            return _context.stop();
-        }
-      }
-    }, _callee);
-  }));
-  return _getServices.apply(this, arguments);
-}
-
-var _HANDLERS$3;
-var SERVICE_ACTOR_KEYS = {
-  AUTHN: "authn",
-  RESULTS: "results",
-  SNAPSHOT: "SNAPSHOT",
-  UPDATED: "UPDATED",
-  UPDATE_RESULTS: "UPDATE_RESULTS"
-};
-
-var warn = function warn(fact, msg) {
-  if (fact) {
-    console.warn("\n      %cFCL Warning\n      ============================\n      ".concat(msg, "\n      For more info, please see the docs: https://docs.onflow.org/fcl/\n      ============================\n      "), "font-weight:bold;font-family:monospace;");
-  }
-};
-
-var fetchServicesFromDiscovery = /*#__PURE__*/function () {
-  var _ref = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee() {
-    var services;
-    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            _context.prev = 0;
-            _context.next = 3;
-            return getServices({
-              types: [SERVICE_ACTOR_KEYS.AUTHN]
-            });
-
-          case 3:
-            services = _context.sent;
-            utilActor.send(SERVICE_ACTOR_KEYS.AUTHN, SERVICE_ACTOR_KEYS.UPDATE_RESULTS, {
-              results: services
-            });
-            _context.next = 10;
-            break;
-
-          case 7:
-            _context.prev = 7;
-            _context.t0 = _context["catch"](0);
-            utilLogger.log({
-              title: "".concat(_context.t0.name, " Error fetching Discovery API services."),
-              message: _context.t0.message,
-              level: utilLogger.LEVELS.error
-            });
-
-          case 10:
-          case "end":
-            return _context.stop();
-        }
-      }
-    }, _callee, null, [[0, 7]]);
-  }));
-
-  return function fetchServicesFromDiscovery() {
-    return _ref.apply(this, arguments);
-  };
-}();
-
-var HANDLERS$3 = (_HANDLERS$3 = {}, _defineProperty__default["default"](_HANDLERS$3, utilActor.INIT, function () {
-  var _ref2 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee3(ctx) {
-    return _regeneratorRuntime__default["default"].wrap(function _callee3$(_context3) {
-      while (1) {
-        switch (_context3.prev = _context3.next) {
-          case 0:
-            warn(typeof window === "undefined", '"fcl.discovery" is only available in the browser.'); // If you call this before the window is loaded extensions will not be set yet
-
-            if (document.readyState === 'complete') {
-              fetchServicesFromDiscovery();
-            } else {
-              window.onload = /*#__PURE__*/_asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee2() {
-                return _regeneratorRuntime__default["default"].wrap(function _callee2$(_context2) {
-                  while (1) {
-                    switch (_context2.prev = _context2.next) {
-                      case 0:
-                        fetchServicesFromDiscovery();
-
-                      case 1:
-                      case "end":
-                        return _context2.stop();
-                    }
-                  }
-                }, _callee2);
-              }));
-            }
-
-          case 2:
-          case "end":
-            return _context3.stop();
-        }
-      }
-    }, _callee3);
-  }));
-
-  return function (_x) {
-    return _ref2.apply(this, arguments);
-  };
-}()), _defineProperty__default["default"](_HANDLERS$3, SERVICE_ACTOR_KEYS.UPDATE_RESULTS, function (ctx, _letter, data) {
-  ctx.merge(data);
-  ctx.broadcast(SERVICE_ACTOR_KEYS.UPDATED, _objectSpread__default["default"]({}, ctx.all()));
-}), _defineProperty__default["default"](_HANDLERS$3, utilActor.SUBSCRIBE, function (ctx, letter) {
-  ctx.subscribe(letter.from);
-  ctx.send(letter.from, SERVICE_ACTOR_KEYS.UPDATED, _objectSpread__default["default"]({}, ctx.all()));
-}), _defineProperty__default["default"](_HANDLERS$3, utilActor.UNSUBSCRIBE, function (ctx, letter) {
-  return ctx.unsubscribe(letter.from);
-}), _defineProperty__default["default"](_HANDLERS$3, SERVICE_ACTOR_KEYS.SNAPSHOT, function () {
-  var _ref4 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee4(ctx, letter) {
-    return _regeneratorRuntime__default["default"].wrap(function _callee4$(_context4) {
-      while (1) {
-        switch (_context4.prev = _context4.next) {
-          case 0:
-            return _context4.abrupt("return", letter.reply(_objectSpread__default["default"]({}, ctx.all())));
-
-          case 1:
-          case "end":
-            return _context4.stop();
-        }
-      }
-    }, _callee4);
-  }));
-
-  return function (_x2, _x3) {
-    return _ref4.apply(this, arguments);
-  };
-}()), _HANDLERS$3);
-
-var spawnProviders = function spawnProviders() {
-  return utilActor.spawn(HANDLERS$3, SERVICE_ACTOR_KEYS.AUTHN);
-};
-
-var authn = {
-  subscribe: function subscribe(cb) {
-    return utilActor.subscriber(SERVICE_ACTOR_KEYS.AUTHN, spawnProviders, cb);
-  },
-  snapshot: function snapshot() {
-    return utilActor.snapshoter(SERVICE_ACTOR_KEYS.AUTHN, spawnProviders);
-  },
-  update: function update() {
-    return fetchServicesFromDiscovery();
-  }
-};
-
-var discovery = {
-  authn: authn
-};
 
 function isAndroid() {
   return typeof navigator !== "undefined" && /android/i.test(navigator.userAgent);
@@ -28136,1003 +19397,241 @@ function isMobile() {
   return isAndroid() || isIOS();
 }
 
-var _HANDLERS$2;
-var isFn = function isFn(d) {
-  return typeof d === "function";
-};
-var NAME = "CURRENT_USER";
-var UPDATED$1 = "CURRENT_USER/UPDATED";
-var SNAPSHOT = "SNAPSHOT";
-var SET_CURRENT_USER = "SET_CURRENT_USER";
-var DEL_CURRENT_USER = "DEL_CURRENT_USER";
-var DATA = "{\n  \"f_type\": \"User\",\n  \"f_vsn\": \"1.0.0\",\n  \"addr\":null,\n  \"cid\":null,\n  \"loggedIn\":null,\n  \"expiresAt\":null,\n  \"services\":[]\n}";
-
-var getStoredUser = /*#__PURE__*/function () {
-  var _ref = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(storage) {
-    var fallback, stored;
-    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            fallback = JSON.parse(DATA);
-            _context.next = 3;
-            return storage.get(NAME);
-
-          case 3:
-            stored = _context.sent;
-
-            if (!(stored != null && fallback["f_vsn"] !== stored["f_vsn"])) {
-              _context.next = 7;
-              break;
-            }
-
-            storage.removeItem(NAME);
-            return _context.abrupt("return", fallback);
-
-          case 7:
-            return _context.abrupt("return", stored || fallback);
-
-          case 8:
-          case "end":
-            return _context.stop();
-        }
+async function deriveDependencies() {
+  let opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  const template = opts.template;
+  const network = await getChainId(opts);
+  const derivedDependencies = {};
+  switch (template["f_version"]) {
+    case "1.0.0":
+      const dependencyPlaceholderKeys = Object.keys(template?.data?.dependencies);
+      for (let dependencyPlaceholderKey of dependencyPlaceholderKeys) {
+        let dependencyPlaceholder = template?.data?.dependencies[dependencyPlaceholderKey];
+        const dependencyPlaceholderContractsKeys = Object.keys(dependencyPlaceholder);
+        utilInvariant.invariant(dependencyPlaceholderContractsKeys.length > 0, `FCL configureDependencies Error: No contracts found in template for placeholder=${dependencyPlaceholderKey}`);
+        const dependencyPlaceholderContract = dependencyPlaceholder[dependencyPlaceholderContractsKeys[0]];
+        const dependency = dependencyPlaceholderContract[network];
+        utilInvariant.invariant(dependency, `FCL configureDependencies Error: No dependency information for placeholder=${dependencyPlaceholderKey} contract=${dependencyPlaceholderContractsKeys[0]} network=${network}`);
+        utilInvariant.invariant(dependency?.address, `FCL configureDependencies Error: No address information for placeholder=${dependencyPlaceholderKey} contract=${dependencyPlaceholderContractsKeys[0]} network=${network}`);
+        derivedDependencies[dependencyPlaceholderKey] = utilAddress.withPrefix(dependency?.address);
       }
-    }, _callee);
-  }));
-
-  return function getStoredUser(_x) {
-    return _ref.apply(this, arguments);
-  };
-}();
-
-var HANDLERS$2 = (_HANDLERS$2 = {}, _defineProperty__default["default"](_HANDLERS$2, utilActor.INIT, function () {
-  var _ref2 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee2(ctx) {
-    var storage, user;
-    return _regeneratorRuntime__default["default"].wrap(function _callee2$(_context2) {
-      while (1) {
-        switch (_context2.prev = _context2.next) {
-          case 0:
-            if (typeof window === "undefined") {
-              console.warn("\n        %cFCL Warning\n        ============================\n        \"currentUser\" is only available in the browser.\n        For more info, please see the docs: https://docs.onflow.org/fcl/\n        ============================\n        ", "font-weight:bold;font-family:monospace;");
-            }
-
-            ctx.merge(JSON.parse(DATA));
-            _context2.next = 4;
-            return config.config.first(["fcl.storage", "fcl.storage.default"]);
-
-          case 4:
-            storage = _context2.sent;
-
-            if (!storage.can) {
-              _context2.next = 10;
-              break;
-            }
-
-            _context2.next = 8;
-            return getStoredUser(storage);
-
-          case 8:
-            user = _context2.sent;
-            if (notExpired(user)) ctx.merge(user);
-
-          case 10:
-          case "end":
-            return _context2.stop();
-        }
-      }
-    }, _callee2);
-  }));
-
-  return function (_x2) {
-    return _ref2.apply(this, arguments);
-  };
-}()), _defineProperty__default["default"](_HANDLERS$2, utilActor.SUBSCRIBE, function (ctx, letter) {
-  ctx.subscribe(letter.from);
-  ctx.send(letter.from, UPDATED$1, _objectSpread__default["default"]({}, ctx.all()));
-}), _defineProperty__default["default"](_HANDLERS$2, utilActor.UNSUBSCRIBE, function (ctx, letter) {
-  ctx.unsubscribe(letter.from);
-}), _defineProperty__default["default"](_HANDLERS$2, SNAPSHOT, function () {
-  var _ref3 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee3(ctx, letter) {
-    return _regeneratorRuntime__default["default"].wrap(function _callee3$(_context3) {
-      while (1) {
-        switch (_context3.prev = _context3.next) {
-          case 0:
-            letter.reply(_objectSpread__default["default"]({}, ctx.all()));
-
-          case 1:
-          case "end":
-            return _context3.stop();
-        }
-      }
-    }, _callee3);
-  }));
-
-  return function (_x3, _x4) {
-    return _ref3.apply(this, arguments);
-  };
-}()), _defineProperty__default["default"](_HANDLERS$2, SET_CURRENT_USER, function () {
-  var _ref4 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee4(ctx, letter, data) {
-    var storage;
-    return _regeneratorRuntime__default["default"].wrap(function _callee4$(_context4) {
-      while (1) {
-        switch (_context4.prev = _context4.next) {
-          case 0:
-            ctx.merge(data);
-            _context4.next = 3;
-            return config.config.first(["fcl.storage", "fcl.storage.default"]);
-
-          case 3:
-            storage = _context4.sent;
-            if (storage.can) storage.put(NAME, ctx.all());
-            ctx.broadcast(UPDATED$1, _objectSpread__default["default"]({}, ctx.all()));
-
-          case 6:
-          case "end":
-            return _context4.stop();
-        }
-      }
-    }, _callee4);
-  }));
-
-  return function (_x5, _x6, _x7) {
-    return _ref4.apply(this, arguments);
-  };
-}()), _defineProperty__default["default"](_HANDLERS$2, DEL_CURRENT_USER, function () {
-  var _ref5 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee5(ctx, letter) {
-    var storage;
-    return _regeneratorRuntime__default["default"].wrap(function _callee5$(_context5) {
-      while (1) {
-        switch (_context5.prev = _context5.next) {
-          case 0:
-            ctx.merge(JSON.parse(DATA));
-            _context5.next = 3;
-            return config.config.first(["fcl.storage", "fcl.storage.default"]);
-
-          case 3:
-            storage = _context5.sent;
-            if (storage.can) storage.put(NAME, ctx.all());
-            ctx.broadcast(UPDATED$1, _objectSpread__default["default"]({}, ctx.all()));
-
-          case 6:
-          case "end":
-            return _context5.stop();
-        }
-      }
-    }, _callee5);
-  }));
-
-  return function (_x8, _x9) {
-    return _ref5.apply(this, arguments);
-  };
-}()), _HANDLERS$2);
-
-var spawnCurrentUser = function spawnCurrentUser() {
-  return utilActor.spawn(HANDLERS$2, NAME);
-};
-
-function notExpired(user) {
-  return user.expiresAt == null || user.expiresAt === 0 || user.expiresAt > Date.now();
-}
-
-function getAccountProofData() {
-  return _getAccountProofData.apply(this, arguments);
-}
-
-function _getAccountProofData() {
-  _getAccountProofData = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee8() {
-    var accountProofDataResolver, accountProofData;
-    return _regeneratorRuntime__default["default"].wrap(function _callee8$(_context8) {
-      while (1) {
-        switch (_context8.prev = _context8.next) {
-          case 0:
-            _context8.next = 2;
-            return config.config.get("fcl.accountProof.resolver");
-
-          case 2:
-            accountProofDataResolver = _context8.sent;
-
-            if (isFn(accountProofDataResolver)) {
-              _context8.next = 5;
-              break;
-            }
-
-            return _context8.abrupt("return");
-
-          case 5:
-            _context8.next = 7;
-            return accountProofDataResolver();
-
-          case 7:
-            accountProofData = _context8.sent;
-
-            if (!(accountProofData == null)) {
-              _context8.next = 10;
-              break;
-            }
-
-            return _context8.abrupt("return");
-
-          case 10:
-            utilInvariant.invariant(typeof accountProofData.appIdentifier === "string", "appIdentifier must be a string");
-            utilInvariant.invariant(/^[0-9a-f]+$/i.test(accountProofData.nonce), "Nonce must be a hex string");
-            return _context8.abrupt("return", accountProofData);
-
-          case 13:
-          case "end":
-            return _context8.stop();
-        }
-      }
-    }, _callee8);
-  }));
-  return _getAccountProofData.apply(this, arguments);
-}
-
-var makeConfig = /*#__PURE__*/function () {
-  var _ref7 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee6(_ref6) {
-    var discoveryAuthnInclude;
-    return _regeneratorRuntime__default["default"].wrap(function _callee6$(_context6) {
-      while (1) {
-        switch (_context6.prev = _context6.next) {
-          case 0:
-            discoveryAuthnInclude = _ref6.discoveryAuthnInclude;
-            _context6.t0 = discoveryAuthnInclude;
-            _context6.next = 4;
-            return makeDiscoveryServices();
-
-          case 4:
-            _context6.t1 = _context6.sent;
-            _context6.t2 = serviceRegistry.getStrategies();
-            _context6.t3 = {
-              discoveryAuthnInclude: _context6.t0,
-              clientServices: _context6.t1,
-              supportedStrategies: _context6.t2
-            };
-            return _context6.abrupt("return", {
-              client: _context6.t3
-            });
-
-          case 8:
-          case "end":
-            return _context6.stop();
-        }
-      }
-    }, _callee6);
-  }));
-
-  return function makeConfig(_x10) {
-    return _ref7.apply(this, arguments);
-  };
-}();
-
-function authenticate$1() {
-  return _authenticate.apply(this, arguments);
-}
-
-function _authenticate() {
-  _authenticate = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee10() {
-    var _service$provider, _service$provider2;
-
-    var _ref11,
-        service,
-        _ref11$redir,
-        redir,
-        _service$provider3,
-        _args10 = arguments;
-
-    return _regeneratorRuntime__default["default"].wrap(function _callee10$(_context10) {
-      while (1) {
-        switch (_context10.prev = _context10.next) {
-          case 0:
-            _ref11 = _args10.length > 0 && _args10[0] !== undefined ? _args10[0] : {}, service = _ref11.service, _ref11$redir = _ref11.redir, redir = _ref11$redir === void 0 ? false : _ref11$redir;
-
-            if (!(service && !(service !== null && service !== void 0 && (_service$provider = service.provider) !== null && _service$provider !== void 0 && _service$provider.is_installed) && service !== null && service !== void 0 && (_service$provider2 = service.provider) !== null && _service$provider2 !== void 0 && _service$provider2.requires_install)) {
-              _context10.next = 4;
-              break;
-            }
-
-            window.location.href = service === null || service === void 0 ? void 0 : (_service$provider3 = service.provider) === null || _service$provider3 === void 0 ? void 0 : _service$provider3.install_link;
-            return _context10.abrupt("return");
-
-          case 4:
-            return _context10.abrupt("return", new Promise( /*#__PURE__*/function () {
-              var _ref12 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee9(resolve, reject) {
-                var opts, user, discoveryService, refreshService, accountProofData, response, _response;
-
-                return _regeneratorRuntime__default["default"].wrap(function _callee9$(_context9) {
-                  while (1) {
-                    switch (_context9.prev = _context9.next) {
-                      case 0:
-                        spawnCurrentUser();
-                        opts = {
-                          redir: redir
-                        };
-                        _context9.next = 4;
-                        return snapshot();
-
-                      case 4:
-                        user = _context9.sent;
-                        _context9.next = 7;
-                        return getDiscoveryService(service);
-
-                      case 7:
-                        discoveryService = _context9.sent;
-                        refreshService = serviceOfType(user.services, "authn-refresh");
-                        _context9.prev = 9;
-                        _context9.next = 12;
-                        return getAccountProofData();
-
-                      case 12:
-                        accountProofData = _context9.sent;
-                        _context9.next = 19;
-                        break;
-
-                      case 15:
-                        _context9.prev = 15;
-                        _context9.t0 = _context9["catch"](9);
-                        console.error("Error During Authentication: Could not resolve account proof data.\n        ".concat(_context9.t0));
-                        return _context9.abrupt("return", reject(_context9.t0));
-
-                      case 19:
-                        if (!user.loggedIn) {
-                          _context9.next = 47;
-                          break;
-                        }
-
-                        if (!refreshService) {
-                          _context9.next = 46;
-                          break;
-                        }
-
-                        _context9.prev = 21;
-                        _context9.next = 24;
-                        return execService({
-                          service: refreshService,
-                          msg: accountProofData,
-                          opts: opts
-                        });
-
-                      case 24:
-                        response = _context9.sent;
-                        _context9.t1 = utilActor.send;
-                        _context9.t2 = NAME;
-                        _context9.t3 = SET_CURRENT_USER;
-                        _context9.next = 30;
-                        return buildUser(response);
-
-                      case 30:
-                        _context9.t4 = _context9.sent;
-                        (0, _context9.t1)(_context9.t2, _context9.t3, _context9.t4);
-                        _context9.next = 37;
-                        break;
-
-                      case 34:
-                        _context9.prev = 34;
-                        _context9.t5 = _context9["catch"](21);
-                        console.error("Error: Could not refresh authentication.", _context9.t5);
-
-                      case 37:
-                        _context9.prev = 37;
-                        _context9.t6 = resolve;
-                        _context9.next = 41;
-                        return snapshot();
-
-                      case 41:
-                        _context9.t7 = _context9.sent;
-                        return _context9.abrupt("return", (0, _context9.t6)(_context9.t7));
-
-                      case 44:
-                        _context9.next = 47;
-                        break;
-
-                      case 46:
-                        return _context9.abrupt("return", resolve(user));
-
-                      case 47:
-                        _context9.prev = 47;
-                        _context9.t8 = execService;
-                        _context9.t9 = discoveryService;
-                        _context9.t10 = accountProofData;
-                        _context9.next = 53;
-                        return makeConfig(discoveryService);
-
-                      case 53:
-                        _context9.t11 = _context9.sent;
-                        _context9.t12 = opts;
-                        _context9.t13 = {
-                          service: _context9.t9,
-                          msg: _context9.t10,
-                          config: _context9.t11,
-                          opts: _context9.t12
-                        };
-                        _context9.next = 58;
-                        return (0, _context9.t8)(_context9.t13);
-
-                      case 58:
-                        _response = _context9.sent;
-                        _context9.t14 = utilActor.send;
-                        _context9.t15 = NAME;
-                        _context9.t16 = SET_CURRENT_USER;
-                        _context9.next = 64;
-                        return buildUser(_response);
-
-                      case 64:
-                        _context9.t17 = _context9.sent;
-                        (0, _context9.t14)(_context9.t15, _context9.t16, _context9.t17);
-                        _context9.next = 71;
-                        break;
-
-                      case 68:
-                        _context9.prev = 68;
-                        _context9.t18 = _context9["catch"](47);
-                        console.error("Error while authenticating", _context9.t18);
-
-                      case 71:
-                        _context9.prev = 71;
-                        _context9.t19 = resolve;
-                        _context9.next = 75;
-                        return snapshot();
-
-                      case 75:
-                        _context9.t20 = _context9.sent;
-                        (0, _context9.t19)(_context9.t20);
-                        return _context9.finish(71);
-
-                      case 78:
-                      case "end":
-                        return _context9.stop();
-                    }
-                  }
-                }, _callee9, null, [[9, 15], [21, 34, 37, 44], [47, 68, 71, 78]]);
-              }));
-
-              return function (_x14, _x15) {
-                return _ref12.apply(this, arguments);
-              };
-            }()));
-
-          case 5:
-          case "end":
-            return _context10.stop();
-        }
-      }
-    }, _callee10);
-  }));
-  return _authenticate.apply(this, arguments);
-}
-
-function unauthenticate$1() {
-  spawnCurrentUser();
-  utilActor.send(NAME, DEL_CURRENT_USER);
-}
-
-var normalizePreAuthzResponse = function normalizePreAuthzResponse(authz) {
-  return {
-    f_type: "PreAuthzResponse",
-    f_vsn: "1.0.0",
-    proposer: (authz || {}).proposer,
-    payer: (authz || {}).payer || [],
-    authorization: (authz || {}).authorization || []
-  };
-};
-
-function resolvePreAuthz(authz) {
-  var resp = normalizePreAuthzResponse(authz);
-  var axs = [];
-  if (resp.proposer != null) axs.push(["PROPOSER", resp.proposer]);
-
-  var _iterator = _createForOfIteratorHelper__default["default"](resp.payer || []),
-      _step;
-
-  try {
-    for (_iterator.s(); !(_step = _iterator.n()).done;) {
-      var az = _step.value;
-      axs.push(["PAYER", az]);
-    }
-  } catch (err) {
-    _iterator.e(err);
-  } finally {
-    _iterator.f();
+      return derivedDependencies;
+    default:
+      throw new Error("FCL configureDependencies Error: Unsupported template version");
   }
+}
 
-  var _iterator2 = _createForOfIteratorHelper__default["default"](resp.authorization || []),
-      _step2;
-
-  try {
-    for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
-      var _az = _step2.value;
-      axs.push(["AUTHORIZER", _az]);
-    }
-  } catch (err) {
-    _iterator2.e(err);
-  } finally {
-    _iterator2.f();
+async function prepTemplateOpts(opts) {
+  if (isString(opts?.template)) {
+    opts.template = await retrieve({
+      url: opts?.template
+    });
   }
-
-  var result = axs.map(function (_ref8) {
-    var _ref9 = _slicedToArray__default["default"](_ref8, 2),
-        role = _ref9[0],
-        az = _ref9[1];
-
-    return {
-      tempId: [az.identity.address, az.identity.keyId].join("|"),
-      addr: az.identity.address,
-      keyId: az.identity.keyId,
-      signingFunction: function signingFunction(signable) {
-        return execService({
-          service: az,
-          msg: signable
-        });
-      },
-      role: {
-        proposer: role === "PROPOSER",
-        payer: role === "PAYER",
-        authorizer: role === "AUTHORIZER"
-      }
-    };
+  let dependencies = {};
+  if (opts?.template) {
+    opts.template = normalizeInteractionTemplate(opts?.template);
+    dependencies = await deriveDependencies({
+      template: opts.template
+    });
+  }
+  const cadence = opts.cadence || deriveCadenceByNetwork({
+    template: opts.template,
+    network: await getChainId(opts)
   });
-  return result;
+  opts.cadence = cadence;
+  opts.dependencies = dependencies;
+  return opts;
 }
 
-function authorization(_x11) {
-  return _authorization.apply(this, arguments);
+async function pre(type, opts) {
+  // prettier-ignore
+  utilInvariant.invariant(isRequired(opts), `${type}(opts) -- opts is required`);
+  // prettier-ignore
+  utilInvariant.invariant(isObject(opts), `${type}(opts) -- opts must be an object`);
+  // prettier-ignore
+  utilInvariant.invariant(!(opts.cadence && opts.template), `${type}({ template, cadence }) -- cannot pass both cadence and template`);
+  // prettier-ignore
+  utilInvariant.invariant(isRequired(opts.cadence || opts?.template), `${type}({ cadence }) -- cadence is required`);
+  // // prettier-ignore
+  utilInvariant.invariant(isString(opts.cadence) || opts?.template, `${type}({ cadence }) -- cadence must be a string`);
+  // prettier-ignore
+  utilInvariant.invariant(await sdk__namespace.config().get("accessNode.api"), `${type}(opts) -- Required value for "accessNode.api" not defined in config. See: ${"https://github.com/onflow/flow-js-sdk/blob/master/packages/fcl/src/exec/query.md#configuration"}`);
+}
+async function preMutate(opts) {
+  return pre("mutate", opts);
+}
+async function preQuery(opts) {
+  return pre("query", opts);
 }
 
-function _authorization() {
-  _authorization = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee13(account) {
-    return _regeneratorRuntime__default["default"].wrap(function _callee13$(_context13) {
-      while (1) {
-        switch (_context13.prev = _context13.next) {
-          case 0:
-            spawnCurrentUser();
-            return _context13.abrupt("return", _objectSpread__default["default"](_objectSpread__default["default"]({}, account), {}, {
-              tempId: "CURRENT_USER",
-              resolve: function resolve(account, preSignable) {
-                return _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee12() {
-                  var user, authz, preAuthz, windowRef;
-                  return _regeneratorRuntime__default["default"].wrap(function _callee12$(_context12) {
-                    while (1) {
-                      switch (_context12.prev = _context12.next) {
-                        case 0:
-                          _context12.next = 2;
-                          return authenticate$1({
-                            redir: true
-                          });
-
-                        case 2:
-                          user = _context12.sent;
-                          authz = serviceOfType(user.services, "authz");
-                          preAuthz = serviceOfType(user.services, "pre-authz");
-
-                          if (!preAuthz) {
-                            _context12.next = 11;
-                            break;
-                          }
-
-                          _context12.t0 = resolvePreAuthz;
-                          _context12.next = 9;
-                          return execService({
-                            service: preAuthz,
-                            msg: preSignable
-                          });
-
-                        case 9:
-                          _context12.t1 = _context12.sent;
-                          return _context12.abrupt("return", (0, _context12.t0)(_context12.t1));
-
-                        case 11:
-                          if (!authz) {
-                            _context12.next = 14;
-                            break;
-                          }
-
-                          if (isMobile() && authz.method === "WC/RPC") {
-                            windowRef = window.open("", "_blank");
-                          }
-
-                          return _context12.abrupt("return", _objectSpread__default["default"](_objectSpread__default["default"]({}, account), {}, {
-                            tempId: "CURRENT_USER",
-                            resolve: null,
-                            addr: utilAddress.sansPrefix(authz.identity.address),
-                            keyId: authz.identity.keyId,
-                            sequenceNum: null,
-                            signature: null,
-                            signingFunction: function signingFunction(signable) {
-                              return _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee11() {
-                                return _regeneratorRuntime__default["default"].wrap(function _callee11$(_context11) {
-                                  while (1) {
-                                    switch (_context11.prev = _context11.next) {
-                                      case 0:
-                                        _context11.t0 = normalizeCompositeSignature;
-                                        _context11.next = 3;
-                                        return execService({
-                                          service: authz,
-                                          msg: signable,
-                                          opts: {
-                                            includeOlderJsonRpcCall: true,
-                                            windowRef: windowRef
-                                          }
-                                        });
-
-                                      case 3:
-                                        _context11.t1 = _context11.sent;
-                                        return _context11.abrupt("return", (0, _context11.t0)(_context11.t1));
-
-                                      case 5:
-                                      case "end":
-                                        return _context11.stop();
-                                    }
-                                  }
-                                }, _callee11);
-                              }))();
-                            }
-                          }));
-
-                        case 14:
-                          throw new Error("No Authz or PreAuthz Service configured for CURRENT_USER");
-
-                        case 15:
-                        case "end":
-                          return _context12.stop();
-                      }
-                    }
-                  }, _callee12);
-                }))();
-              }
-            }));
-
-          case 2:
-          case "end":
-            return _context13.stop();
-        }
-      }
-    }, _callee13);
-  }));
-  return _authorization.apply(this, arguments);
-}
-
-function subscribe(callback) {
-  spawnCurrentUser();
-  var EXIT = "@EXIT";
-  var self = utilActor.spawn( /*#__PURE__*/function () {
-    var _ref10 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee7(ctx) {
-      var letter;
-      return _regeneratorRuntime__default["default"].wrap(function _callee7$(_context7) {
-        while (1) {
-          switch (_context7.prev = _context7.next) {
-            case 0:
-              ctx.send(NAME, utilActor.SUBSCRIBE);
-
-            case 1:
-
-              _context7.next = 4;
-              return ctx.receive();
-
-            case 4:
-              letter = _context7.sent;
-
-              if (!(letter.tag === EXIT)) {
-                _context7.next = 8;
-                break;
-              }
-
-              ctx.send(NAME, utilActor.UNSUBSCRIBE);
-              return _context7.abrupt("return");
-
-            case 8:
-              callback(letter.data);
-              _context7.next = 1;
-              break;
-
-            case 11:
-            case "end":
-              return _context7.stop();
-          }
-        }
-      }, _callee7);
-    }));
-
-    return function (_x12) {
-      return _ref10.apply(this, arguments);
-    };
-  }());
-  return function () {
-    return utilActor.send(self, EXIT);
-  };
-}
-
-function snapshot() {
-  spawnCurrentUser();
-  return utilActor.send(NAME, SNAPSHOT, null, {
-    expectReply: true,
-    timeout: 0
-  });
-}
-
-function resolveArgument() {
-  return _resolveArgument.apply(this, arguments);
-}
-
-function _resolveArgument() {
-  _resolveArgument = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee15() {
-    var _yield$authenticate, addr;
-
-    return _regeneratorRuntime__default["default"].wrap(function _callee15$(_context15) {
-      while (1) {
-        switch (_context15.prev = _context15.next) {
-          case 0:
-            _context15.next = 2;
-            return authenticate$1();
-
-          case 2:
-            _yield$authenticate = _context15.sent;
-            addr = _yield$authenticate.addr;
-            return _context15.abrupt("return", sdk.arg(utilAddress.withPrefix(addr), t__namespace.Address));
-
-          case 5:
-          case "end":
-            return _context15.stop();
-        }
-      }
-    }, _callee15);
-  }));
-  return _resolveArgument.apply(this, arguments);
-}
-
-var makeSignable = function makeSignable(msg) {
-  utilInvariant.invariant(/^[0-9a-f]+$/i.test(msg), "Message must be a hex string");
-  return {
-    message: msg
-  };
-};
-
-function signUserMessage(_x13) {
-  return _signUserMessage.apply(this, arguments);
-}
-
-function _signUserMessage() {
-  _signUserMessage = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee16(msg) {
-    var user, signingService, response;
-    return _regeneratorRuntime__default["default"].wrap(function _callee16$(_context16) {
-      while (1) {
-        switch (_context16.prev = _context16.next) {
-          case 0:
-            spawnCurrentUser();
-            _context16.next = 3;
-            return authenticate$1({
-              redir: true
-            });
-
-          case 3:
-            user = _context16.sent;
-            signingService = serviceOfType(user.services, "user-signature");
-            utilInvariant.invariant(signingService, "Current user must have authorized a signing service.");
-            _context16.prev = 6;
-            _context16.next = 9;
-            return execService({
-              service: signingService,
-              msg: makeSignable(msg)
-            });
-
-          case 9:
-            response = _context16.sent;
-
-            if (!Array.isArray(response)) {
-              _context16.next = 14;
-              break;
-            }
-
-            return _context16.abrupt("return", response.map(function (compSigs) {
-              return normalizeCompositeSignature(compSigs);
-            }));
-
-          case 14:
-            return _context16.abrupt("return", [normalizeCompositeSignature(response)]);
-
-          case 15:
-            _context16.next = 20;
-            break;
-
-          case 17:
-            _context16.prev = 17;
-            _context16.t0 = _context16["catch"](6);
-            return _context16.abrupt("return", _context16.t0);
-
-          case 20:
-          case "end":
-            return _context16.stop();
-        }
-      }
-    }, _callee16, null, [[6, 17]]);
-  }));
-  return _signUserMessage.apply(this, arguments);
-}
-
-var currentUser = function currentUser() {
-  return {
-    authenticate: authenticate$1,
-    unauthenticate: unauthenticate$1,
-    authorization: authorization,
-    signUserMessage: signUserMessage,
-    subscribe: subscribe,
-    snapshot: snapshot,
-    resolveArgument: resolveArgument
-  };
-};
-
-currentUser.authenticate = authenticate$1;
-currentUser.unauthenticate = unauthenticate$1;
-currentUser.authorization = authorization;
-currentUser.signUserMessage = signUserMessage;
-currentUser.subscribe = subscribe;
-currentUser.snapshot = snapshot;
-currentUser.resolveArgument = resolveArgument;
-
-/** As the current user Mutate the Flow Blockchain
+/**
+ * @description
+ * Allows you to submit scripts to query the blockchain.
  *
- *  @arg {Object} opts - Mutation Options and configuration
- *  @arg {string} opts.cadence - Cadence Transaction used to mutate Flow
- *  @arg {ArgsFn} opts.args - Arguments passed to cadence transaction
- *  @arg {Object} opts.template - Interaction Template for a transaction
- *  @arg {number} opts.limit - Compute Limit for transaction
- *  @returns {string} Transaction Id
+ *  @param {object} opts - Query Options and configuration
+ *  @param {string} opts.cadence - Cadence Script used to query Flow
+ *  @param {import("../fcl").ArgsFn} [opts.args] - Arguments passed to cadence script
+ *  @param {object} [opts.template] - Interaction Template for a script
+ *  @param {number} [opts.limit]   - Compute Limit for Query
+ *  @returns {Promise}
  *
- *  Where:
- *    @callback ArgsFn
- *    @arg {ArgFn}  arg - Argument function to define a single argument
- *    @arg {Object} t   - Cadence Types object used to define the type
- *    @returns {args[]}
- *
- *    @callback ArgFn
- *    @arg {Any}  value - the value of the argument
- *    @arg {Type} type  - the cadence type of the value
- *    @returns {arg}
- *
- *  Example:
- *    fcl.mutate({
+ *  @example
+ *    const cadence = `
  *      cadence: `
- *        transaction(a: Int, b: Int, c: Address) {
- *          prepare(acct: AuthAccount) {
- *            log(acct)
- *            log(a)
- *            log(b)
- *            log(c)
- *          }
+ *        pub fun main(a: Int, b: Int, c: Address): Int {
+ *          log(c)
+ *          return a + b
  *        }
- *      `,
- *      args: (arg, t) => [
- *        arg(6, t.Int),
- *        arg(7, t.Int),
- *        arg("0xba1132bc08f82fe2", t.Address),
- *      ],
- *    })
+ *    `.trim()
  *
+ *    const args = (arg, t) => [
+ *      arg(5, t.Int),
+ *      arg(7, t.Int),
+ *      arg("0xb2db43ad6bc345fec9", t.Address),
+ *    ]
  *
- *  Options:
- *    type Options = {
- *      template: InteractionTemplate | String // InteractionTemplate or url to one
- *      cadence: String!,
- *      args: (arg, t) => Array<Arg>,
- *      limit: Number,
- *      authz: AuthzFn, // will overload the trinity of signatory roles
- *      proposer: AuthzFn, // will overload the proposer signatory role
- *      payer: AuthzFn, // will overload the payer signatory role
- *      authorizations: [AuthzFn], // an array of authorization functions used as authorizations signatory roles
- *    }
+ *    await query({ cadence, args })
  */
-
-function mutate() {
-  return _mutate.apply(this, arguments);
+async function query() {
+  let opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  await preQuery(opts);
+  opts = await prepTemplateOpts(opts);
+  return sdk__namespace.config().overload(opts.dependencies || {}, async () =>
+  // prettier-ignore
+  sdk__namespace.send([sdk__namespace.script(opts.cadence), sdk__namespace.args(normalizeArgs(opts.args || [])), opts.limit && typeof opts.limit === "number" && sdk__namespace.limit(opts.limit)]).then(sdk__namespace.decode));
 }
 
-function _mutate() {
-  _mutate = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee2() {
-    var opts,
-        txid,
-        authz,
-        _args2 = arguments;
-    return _regeneratorRuntime__default["default"].wrap(function _callee2$(_context2) {
-      while (1) {
-        switch (_context2.prev = _context2.next) {
-          case 0:
-            opts = _args2.length > 0 && _args2[0] !== undefined ? _args2[0] : {};
-            _context2.prev = 1;
-            _context2.next = 4;
-            return preMutate(opts);
+const FCL_REDIRECT_URL_PARAM_NAME = 'fcl_redirect_url';
+const FCL_RESPONSE_PARAM_NAME = 'fclResponseJson';
+const CORE_STRATEGIES = {
+  "HTTP/RPC": "HTTP/RPC",
+  "HTTP/POST": "HTTP/POST",
+  "IFRAME/RPC": "IFRAME/RPC",
+  "POP/RPC": "POP/RPC",
+  "TAB/RPC": "TAB/RPC",
+  "EXT/RPC": "EXT/RPC",
+  "DEEPLINK/RPC": "DEEPLINK/RPC"
+};
 
-          case 4:
-            _context2.next = 6;
-            return prepTemplateOpts(opts);
-
-          case 6:
-            opts = _context2.sent;
-            _context2.next = 9;
-            return sdk__namespace.config().get("fcl.authz", currentUser().authorization);
-
-          case 9:
-            authz = _context2.sent;
-            txid = sdk__namespace.config().overload(opts.dependencies || {}, /*#__PURE__*/_asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee() {
-              return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
-                while (1) {
-                  switch (_context.prev = _context.next) {
-                    case 0:
-                      return _context.abrupt("return", // prettier-ignore
-                      sdk__namespace.send([sdk__namespace.transaction(opts.cadence), sdk__namespace.args(normalizeArgs(opts.args || [])), opts.limit && isNumber(opts.limit) && sdk__namespace.limit(opts.limit), // opts.proposer > opts.authz > authz
-                      sdk__namespace.proposer(opts.proposer || opts.authz || authz), // opts.payer > opts.authz > authz
-                      sdk__namespace.payer(opts.payer || opts.authz || authz), // opts.authorizations > [opts.authz > authz]
-                      sdk__namespace.authorizations(opts.authorizations || [opts.authz || authz])]).then(sdk__namespace.decode));
-
-                    case 1:
-                    case "end":
-                      return _context.stop();
-                  }
-                }
-              }, _callee);
-            })));
-            return _context2.abrupt("return", txid);
-
-          case 14:
-            _context2.prev = 14;
-            _context2.t0 = _context2["catch"](1);
-            throw _context2.t0;
-
-          case 17:
-          case "end":
-            return _context2.stop();
-        }
-      }
-    }, _callee2, null, [[1, 14]]);
-  }));
-  return _mutate.apply(this, arguments);
-}
-
-var onMessageFromFCL = function onMessageFromFCL(messageType) {
-  var cb = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : function () {};
-
-  var buildData = function buildData(data) {
-    var _data$body;
-
+/**
+ * @description
+ * Listens for messages from FCL
+ * 
+ * @param {string} messageType - Message type
+ * @param {Function} cb - Callback function
+ * @returns {Function} - Function to remove event listener
+ */
+const onMessageFromFCL = function (messageType) {
+  let cb = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : () => {};
+  const buildData = data => {
     if (data.deprecated) console.warn("DEPRECATION NOTICE", data.deprecated.message);
-    data === null || data === void 0 ? true : (_data$body = data.body) === null || _data$body === void 0 ? true : delete _data$body.interaction;
+    delete data?.body?.interaction;
     return data;
   };
-
-  var internal = function internal(e) {
-    var data = e.data;
-    if (_typeof__default["default"](data) !== "object") return;
-    if (_typeof__default["default"](data) == null) return;
+  const internal = e => {
+    const {
+      data
+    } = e;
+    if (typeof data !== "object") return;
+    if (typeof data == null) return;
     if (data.type !== messageType) return;
     cb(buildData(data));
   };
-
   window.addEventListener("message", internal);
-  return function () {
-    return window.removeEventListener("message", internal);
-  };
+  return () => window.removeEventListener("message", internal);
 };
 
-var sendMsgToFCL = function sendMsgToFCL(type) {
-  var msg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+// This is a workaround for an ongoing issue with URL in React Native
+const _URL = globalThis.URL;
+class URL extends _URL {
+  constructor(url, base) {
+    for (var _len = arguments.length, args = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+      args[_key - 2] = arguments[_key];
+    }
+    super(url, base, ...args);
 
-  if (window.location !== window.parent.location) {
-    window.parent.postMessage(_objectSpread__default["default"](_objectSpread__default["default"]({}, msg), {}, {
-      type: type
-    }), "*");
+    // Extra check if in React Native
+    {
+      return;
+    }
+  }
+}
+
+/**
+ * @description
+ * Sends message to FCL window
+ *
+ * @param {string} type - Message type
+ * @param {object} msg - Message object
+ * @returns {void}
+ *
+ * @example
+ * sendMsgToFCL("FCL:VIEW:RESPONSE", {
+ *    f_type: "PollingResponse",
+ *    f_vsn: "1.0.0",
+ *    status: "APPROVED",
+ *    reason: null,
+ *    data: data,
+ *  })
+ */
+const sendMsgToFCL = function (type) {
+  let msg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  const data = {
+    ...msg,
+    type
+  };
+  const urlParams = new URLSearchParams(window.location.search);
+  const redirectUrl = urlParams.get(FCL_REDIRECT_URL_PARAM_NAME);
+  if (redirectUrl) {
+    const url = new URL(redirectUrl);
+    url.searchParams.append(FCL_RESPONSE_PARAM_NAME, JSON.stringify(data));
+    window.location.href = url.href;
+  } else if (window.location !== window.parent.location) {
+    window.parent.postMessage({
+      ...msg,
+      type
+    }, "*");
   } else if (window.opener) {
-    window.opener.postMessage(_objectSpread__default["default"](_objectSpread__default["default"]({}, msg), {}, {
-      type: type
-    }), "*");
+    window.opener.postMessage({
+      ...msg,
+      type
+    }, "*");
   } else {
     throw new Error("Unable to communicate with parent FCL instance");
   }
 };
-var ready = function ready(cb) {
+
+/**
+ * @description
+ * Listens for "FCL:VIEW:READY:RESPONSE" and sends "FCL:VIEW:READY"
+ *
+ * @param {Function} cb - Callback function
+ * @param {object} msg - Message object
+ * @returns {void}
+ */
+const ready = function (cb) {
   onMessageFromFCL("FCL:VIEW:READY:RESPONSE", cb);
   sendMsgToFCL("FCL:VIEW:READY");
 };
-var close = function close() {
+
+/**
+ * @description
+ * Sends "FCL:VIEW:CLOSE"
+ *
+ * @returns {void}
+ */
+const close = () => {
   sendMsgToFCL("FCL:VIEW:CLOSE");
 };
-var approve = function approve(data) {
+
+/**
+ * @description
+ * Sends "FCL:VIEW:RESPONSE" with status "APPROVED"
+ *
+ * @param {object} data - Data object
+ * @returns {void}
+ */
+const approve = data => {
   sendMsgToFCL("FCL:VIEW:RESPONSE", {
     f_type: "PollingResponse",
     f_vsn: "1.0.0",
@@ -29141,7 +19640,15 @@ var approve = function approve(data) {
     data: data
   });
 };
-var decline = function decline(reason) {
+
+/**
+ * @description
+ * Sends "FCL:VIEW:RESPONSE" with status "DECLINED"
+ *
+ * @param {string} reason - Reason for declining
+ * @returns {void}
+ */
+const decline = reason => {
   sendMsgToFCL("FCL:VIEW:RESPONSE", {
     f_type: "PollingResponse",
     f_vsn: "1.0.0",
@@ -29150,7 +19657,15 @@ var decline = function decline(reason) {
     data: null
   });
 };
-var redirect = function redirect(data) {
+
+/**
+ * @description
+ * Sends "FCL:VIEW:RESPONSE" with status "REDIRECT"
+ *
+ * @param {object} data - Data object
+ * @returns {void}
+ */
+const redirect = data => {
   sendMsgToFCL("FCL:VIEW:RESPONSE", {
     f_type: "PollingResponse",
     f_vsn: "1.0.0",
@@ -29160,6 +19675,35 @@ var redirect = function redirect(data) {
   });
 };
 
+const SERVICE_PRAGMA = {
+  f_type: "Service",
+  f_vsn: "1.0.0"
+};
+const IDENTITY_PRAGMA = {
+  f_type: "Identity",
+  f_vsn: "1.0.0"
+};
+const USER_PRAGMA = {
+  f_type: "USER",
+  f_vsn: "1.0.0"
+};
+const POLLING_RESPONSE_PRAGMA = {
+  f_type: "PollingResponse",
+  f_vsn: "1.0.0"
+};
+const COMPOSITE_SIGNATURE_PRAGMA = {
+  f_type: "CompositeSignature",
+  f_vsn: "1.0.0"
+};
+
+/**
+ * @description
+ * Constructs a new CompositeSignature instance.
+ *
+ * @param {string} addr - Flow Address
+ * @param {number} keyId - Key ID
+ * @param {string} signature - Signature as a hex string
+ */
 function CompositeSignature(addr, keyId, signature) {
   this.f_type = COMPOSITE_SIGNATURE_PRAGMA.f_type;
   this.f_vsn = COMPOSITE_SIGNATURE_PRAGMA.f_vsn;
@@ -29168,37 +19712,25 @@ function CompositeSignature(addr, keyId, signature) {
   this.signature = signature;
 }
 
-var rightPaddedHexBuffer = function rightPaddedHexBuffer(value, pad) {
-  return rlp.Buffer.from(value.padEnd(pad * 2, "0"), "hex");
-};
-
-var leftPaddedHexBuffer = function leftPaddedHexBuffer(value, pad) {
-  return rlp.Buffer.from(value.padStart(pad * 2, "0"), "hex");
-};
-
-var addressBuffer = function addressBuffer(addr) {
-  return leftPaddedHexBuffer(addr, 8);
-};
-
-var nonceBuffer = function nonceBuffer(nonce) {
-  return rlp.Buffer.from(nonce, "hex");
-};
-
-var encodeAccountProof = function encodeAccountProof(_ref) {
-  var address = _ref.address,
-      nonce = _ref.nonce,
-      appIdentifier = _ref.appIdentifier;
-  var includeDomainTag = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+const rightPaddedHexBuffer = (value, pad) => rlp.Buffer.from(value.padEnd(pad * 2, "0"), "hex");
+const leftPaddedHexBuffer = (value, pad) => rlp.Buffer.from(value.padStart(pad * 2, "0"), "hex");
+const addressBuffer = addr => leftPaddedHexBuffer(addr, 8);
+const nonceBuffer = nonce => rlp.Buffer.from(nonce, "hex");
+const encodeAccountProof = function (_ref) {
+  let {
+    address,
+    nonce,
+    appIdentifier
+  } = _ref;
+  let includeDomainTag = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
   utilInvariant.invariant(address, "Encode Message For Provable Authn Error: address must be defined");
   utilInvariant.invariant(nonce, "Encode Message For Provable Authn Error: nonce must be defined");
   utilInvariant.invariant(appIdentifier, "Encode Message For Provable Authn Error: appIdentifier must be defined");
   utilInvariant.invariant(nonce.length >= 64, "Encode Message For Provable Authn Error: nonce must be minimum of 32 bytes");
-  var ACCOUNT_PROOF_DOMAIN_TAG = rightPaddedHexBuffer(rlp.Buffer.from("FCL-ACCOUNT-PROOF-V0.0").toString("hex"), 32);
-
+  const ACCOUNT_PROOF_DOMAIN_TAG = rightPaddedHexBuffer(rlp.Buffer.from("FCL-ACCOUNT-PROOF-V0.0").toString("hex"), 32);
   if (includeDomainTag) {
     return rlp.Buffer.concat([ACCOUNT_PROOF_DOMAIN_TAG, rlp.encode([appIdentifier, addressBuffer(utilAddress.sansPrefix(address)), nonceBuffer(nonce)])]).toString("hex");
   }
-
   return rlp.encode([appIdentifier, addressBuffer(utilAddress.sansPrefix(address)), nonceBuffer(nonce)]).toString("hex");
 };
 
@@ -29207,7 +19739,6 @@ function injectExtService(service) {
     if (!Array.isArray(window.fcl_extensions)) {
       window.fcl_extensions = [];
     }
-
     window.fcl_extensions.push(service);
   } else {
     console.warn("Authn service is required");
@@ -29229,109 +19760,74 @@ var index$2 = /*#__PURE__*/Object.freeze({
   injectExtService: injectExtService
 });
 
-var ACCOUNT_PROOF = "ACCOUNT_PROOF";
-var USER_SIGNATURE = "USER_SIGNATURE";
-var validateArgs = function validateArgs(args) {
+const ACCOUNT_PROOF = "ACCOUNT_PROOF";
+const USER_SIGNATURE = "USER_SIGNATURE";
+const validateArgs = args => {
   if (args.appIdentifier) {
-    var appIdentifier = args.appIdentifier,
-        address = args.address,
-        nonce = args.nonce,
-        signatures = args.signatures;
+    const {
+      appIdentifier,
+      address,
+      nonce,
+      signatures
+    } = args;
     utilInvariant.invariant(isString(appIdentifier), "verifyAccountProof({ appIdentifier }) -- appIdentifier must be a string");
     utilInvariant.invariant(isString(address) && utilAddress.sansPrefix(address).length === 16, "verifyAccountProof({ address }) -- address must be a valid address");
     utilInvariant.invariant(/^[0-9a-f]+$/i.test(nonce), "nonce must be a hex string");
-    utilInvariant.invariant(Array.isArray(signatures) && signatures.every(function (sig, i, arr) {
-      return sig.f_type === "CompositeSignature";
-    }), "Must include an Array of CompositeSignatures to verify");
-    utilInvariant.invariant(signatures.map(function (cs) {
-      return cs.addr;
-    }).every(function (addr, i, arr) {
-      return addr === arr[0];
-    }), "User signatures to be verified must be from a single account address");
+    utilInvariant.invariant(Array.isArray(signatures) && signatures.every((sig, i, arr) => sig.f_type === "CompositeSignature"), "Must include an Array of CompositeSignatures to verify");
+    utilInvariant.invariant(signatures.map(cs => cs.addr).every((addr, i, arr) => addr === arr[0]), "User signatures to be verified must be from a single account address");
     return true;
   } else {
-    var message = args.message,
-        _address = args.address,
-        compSigs = args.compSigs;
+    const {
+      message,
+      address,
+      compSigs
+    } = args;
     utilInvariant.invariant(/^[0-9a-f]+$/i.test(message), "Signed message must be a hex string");
-    utilInvariant.invariant(isString(_address) && utilAddress.sansPrefix(_address).length === 16, "verifyUserSignatures({ address }) -- address must be a valid address");
-    utilInvariant.invariant(Array.isArray(compSigs) && compSigs.every(function (sig, i, arr) {
-      return sig.f_type === "CompositeSignature";
-    }), "Must include an Array of CompositeSignatures to verify");
-    utilInvariant.invariant(compSigs.map(function (cs) {
-      return cs.addr;
-    }).every(function (addr, i, arr) {
-      return addr === arr[0];
-    }), "User signatures to be verified must be from a single account address");
+    utilInvariant.invariant(isString(address) && utilAddress.sansPrefix(address).length === 16, "verifyUserSignatures({ address }) -- address must be a valid address");
+    utilInvariant.invariant(Array.isArray(compSigs) && compSigs.every((sig, i, arr) => sig.f_type === "CompositeSignature"), "Must include an Array of CompositeSignatures to verify");
+    utilInvariant.invariant(compSigs.map(cs => cs.addr).every((addr, i, arr) => addr === arr[0]), "User signatures to be verified must be from a single account address");
     return true;
   }
 };
 
-var getVerifySignaturesScript = /*#__PURE__*/function () {
-  var _ref = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(sig, opts) {
-    var verifyFunction, network, fclCryptoContract;
-    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            verifyFunction = sig === "ACCOUNT_PROOF" ? "verifyAccountProofSignatures" : "verifyUserSignatures";
-            _context.next = 3;
-            return config.config.get("flow.network");
+// TODO: pass in option for contract but we're connected to testnet
+// log address + network -> in sync?
+const getVerifySignaturesScript = async (sig, opts) => {
+  const verifyFunction = sig === "ACCOUNT_PROOF" ? "verifyAccountProofSignatures" : "verifyUserSignatures";
+  let network = await getChainId(opts);
+  let fclCryptoContract;
+  utilInvariant.invariant(opts.fclCryptoContract || network === "testnet" || network === "mainnet", "${verifyFunction}({ fclCryptoContract }) -- fclCrypto contract address must be set for non-mainnet/testnet networks");
+  if (opts.fclCryptoContract) {
+    fclCryptoContract = opts.fclCryptoContract;
+  } else {
+    fclCryptoContract = network === "testnet" ? "0x74daa6f9c7ef24b1" : "0xb4b82a1c9d21d284";
+  }
+  return `
+      import FCLCrypto from ${fclCryptoContract}
 
-          case 3:
-            network = _context.sent;
-
-            if (network) {
-              _context.next = 9;
-              break;
-            }
-
-            _context.next = 7;
-            return config.config.get("env");
-
-          case 7:
-            network = _context.sent;
-            if (network) utilLogger.log.deprecate({
-              pkg: "FCL",
-              subject: 'Using the "env" configuration key for specifying the flow network',
-              message: 'Please use "flow.network" instead.',
-              transition: "https://github.com/onflow/flow-js-sdk/blob/master/packages/fcl/TRANSITIONS.md#0001-deprecate-env-config-key"
-            });
-
-          case 9:
-            utilInvariant.invariant(opts.fclCryptoContract || network === "testnet" || network === "mainnet", "${verifyFunction}({ fclCryptoContract }) -- config.flow.network must be specified (testnet || mainnet) or contract address provided via opts.fclCryptoContract");
-
-            if (opts.fclCryptoContract) {
-              fclCryptoContract = opts.fclCryptoContract;
-            } else {
-              fclCryptoContract = network === "testnet" ? "0x74daa6f9c7ef24b1" : "0xb4b82a1c9d21d284";
-            }
-
-            return _context.abrupt("return", "\n      import FCLCrypto from ".concat(fclCryptoContract, "\n\n      pub fun main(\n          address: Address, \n          message: String, \n          keyIndices: [Int], \n          signatures: [String]\n      ): Bool {\n        return FCLCrypto.").concat(verifyFunction, "(address: address, message: message, keyIndices: keyIndices, signatures: signatures)\n      }\n    "));
-
-          case 12:
-          case "end":
-            return _context.stop();
-        }
+      pub fun main(
+          address: Address, 
+          message: String, 
+          keyIndices: [Int], 
+          signatures: [String]
+      ): Bool {
+        return FCLCrypto.${verifyFunction}(address: address, message: message, keyIndices: keyIndices, signatures: signatures)
       }
-    }, _callee);
-  }));
+    `;
+};
 
-  return function getVerifySignaturesScript(_x, _x2) {
-    return _ref.apply(this, arguments);
-  };
-}();
 /**
+ * @description
  * Verify a valid account proof signature or signatures for an account on Flow.
  *
  * @param {string} appIdentifier - A message string in hexadecimal format
- * @param {Object} accountProofData - An object consisting of address, nonce, and signatures
+ * @param {object} accountProofData - An object consisting of address, nonce, and signatures
  * @param {string} accountProofData.address - A Flow account address
  * @param {string} accountProofData.nonce - A random string in hexadecimal format (minimum 32 bytes in total, i.e 64 hex characters)
- * @param {Object[]} accountProofData.signatures - An array of composite signatures to verify
- * @param {Object} [opts={}] - Options object
+ * @param {object[]} accountProofData.signatures - An array of composite signatures to verify
+ * @param {object} [opts={}] - Options object
  * @param {string} opts.fclCryptoContract - An optional override Flow account address where the FCLCrypto contract is deployed
- * @return {bool}
+ * @returns {Promise<boolean>} - Returns true if the signature is valid, false otherwise
  *
  * @example
  *
@@ -29347,22 +19843,48 @@ var getVerifySignaturesScript = /*#__PURE__*/function () {
  *    {fclCryptoContract}
  *  )
  */
-
-
-function verifyAccountProof(_x3, _x4) {
-  return _verifyAccountProof.apply(this, arguments);
+async function verifyAccountProof(appIdentifier, _ref) {
+  let {
+    address,
+    nonce,
+    signatures
+  } = _ref;
+  let opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+  validateArgs({
+    appIdentifier,
+    address,
+    nonce,
+    signatures
+  });
+  const message = encodeAccountProof({
+    address,
+    nonce,
+    appIdentifier
+  }, false);
+  let signaturesArr = [];
+  let keyIndices = [];
+  for (const el of signatures) {
+    signaturesArr.push(el.signature);
+    keyIndices.push(el.keyId.toString());
+  }
+  return query({
+    cadence: await getVerifySignaturesScript(ACCOUNT_PROOF, opts),
+    args: (arg, t) => [arg(utilAddress.withPrefix(address), t.Address), arg(message, t.String), arg(keyIndices, t.Array(t.Int)), arg(signaturesArr, t.Array(t.String))]
+  });
 }
+
 /**
+ * @description
  * Verify a valid signature/s for an account on Flow.
  *
- * @param {string} msg - A message string in hexadecimal format
+ * @param {string} message - A message string in hexadecimal format
  * @param {Array} compSigs - An array of Composite Signatures
  * @param {string} compSigs[].addr - The account address
  * @param {number} compSigs[].keyId - The account keyId
  * @param {string} compSigs[].signature - The signature to verify
- * @param {Object} [opts={}] - Options object
+ * @param {object} [opts={}] - Options object
  * @param {string} opts.fclCryptoContract - An optional override of Flow account address where the FCLCrypto contract is deployed
- * @return {bool}
+ * @returns {boolean} - Returns true if the signature is valid, false otherwise
  *
  * @example
  *
@@ -29372,148 +19894,24 @@ function verifyAccountProof(_x3, _x4) {
  *    {fclCryptoContract}
  *  )
  */
-
-function _verifyAccountProof() {
-  _verifyAccountProof = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee2(appIdentifier, _ref2) {
-    var address,
-        nonce,
-        signatures,
-        opts,
-        message,
-        signaturesArr,
-        keyIndices,
-        _iterator,
-        _step,
-        el,
-        _args2 = arguments;
-
-    return _regeneratorRuntime__default["default"].wrap(function _callee2$(_context2) {
-      while (1) {
-        switch (_context2.prev = _context2.next) {
-          case 0:
-            address = _ref2.address, nonce = _ref2.nonce, signatures = _ref2.signatures;
-            opts = _args2.length > 2 && _args2[2] !== undefined ? _args2[2] : {};
-            validateArgs({
-              appIdentifier: appIdentifier,
-              address: address,
-              nonce: nonce,
-              signatures: signatures
-            });
-            message = encodeAccountProof({
-              address: address,
-              nonce: nonce,
-              appIdentifier: appIdentifier
-            }, false);
-            signaturesArr = [];
-            keyIndices = [];
-            _iterator = _createForOfIteratorHelper__default["default"](signatures);
-
-            try {
-              for (_iterator.s(); !(_step = _iterator.n()).done;) {
-                el = _step.value;
-                signaturesArr.push(el.signature);
-                keyIndices.push(el.keyId.toString());
-              }
-            } catch (err) {
-              _iterator.e(err);
-            } finally {
-              _iterator.f();
-            }
-
-            _context2.t0 = query;
-            _context2.next = 11;
-            return getVerifySignaturesScript(ACCOUNT_PROOF, opts);
-
-          case 11:
-            _context2.t1 = _context2.sent;
-
-            _context2.t2 = function args(arg, t) {
-              return [arg(utilAddress.withPrefix(address), t.Address), arg(message, t.String), arg(keyIndices, t.Array(t.Int)), arg(signaturesArr, t.Array(t.String))];
-            };
-
-            _context2.t3 = {
-              cadence: _context2.t1,
-              args: _context2.t2
-            };
-            return _context2.abrupt("return", (0, _context2.t0)(_context2.t3));
-
-          case 15:
-          case "end":
-            return _context2.stop();
-        }
-      }
-    }, _callee2);
-  }));
-  return _verifyAccountProof.apply(this, arguments);
-}
-
-function verifyUserSignatures$1(_x5, _x6) {
-  return _verifyUserSignatures.apply(this, arguments);
-}
-
-function _verifyUserSignatures() {
-  _verifyUserSignatures = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee3(message, compSigs) {
-    var opts,
-        address,
-        signaturesArr,
-        keyIndices,
-        _iterator2,
-        _step2,
-        el,
-        _args3 = arguments;
-
-    return _regeneratorRuntime__default["default"].wrap(function _callee3$(_context3) {
-      while (1) {
-        switch (_context3.prev = _context3.next) {
-          case 0:
-            opts = _args3.length > 2 && _args3[2] !== undefined ? _args3[2] : {};
-            address = utilAddress.withPrefix(compSigs[0].addr);
-            validateArgs({
-              message: message,
-              address: address,
-              compSigs: compSigs
-            });
-            signaturesArr = [];
-            keyIndices = [];
-            _iterator2 = _createForOfIteratorHelper__default["default"](compSigs);
-
-            try {
-              for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
-                el = _step2.value;
-                signaturesArr.push(el.signature);
-                keyIndices.push(el.keyId.toString());
-              }
-            } catch (err) {
-              _iterator2.e(err);
-            } finally {
-              _iterator2.f();
-            }
-
-            _context3.t0 = query;
-            _context3.next = 10;
-            return getVerifySignaturesScript(USER_SIGNATURE, opts);
-
-          case 10:
-            _context3.t1 = _context3.sent;
-
-            _context3.t2 = function args(arg, t) {
-              return [arg(address, t.Address), arg(message, t.String), arg(keyIndices, t.Array(t.Int)), arg(signaturesArr, t.Array(t.String))];
-            };
-
-            _context3.t3 = {
-              cadence: _context3.t1,
-              args: _context3.t2
-            };
-            return _context3.abrupt("return", (0, _context3.t0)(_context3.t3));
-
-          case 14:
-          case "end":
-            return _context3.stop();
-        }
-      }
-    }, _callee3);
-  }));
-  return _verifyUserSignatures.apply(this, arguments);
+async function verifyUserSignatures$1(message, compSigs) {
+  let opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+  const address = utilAddress.withPrefix(compSigs[0].addr);
+  validateArgs({
+    message,
+    address,
+    compSigs
+  });
+  let signaturesArr = [];
+  let keyIndices = [];
+  for (const el of compSigs) {
+    signaturesArr.push(el.signature);
+    keyIndices.push(el.keyId.toString());
+  }
+  return query({
+    cadence: await getVerifySignaturesScript(USER_SIGNATURE, opts),
+    args: (arg, t) => [arg(address, t.Address), arg(message, t.String), arg(keyIndices, t.Array(t.Int)), arg(signaturesArr, t.Array(t.String))]
+  });
 }
 
 var index$1 = /*#__PURE__*/Object.freeze({
@@ -29528,8 +19926,7 @@ var index$1 = /*#__PURE__*/Object.freeze({
  * @deprecated since version '1.0.0-alpha.0', use AppUtils.verifyUserSignatures instead
  *
  */
-
-var verifyUserSignatures = utilLogger.log.deprecate({
+const verifyUserSignatures = utilLogger.log.deprecate({
   pkg: "FCL",
   subject: "fcl.verifyUserSignatures()",
   message: "Please use fcl.AppUtils.verifyUserSignatures()",
@@ -29538,221 +19935,109 @@ var verifyUserSignatures = utilLogger.log.deprecate({
   }
 });
 
-var serialize = /*#__PURE__*/function () {
-  var _ref = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee() {
-    var args,
-        opts,
-        resolveFunction,
-        _args = arguments;
-    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            args = _args.length > 0 && _args[0] !== undefined ? _args[0] : [];
-            opts = _args.length > 1 && _args[1] !== undefined ? _args[1] : {};
-            _context.next = 4;
-            return sdk.config.first(["sdk.resolve"], opts.resolve || sdk.resolve);
+const serialize = async function () {
+  let args = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+  let opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  const resolveFunction = await sdk.config.first(["sdk.resolve"], opts.resolve || sdk.resolve);
+  if (Array.isArray(args)) args = await sdk.pipe(sdk.interaction(), args);
+  return JSON.stringify(sdk.createSignableVoucher(await resolveFunction(args)), null, 2);
+};
 
-          case 4:
-            resolveFunction = _context.sent;
-
-            if (!Array.isArray(args)) {
-              _context.next = 9;
-              break;
-            }
-
-            _context.next = 8;
-            return sdk.pipe(sdk.interaction(), args);
-
-          case 8:
-            args = _context.sent;
-
-          case 9:
-            _context.t0 = JSON;
-            _context.t1 = sdk.createSignableVoucher;
-            _context.next = 13;
-            return resolveFunction(args);
-
-          case 13:
-            _context.t2 = _context.sent;
-            _context.t3 = (0, _context.t1)(_context.t2);
-            return _context.abrupt("return", _context.t0.stringify.call(_context.t0, _context.t3, null, 2));
-
-          case 16:
-          case "end":
-            return _context.stop();
-        }
-      }
-    }, _callee);
+async function configLens(regex) {
+  return Object.fromEntries(Object.entries(await config.config().where(regex)).map(_ref => {
+    let [key, value] = _ref;
+    return [key.replace(regex, ""), value];
   }));
+}
 
-  return function serialize() {
-    return _ref.apply(this, arguments);
-  };
-}();
+/**
+ * @typedef {import("@onflow/typedefs").Transaction} Transaction
+ */
 
-var _HANDLERS$1;
-var RATE$1 = 2500;
-var POLL = "POLL";
+/**
+ * @typedef {import("@onflow/typedefs").TransactionStatus} TransactionStatus
+ */
 
-var fetchTxStatus = /*#__PURE__*/function () {
-  var _ref = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(transactionId) {
-    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            return _context.abrupt("return", sdk.send([sdk.getTransactionStatus(transactionId)]).then(sdk.decode));
-
-          case 1:
-          case "end":
-            return _context.stop();
-        }
-      }
-    }, _callee);
-  }));
-
-  return function fetchTxStatus(_x) {
-    return _ref.apply(this, arguments);
-  };
-}();
-
-var isExpired = function isExpired(tx) {
-  return tx.status === 5;
+const RATE$1 = 2500;
+const POLL = "POLL";
+const fetchTxStatus = async transactionId => {
+  return sdk.send([sdk.getTransactionStatus(transactionId)]).then(sdk.decode);
 };
-
-var isSealed = function isSealed(tx) {
-  return tx.status >= 4;
-};
-
-var isExecuted = function isExecuted(tx) {
-  return tx.status >= 3;
-};
-
-var isFinalized = function isFinalized(tx) {
-  return tx.status >= 2;
-};
-
-var isPending = function isPending(tx) {
-  return tx.status >= 1;
-};
-
-var isUnknown = function isUnknown(tx) {
-  return tx.status >= 0;
-};
-
-var isDiff = function isDiff(cur, next) {
+const isExpired = tx => tx.status === 5;
+const isSealed = tx => tx.status >= 4;
+const isExecuted = tx => tx.status >= 3;
+const isFinalized = tx => tx.status >= 2;
+const isPending = tx => tx.status >= 1;
+const isUnknown = tx => tx.status >= 0;
+const isDiff = (cur, next) => {
   return JSON.stringify(cur) !== JSON.stringify(next);
 };
-
-var HANDLERS$1 = (_HANDLERS$1 = {}, _defineProperty__default["default"](_HANDLERS$1, utilActor.INIT, function () {
-  var _ref2 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee2(ctx) {
-    return _regeneratorRuntime__default["default"].wrap(function _callee2$(_context2) {
-      while (1) {
-        switch (_context2.prev = _context2.next) {
-          case 0:
-            ctx.sendSelf(POLL);
-
-          case 1:
-          case "end":
-            return _context2.stop();
-        }
-      }
-    }, _callee2);
-  }));
-
-  return function (_x2) {
-    return _ref2.apply(this, arguments);
-  };
-}()), _defineProperty__default["default"](_HANDLERS$1, utilActor.SUBSCRIBE, function (ctx, letter) {
-  ctx.subscribe(letter.from);
-  ctx.send(letter.from, utilActor.UPDATED, ctx.all());
-}), _defineProperty__default["default"](_HANDLERS$1, utilActor.UNSUBSCRIBE, function (ctx, letter) {
-  ctx.unsubscribe(letter.from);
-}), _defineProperty__default["default"](_HANDLERS$1, utilActor.SNAPSHOT, function () {
-  var _ref3 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee3(ctx, letter) {
-    return _regeneratorRuntime__default["default"].wrap(function _callee3$(_context3) {
-      while (1) {
-        switch (_context3.prev = _context3.next) {
-          case 0:
-            letter.reply(ctx.all());
-
-          case 1:
-          case "end":
-            return _context3.stop();
-        }
-      }
-    }, _callee3);
-  }));
-
-  return function (_x3, _x4) {
-    return _ref3.apply(this, arguments);
-  };
-}()), _defineProperty__default["default"](_HANDLERS$1, POLL, function () {
-  var _ref4 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee4(ctx) {
-    var tx;
-    return _regeneratorRuntime__default["default"].wrap(function _callee4$(_context4) {
-      while (1) {
-        switch (_context4.prev = _context4.next) {
-          case 0:
-            _context4.prev = 0;
-            _context4.next = 3;
-            return fetchTxStatus(ctx.self());
-
-          case 3:
-            tx = _context4.sent;
-            _context4.next = 9;
-            break;
-
-          case 6:
-            _context4.prev = 6;
-            _context4.t0 = _context4["catch"](0);
-            return _context4.abrupt("return", ctx.fatalError(_context4.t0));
-
-          case 9:
-            if (!isSealed(tx)) setTimeout(function () {
-              return ctx.sendSelf(POLL);
-            }, RATE$1);
-            if (isDiff(ctx.all(), tx)) ctx.broadcast(utilActor.UPDATED, tx);
-            ctx.merge(tx);
-
-          case 12:
-          case "end":
-            return _context4.stop();
-        }
-      }
-    }, _callee4, null, [[0, 6]]);
-  }));
-
-  return function (_x5) {
-    return _ref4.apply(this, arguments);
-  };
-}()), _HANDLERS$1);
-
-var scoped = function scoped(transactionId) {
-  if (_typeof__default["default"](transactionId) === "object") transactionId = transactionId.transactionId;
+const HANDLERS$3 = {
+  [utilActor.INIT]: async ctx => {
+    ctx.sendSelf(POLL);
+  },
+  [utilActor.SUBSCRIBE]: (ctx, letter) => {
+    ctx.subscribe(letter.from);
+    ctx.send(letter.from, utilActor.UPDATED, ctx.all());
+  },
+  [utilActor.UNSUBSCRIBE]: (ctx, letter) => {
+    ctx.unsubscribe(letter.from);
+  },
+  [utilActor.SNAPSHOT]: async (ctx, letter) => {
+    letter.reply(ctx.all());
+  },
+  [POLL]: async ctx => {
+    let tx;
+    try {
+      tx = await fetchTxStatus(ctx.self());
+    } catch (e) {
+      return ctx.fatalError(e);
+    }
+    if (!isSealed(tx)) setTimeout(() => ctx.sendSelf(POLL), RATE$1);
+    if (isDiff(ctx.all(), tx)) ctx.broadcast(utilActor.UPDATED, tx);
+    ctx.merge(tx);
+  }
+};
+const scoped = transactionId => {
+  if (typeof transactionId === "object") transactionId = transactionId.transactionId;
   if (transactionId == null) throw new Error("transactionId required");
   return transactionId;
 };
-
-var spawnTransaction = function spawnTransaction(transactionId) {
-  return utilActor.spawn(HANDLERS$1, scoped(transactionId));
+const spawnTransaction = transactionId => {
+  return utilActor.spawn(HANDLERS$3, scoped(transactionId));
 };
 
+/**
+ * @callback SubscriptionCallback
+ * @param {TransactionStatus} txStatus
+ * @returns {void}
+ */
+
+/**
+ * Provides methods for interacting with a transaction
+ * 
+ * @param {string} transactionId - The transaction ID
+ * @returns {{
+ *    snapshot: function(): Promise<TransactionStatus>,
+ *    subscribe: function(SubscriptionCallback): function(): void,
+ *    onceFinalized: function(): Promise<TransactionStatus>,
+ *    onceExecuted: function(): Promise<TransactionStatus>,
+ *    onceSealed: function(): Promise<TransactionStatus>
+ * }}
+ */
 function transaction(transactionId) {
   function snapshot() {
     return utilActor.snapshoter(transactionId, spawnTransaction);
   }
-
   function subscribe(callback) {
     return utilActor.subscriber(scoped(transactionId), spawnTransaction, callback);
   }
-
   function once(predicate) {
     return function innerOnce() {
-      var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-      var suppress = opts.suppress || false;
-      return new Promise(function (resolve, reject) {
-        var unsub = subscribe(function (txStatus, error) {
+      let opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+      const suppress = opts.suppress || false;
+      return new Promise((resolve, reject) => {
+        const unsub = subscribe((txStatus, error) => {
           if ((error || txStatus.statusCode) && !suppress) {
             reject(error || txStatus.errorMessage);
             unsub();
@@ -29764,10 +20049,9 @@ function transaction(transactionId) {
       });
     };
   }
-
   return {
-    snapshot: snapshot,
-    subscribe: subscribe,
+    snapshot,
+    subscribe,
     onceFinalized: once(isFinalized),
     onceExecuted: once(isExecuted),
     onceSealed: once(isSealed)
@@ -29780,199 +20064,364 @@ transaction.isExecuted = isExecuted;
 transaction.isSealed = isSealed;
 transaction.isExpired = isExpired;
 
-var _HANDLERS;
-var RATE = 10000;
-var UPDATED = "UPDATED";
-var TICK = "TICK";
-var HIGH_WATER_MARK = "hwm";
-
-var scheduleTick = /*#__PURE__*/function () {
-  var _ref = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(ctx) {
-    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            _context.t0 = setTimeout;
-
-            _context.t1 = function () {
-              return ctx.sendSelf(TICK);
-            };
-
-            _context.next = 4;
-            return sdk.config().get("fcl.eventPollRate", RATE);
-
-          case 4:
-            _context.t2 = _context.sent;
-            return _context.abrupt("return", (0, _context.t0)(_context.t1, _context.t2));
-
-          case 6:
-          case "end":
-            return _context.stop();
-        }
-      }
-    }, _callee);
-  }));
-
-  return function scheduleTick(_x) {
-    return _ref.apply(this, arguments);
-  };
-}();
-
-var HANDLERS = (_HANDLERS = {}, _defineProperty__default["default"](_HANDLERS, TICK, function () {
-  var _ref2 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee2(ctx) {
-    var hwm, next, data, _iterator, _step, d;
-
-    return _regeneratorRuntime__default["default"].wrap(function _callee2$(_context2) {
-      while (1) {
-        switch (_context2.prev = _context2.next) {
-          case 0:
-            if (ctx.hasSubs()) {
-              _context2.next = 2;
-              break;
-            }
-
-            return _context2.abrupt("return");
-
-          case 2:
-            hwm = ctx.get(HIGH_WATER_MARK);
-
-            if (!(hwm == null)) {
-              _context2.next = 18;
-              break;
-            }
-
-            _context2.t0 = ctx;
-            _context2.t1 = HIGH_WATER_MARK;
-            _context2.next = 8;
-            return sdk.block();
-
-          case 8:
-            _context2.t2 = _context2.sent;
-
-            _context2.t0.put.call(_context2.t0, _context2.t1, _context2.t2);
-
-            _context2.t3 = ctx;
-            _context2.t4 = TICK;
-            _context2.next = 14;
-            return scheduleTick(ctx);
-
-          case 14:
-            _context2.t5 = _context2.sent;
-
-            _context2.t3.put.call(_context2.t3, _context2.t4, _context2.t5);
-
-            _context2.next = 34;
-            break;
-
-          case 18:
-            _context2.next = 20;
-            return sdk.block();
-
-          case 20:
-            next = _context2.sent;
-            ctx.put(HIGH_WATER_MARK, next);
-
-            if (!(hwm.height < next.height)) {
-              _context2.next = 28;
-              break;
-            }
-
-            _context2.next = 25;
-            return sdk.send([sdk.getEventsAtBlockHeightRange(ctx.self(), hwm.height + 1, next.height)]).then(sdk.decode);
-
-          case 25:
-            data = _context2.sent;
-            _iterator = _createForOfIteratorHelper__default["default"](data);
-
-            try {
-              for (_iterator.s(); !(_step = _iterator.n()).done;) {
-                d = _step.value;
-                ctx.broadcast(UPDATED, d.data);
-              }
-            } catch (err) {
-              _iterator.e(err);
-            } finally {
-              _iterator.f();
-            }
-
-          case 28:
-            _context2.t6 = ctx;
-            _context2.t7 = TICK;
-            _context2.next = 32;
-            return scheduleTick(ctx);
-
-          case 32:
-            _context2.t8 = _context2.sent;
-
-            _context2.t6.put.call(_context2.t6, _context2.t7, _context2.t8);
-
-          case 34:
-          case "end":
-            return _context2.stop();
-        }
-      }
-    }, _callee2);
-  }));
-
-  return function (_x2) {
-    return _ref2.apply(this, arguments);
-  };
-}()), _defineProperty__default["default"](_HANDLERS, utilActor.SUBSCRIBE, function () {
-  var _ref3 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee3(ctx, letter) {
-    return _regeneratorRuntime__default["default"].wrap(function _callee3$(_context3) {
-      while (1) {
-        switch (_context3.prev = _context3.next) {
-          case 0:
-            if (ctx.hasSubs()) {
-              _context3.next = 7;
-              break;
-            }
-
-            _context3.t0 = ctx;
-            _context3.t1 = TICK;
-            _context3.next = 5;
-            return scheduleTick(ctx);
-
-          case 5:
-            _context3.t2 = _context3.sent;
-
-            _context3.t0.put.call(_context3.t0, _context3.t1, _context3.t2);
-
-          case 7:
-            ctx.subscribe(letter.from);
-
-          case 8:
-          case "end":
-            return _context3.stop();
-        }
-      }
-    }, _callee3);
-  }));
-
-  return function (_x3, _x4) {
-    return _ref3.apply(this, arguments);
-  };
-}()), _defineProperty__default["default"](_HANDLERS, utilActor.UNSUBSCRIBE, function (ctx, letter) {
-  ctx.unsubscribe(letter.from);
-
-  if (!ctx.hasSubs()) {
-    clearTimeout(ctx.get(TICK));
-    ctx["delete"](TICK);
-    ctx["delete"](HIGH_WATER_MARK);
-  }
-}), _HANDLERS);
-
-var spawnEvents = function spawnEvents(key) {
-  return utilActor.spawn(HANDLERS, key);
+const RATE = 10000;
+const UPDATED$1 = "UPDATED";
+const TICK = "TICK";
+const HIGH_WATER_MARK = "hwm";
+const scheduleTick = async ctx => {
+  return setTimeout(() => ctx.sendSelf(TICK), await sdk.config().get("fcl.eventPollRate", RATE));
 };
+const HANDLERS$2 = {
+  [TICK]: async ctx => {
+    if (!ctx.hasSubs()) return;
+    let hwm = ctx.get(HIGH_WATER_MARK);
+    if (hwm == null) {
+      ctx.put(HIGH_WATER_MARK, await sdk.block());
+      ctx.put(TICK, await scheduleTick(ctx));
+    } else {
+      let next = await sdk.block();
+      ctx.put(HIGH_WATER_MARK, next);
+      if (hwm.height < next.height) {
+        const data = await sdk.send([sdk.getEventsAtBlockHeightRange(ctx.self(), hwm.height + 1, next.height)]).then(sdk.decode);
+        for (let d of data) ctx.broadcast(UPDATED$1, d.data);
+      }
+      ctx.put(TICK, await scheduleTick(ctx));
+    }
+  },
+  [utilActor.SUBSCRIBE]: async (ctx, letter) => {
+    if (!ctx.hasSubs()) {
+      ctx.put(TICK, await scheduleTick(ctx));
+    }
+    ctx.subscribe(letter.from);
+  },
+  [utilActor.UNSUBSCRIBE]: (ctx, letter) => {
+    ctx.unsubscribe(letter.from);
+    if (!ctx.hasSubs()) {
+      clearTimeout(ctx.get(TICK));
+      ctx.delete(TICK);
+      ctx.delete(HIGH_WATER_MARK);
+    }
+  }
+};
+const spawnEvents = key => utilActor.spawn(HANDLERS$2, key);
 
+/**
+ * @typedef {import("@onflow/typedefs").Event} Event
+ */
+
+/**
+ * @typedef {object} SubscribeObject
+ * @property {Function} subscribe - The subscribe function.
+ */
+
+/**
+ * @callback SubscriptionCallback
+ * @returns {Event}
+ */
+
+/**
+ * @description - Subscribe to events
+ * @param {string} key - A valid event name
+ * @returns {SubscribeObject}
+ * 
+ * @example
+ * import * as fcl from "@onflow/fcl"
+ * fcl.events(eventName).subscribe((event) => console.log(event))
+ */
 function events(key) {
   return {
-    subscribe: function subscribe(callback) {
-      return utilActor.subscriber(key, spawnEvents, callback);
-    }
+    /**
+     * @description - Subscribe to events
+     * @param {Function} callback - The callback function
+     * @returns {SubscriptionCallback}
+     */
+    subscribe: callback => utilActor.subscriber(key, spawnEvents, callback)
   };
 }
+
+const stub = () => {
+  throw new Error(`Platform specific Core Strategies are not initialized`);
+};
+const stubCoreStrategies = {
+  [CORE_STRATEGIES["EXT/RPC"]]: stub,
+  [CORE_STRATEGIES["HTTP/POST"]]: stub,
+  [CORE_STRATEGIES["IFRAME/RPC"]]: stub,
+  [CORE_STRATEGIES["POP/RPC"]]: stub,
+  [CORE_STRATEGIES["TAB/RPC"]]: stub,
+  [CORE_STRATEGIES["EXT/RPC"]]: stub
+};
+const supportedPlugins = ["ServicePlugin"];
+const supportedServicePlugins = ["discovery-service"];
+const validateDiscoveryPlugin = servicePlugin => {
+  const {
+    services,
+    serviceStrategy
+  } = servicePlugin;
+  utilInvariant.invariant(Array.isArray(services) && services.length, "Array of Discovery Services is required");
+  for (const ds of services) {
+    utilInvariant.invariant(isRequired(ds.f_type) && ds.f_type === "Service", "Service is required");
+    utilInvariant.invariant(isRequired(ds.type) && ds.type === "authn", `Service must be type authn. Received ${ds.type}`);
+    utilInvariant.invariant(ds.method in CORE_STRATEGIES || serviceStrategy.method === ds.method, `Service method ${ds.method} is not supported`);
+  }
+  utilInvariant.invariant(isRequired(serviceStrategy), "Service strategy is required");
+  utilInvariant.invariant(isRequired(serviceStrategy.method) && isString(serviceStrategy.method), "Service strategy method is required");
+  utilInvariant.invariant(isRequired(serviceStrategy.exec) && isFunc(serviceStrategy.exec), "Service strategy exec function is required");
+  return {
+    discoveryServices: services,
+    serviceStrategy
+  };
+};
+const ServiceRegistry = _ref => {
+  let {
+    coreStrategies
+  } = _ref;
+  let services = new Set();
+  let strategies = new Map(Object.entries(coreStrategies));
+  const add = servicePlugin => {
+    utilInvariant.invariant(supportedServicePlugins.includes(servicePlugin.type), `Service Plugin type ${servicePlugin.type} is not supported`);
+    if (servicePlugin.type === "discovery-service") {
+      const {
+        discoveryServices,
+        serviceStrategy
+      } = validateDiscoveryPlugin(servicePlugin);
+      setServices(discoveryServices);
+      if (!strategies.has(serviceStrategy.method)) {
+        strategies.set(serviceStrategy.method, serviceStrategy.exec);
+      } else {
+        utilLogger.log({
+          title: `Add Service Plugin`,
+          message: `Service strategy for ${serviceStrategy.method} already exists`,
+          level: utilLogger.LEVELS.warn
+        });
+      }
+    }
+  };
+  const setServices = discoveryServices => services = new Set([...discoveryServices]);
+  const getServices = () => [...services];
+  const getStrategy = method => strategies.get(method);
+  const getStrategies = () => [...strategies.keys()];
+  return Object.freeze({
+    add,
+    getServices,
+    getStrategy,
+    getStrategies
+  });
+};
+const validatePlugins = plugins => {
+  let pluginsArray;
+  utilInvariant.invariant(plugins, "No plugins supplied");
+  if (!Array.isArray(plugins)) {
+    pluginsArray = [plugins];
+  } else {
+    pluginsArray = [...plugins];
+  }
+  for (const p of pluginsArray) {
+    utilInvariant.invariant(isRequired(p.name), "Plugin name is required");
+    utilInvariant.invariant(isRequired(p.f_type), "Plugin f_type is required");
+    utilInvariant.invariant(supportedPlugins.includes(p.f_type), `Plugin type ${p.f_type} is not supported`);
+  }
+  return pluginsArray;
+};
+const PluginRegistry = () => {
+  const pluginsMap = new Map();
+  const getPlugins = () => pluginsMap;
+  const add = plugins => {
+    const pluginsArray = validatePlugins(plugins);
+    for (const p of pluginsArray) {
+      pluginsMap.set(p.name, p);
+      if (p.f_type === "ServicePlugin") {
+        serviceRegistry.add(p);
+      }
+    }
+  };
+  return Object.freeze({
+    add,
+    getPlugins
+  });
+};
+let serviceRegistry;
+const getIsServiceRegistryInitialized = () => typeof serviceRegistry !== 'undefined';
+const initServiceRegistry = _ref2 => {
+  let {
+    coreStrategies
+  } = _ref2;
+  if (getIsServiceRegistryInitialized()) {
+    return serviceRegistry;
+  }
+  const _serviceRegistry = ServiceRegistry({
+    coreStrategies
+  });
+  serviceRegistry = _serviceRegistry;
+  return _serviceRegistry;
+};
+const getServiceRegistry = () => {
+  if (!getIsServiceRegistryInitialized()) {
+    console.warn("Registry is not initalized, it will be initialized with stub core strategies");
+    return initServiceRegistry({
+      coreStrategies: stubCoreStrategies
+    });
+  }
+  return serviceRegistry;
+};
+const pluginRegistry = PluginRegistry();
+
+const makeDiscoveryServices = async () => {
+  const extensionServices = window?.fcl_extensions || [];
+  return [...extensionServices, ...getServiceRegistry().getServices()];
+};
+async function getDiscoveryService(service) {
+  const discoveryAuthnInclude = await config.config.get("discovery.authn.include", []);
+  const discoveryFeaturesSuggested = await config.config.get("discovery.features.suggested", []);
+  const discoveryWalletMethod = await config.config.first(["discovery.wallet.method", "discovery.wallet.method.default"]);
+  const method = service?.method ? service.method : discoveryWalletMethod;
+  const endpoint = service?.endpoint ?? (await config.config.first(["discovery.wallet", "challenge.handshake"]));
+  utilInvariant.invariant(endpoint, `
+    If no service is passed to "authenticate," then "discovery.wallet" must be defined in fcl config.
+    See: "https://docs.onflow.org/fcl/reference/api/#setting-configuration-values"
+    `);
+  return {
+    ...service,
+    type: "authn",
+    endpoint,
+    method,
+    discoveryAuthnInclude,
+    discoveryFeaturesSuggested
+  };
+}
+
+async function getServices(_ref) {
+  let {
+    types
+  } = _ref;
+  const endpoint = await config.config.get("discovery.authn.endpoint");
+  utilInvariant.invariant(Boolean(endpoint), `"discovery.authn.endpoint" in config must be defined.`);
+  const include = await config.config.get("discovery.authn.include", []);
+  const url = new URL(endpoint);
+  return fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      type: types,
+      fclVersion: VERSION,
+      include,
+      features: {
+        suggested: await config.config.get("discovery.features.suggested", [])
+      },
+      clientServices: await makeDiscoveryServices(),
+      supportedStrategies: getServiceRegistry().getStrategies(),
+      userAgent: window?.navigator?.userAgent,
+      network: await getChainId()
+    })
+  }).then(d => d.json());
+}
+
+const SERVICE_ACTOR_KEYS = {
+  AUTHN: "authn",
+  RESULTS: "results",
+  SNAPSHOT: "SNAPSHOT",
+  UPDATED: "UPDATED",
+  UPDATE_RESULTS: "UPDATE_RESULTS"
+};
+const warn = (fact, msg) => {
+  if (fact) {
+    console.warn(`
+      %cFCL Warning
+      ============================
+      ${msg}
+      For more info, please see the docs: https://docs.onflow.org/fcl/
+      ============================
+      `, "font-weight:bold;font-family:monospace;");
+  }
+};
+const fetchServicesFromDiscovery = async () => {
+  try {
+    const services = await getServices({
+      types: [SERVICE_ACTOR_KEYS.AUTHN]
+    });
+    utilActor.send(SERVICE_ACTOR_KEYS.AUTHN, SERVICE_ACTOR_KEYS.UPDATE_RESULTS, {
+      results: services
+    });
+  } catch (error) {
+    utilLogger.log({
+      title: `${error.name} Error fetching Discovery API services.`,
+      message: error.message,
+      level: utilLogger.LEVELS.error
+    });
+  }
+};
+const HANDLERS$1 = {
+  [utilActor.INIT]: async ctx => {
+    warn(typeof window === "undefined", '"fcl.discovery" is only available in the browser.');
+    // If you call this before the window is loaded extensions will not be set yet
+    if (document.readyState === 'complete') {
+      fetchServicesFromDiscovery();
+    } else {
+      window.onload = async () => {
+        fetchServicesFromDiscovery();
+      };
+    }
+  },
+  [SERVICE_ACTOR_KEYS.UPDATE_RESULTS]: (ctx, _letter, data) => {
+    ctx.merge(data);
+    ctx.broadcast(SERVICE_ACTOR_KEYS.UPDATED, {
+      ...ctx.all()
+    });
+  },
+  [utilActor.SUBSCRIBE]: (ctx, letter) => {
+    ctx.subscribe(letter.from);
+    ctx.send(letter.from, SERVICE_ACTOR_KEYS.UPDATED, {
+      ...ctx.all()
+    });
+  },
+  [utilActor.UNSUBSCRIBE]: (ctx, letter) => ctx.unsubscribe(letter.from),
+  [SERVICE_ACTOR_KEYS.SNAPSHOT]: async (ctx, letter) => letter.reply({
+    ...ctx.all()
+  })
+};
+const spawnProviders = () => utilActor.spawn(HANDLERS$1, SERVICE_ACTOR_KEYS.AUTHN);
+
+/**
+ * @typedef {import("@onflow/typedefs").Service} Service
+ */
+
+/**
+ * @callback SubscriptionCallback
+ * @returns {Service[]}
+ */
+
+/**
+ * @description
+ * Discovery methods for interacting with Authn.
+ * 
+ * @typedef {object} Authn
+ * @property {Function} subscribe - Subscribe to Discovery authn services
+ * @property {Function} snapshot - Get the current Discovery authn services spanshot
+ * @property {Function} update - Trigger an update of authn services
+ */
+const authn = {
+  /**
+   * @description - Subscribe to Discovery authn services
+   * @param {Function} cb
+   * @returns {SubscriptionCallback}
+   */
+  subscribe: cb => utilActor.subscriber(SERVICE_ACTOR_KEYS.AUTHN, spawnProviders, cb),
+  /**
+   * @description - Get the current Discovery authn services spanshot
+   * @returns {Service[]}
+   */
+  snapshot: () => utilActor.snapshoter(SERVICE_ACTOR_KEYS.AUTHN, spawnProviders),
+  /**
+   * @description - Trigger an update of authn services
+   * @returns {void}
+   */
+  update: () => fetchServicesFromDiscovery()
+};
+
+const discovery = {
+  authn
+};
 
 var sha3 = {};
 
@@ -29990,7 +20439,6 @@ var copy = function copy(I, i) {
     O[oi + 1] = I[ii + 1];
   };
 };
-
 var copy_1 = copy;
 
 (function (exports) {
@@ -29999,24 +20447,19 @@ var copy_1 = copy;
     value: true
   });
   exports["default"] = void 0;
-
   var _copy = _interopRequireDefault(copy_1);
-
   function _interopRequireDefault(obj) {
     return obj && obj.__esModule ? obj : {
       "default": obj
     };
   }
-
   var chi = function chi(_ref) {
     var A = _ref.A,
-        C = _ref.C;
-
+      C = _ref.C;
     for (var y = 0; y < 25; y += 5) {
       for (var x = 0; x < 5; x++) {
         (0, _copy["default"])(A, y + x)(C, x);
       }
-
       for (var _x = 0; _x < 5; _x++) {
         var xy = (y + _x) * 2;
         var x1 = (_x + 1) % 5 * 2;
@@ -30026,7 +20469,6 @@ var copy_1 = copy;
       }
     }
   };
-
   var _default = chi;
   exports["default"] = _default;
 })(chi);
@@ -30052,23 +20494,19 @@ var roundConstants = {};
     value: true
   });
   exports["default"] = void 0;
-
   var _roundConstants = _interopRequireDefault(roundConstants);
-
   function _interopRequireDefault(obj) {
     return obj && obj.__esModule ? obj : {
       "default": obj
     };
   }
-
   var iota = function iota(_ref) {
     var A = _ref.A,
-        roundIndex = _ref.roundIndex;
+      roundIndex = _ref.roundIndex;
     var i = roundIndex * 2;
     A[0] ^= _roundConstants["default"][i];
     A[1] ^= _roundConstants["default"][i + 1];
   };
-
   var _default = iota;
   exports["default"] = _default;
 })(iota);
@@ -30107,29 +20545,23 @@ var rhoOffsets = {};
     value: true
   });
   exports["default"] = void 0;
-
   var _piShuffles = _interopRequireDefault(piShuffles);
-
   var _rhoOffsets = _interopRequireDefault(rhoOffsets);
-
   var _copy = _interopRequireDefault(copy_1);
-
   function _interopRequireDefault(obj) {
     return obj && obj.__esModule ? obj : {
       "default": obj
     };
   }
-
   var rhoPi = function rhoPi(_ref) {
     var A = _ref.A,
-        C = _ref.C,
-        W = _ref.W;
+      C = _ref.C,
+      W = _ref.W;
     (0, _copy["default"])(A, 1)(W, 0);
     var H = 0;
     var L = 0;
     var Wi = 0;
     var ri = 32;
-
     for (var i = 0; i < 24; i++) {
       var j = _piShuffles["default"][i];
       var r = _rhoOffsets["default"][i];
@@ -30144,7 +20576,6 @@ var rhoOffsets = {};
       (0, _copy["default"])(C, 0)(W, 0);
     }
   };
-
   var _default = rhoPi;
   exports["default"] = _default;
 })(rhoPi);
@@ -30157,23 +20588,19 @@ var theta = {};
     value: true
   });
   exports["default"] = void 0;
-
   var _copy = _interopRequireDefault(copy_1);
-
   function _interopRequireDefault(obj) {
     return obj && obj.__esModule ? obj : {
       "default": obj
     };
   }
-
   var theta = function theta(_ref) {
     var A = _ref.A,
-        C = _ref.C,
-        D = _ref.D,
-        W = _ref.W;
+      C = _ref.C,
+      D = _ref.D,
+      W = _ref.W;
     var H = 0;
     var L = 0;
-
     for (var x = 0; x < 5; x++) {
       var x20 = x * 2;
       var x21 = (x + 5) * 2;
@@ -30183,7 +20610,6 @@ var theta = {};
       C[x20] = A[x20] ^ A[x21] ^ A[x22] ^ A[x23] ^ A[x24];
       C[x20 + 1] = A[x20 + 1] ^ A[x21 + 1] ^ A[x22 + 1] ^ A[x23 + 1] ^ A[x24 + 1];
     }
-
     for (var _x = 0; _x < 5; _x++) {
       (0, _copy["default"])(C, (_x + 1) % 5)(W, 0);
       H = W[0];
@@ -30192,14 +20618,12 @@ var theta = {};
       W[1] = L << 1 | H >>> 31;
       D[_x * 2] = C[(_x + 4) % 5 * 2] ^ W[0];
       D[_x * 2 + 1] = C[(_x + 4) % 5 * 2 + 1] ^ W[1];
-
       for (var y = 0; y < 25; y += 5) {
         A[(y + _x) * 2] ^= D[_x * 2];
         A[(y + _x) * 2 + 1] ^= D[_x * 2 + 1];
       }
     }
   };
-
   var _default = theta;
   exports["default"] = _default;
 })(theta);
@@ -30210,21 +20634,15 @@ var theta = {};
     value: true
   });
   exports["default"] = void 0;
-
   var _chi = _interopRequireDefault(chi);
-
   var _iota = _interopRequireDefault(iota);
-
   var _rhoPi = _interopRequireDefault(rhoPi);
-
   var _theta = _interopRequireDefault(theta);
-
   function _interopRequireDefault(obj) {
     return obj && obj.__esModule ? obj : {
       "default": obj
     };
   }
-
   var permute = function permute() {
     var C = new Uint32Array(10);
     var D = new Uint32Array(10);
@@ -30251,13 +20669,11 @@ var theta = {};
           roundIndex: roundIndex
         });
       }
-
       C.fill(0);
       D.fill(0);
       W.fill(0);
     };
   };
-
   var _default = permute;
   exports["default"] = _default;
 })(permute);
@@ -30269,25 +20685,20 @@ var theta = {};
   });
   exports["default"] = void 0;
   var _buffer = require$$0__default["default"];
-
   var _permute = _interopRequireDefault(permute);
-
   function _interopRequireDefault(obj) {
     return obj && obj.__esModule ? obj : {
       "default": obj
     };
   }
-
   var xorWords = function xorWords(I, O) {
     for (var i = 0; i < I.length; i += 8) {
       var o = i / 4;
       O[o] ^= I[i + 7] << 24 | I[i + 6] << 16 | I[i + 5] << 8 | I[i + 4];
       O[o + 1] ^= I[i + 3] << 24 | I[i + 2] << 16 | I[i + 1] << 8 | I[i];
     }
-
     return O;
   };
-
   var readWords = function readWords(I, O) {
     for (var o = 0; o < O.length; o += 8) {
       var i = o / 4;
@@ -30300,39 +20711,31 @@ var theta = {};
       O[o + 6] = I[i] >>> 16;
       O[o + 7] = I[i] >>> 24;
     }
-
     return O;
   };
-
   var Sponge = function Sponge(_ref) {
     var _this = this;
-
     var capacity = _ref.capacity,
-        padding = _ref.padding;
+      padding = _ref.padding;
     var keccak = (0, _permute["default"])();
     var stateSize = 200;
     var blockSize = capacity / 8;
     var queueSize = stateSize - capacity / 4;
     var queueOffset = 0;
     var state = new Uint32Array(stateSize / 4);
-
     var queue = _buffer.Buffer.allocUnsafe(queueSize);
-
     this.absorb = function (buffer) {
       for (var i = 0; i < buffer.length; i++) {
         queue[queueOffset] = buffer[i];
         queueOffset += 1;
-
         if (queueOffset >= queueSize) {
           xorWords(queue, state);
           keccak(state);
           queueOffset = 0;
         }
       }
-
       return _this;
     };
-
     this.squeeze = function () {
       var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
       var output = {
@@ -30342,34 +20745,27 @@ var theta = {};
         state: new Uint32Array(state.length)
       };
       queue.copy(output.queue);
-
       for (var i = 0; i < state.length; i++) {
         output.state[i] = state[i];
       }
-
       output.queue.fill(0, queueOffset);
       output.queue[queueOffset] |= output.padding;
       output.queue[queueSize - 1] |= 128;
       xorWords(output.queue, output.state);
-
       for (var offset = 0; offset < output.buffer.length; offset += queueSize) {
         keccak(output.state);
         readWords(output.state, output.buffer.slice(offset, offset + queueSize));
       }
-
       return output.buffer;
     };
-
     this.reset = function () {
       queue.fill(0);
       state.fill(0);
       queueOffset = 0;
       return _this;
     };
-
     return this;
   };
-
   var _default = Sponge;
   exports["default"] = _default;
 })(sponge);
@@ -30381,51 +20777,39 @@ var theta = {};
   });
   exports["default"] = exports.SHAKE = exports.SHA3Hash = exports.SHA3 = exports.Keccak = void 0;
   var _buffer = require$$0__default["default"];
-
   var _sponge = _interopRequireDefault(sponge);
-
   function _interopRequireDefault(obj) {
     return obj && obj.__esModule ? obj : {
       "default": obj
     };
   }
-
   var createHash = function createHash(_ref) {
     var allowedSizes = _ref.allowedSizes,
-        defaultSize = _ref.defaultSize,
-        padding = _ref.padding;
+      defaultSize = _ref.defaultSize,
+      padding = _ref.padding;
     return function Hash() {
       var _this = this;
-
       var size = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : defaultSize;
-
       if (!this || this.constructor !== Hash) {
         return new Hash(size);
       }
-
       if (allowedSizes && !allowedSizes.includes(size)) {
         throw new Error("Unsupported hash length");
       }
-
       var sponge = new _sponge["default"]({
         capacity: size
       });
-
       this.update = function (input) {
         var encoding = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "utf8";
-
         if (_buffer.Buffer.isBuffer(input)) {
           sponge.absorb(input);
           return _this;
         }
-
         if (typeof input === "string") {
           return _this.update(_buffer.Buffer.from(input, encoding));
         }
-
         throw new TypeError("Not a string or buffer");
       };
-
       this.digest = function () {
         var formatOrOptions = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "binary";
         var options = typeof formatOrOptions === "string" ? {
@@ -30435,23 +20819,18 @@ var theta = {};
           buffer: options.buffer,
           padding: options.padding || padding
         });
-
         if (options.format && options.format !== "binary") {
           return buffer.toString(options.format);
         }
-
         return buffer;
       };
-
       this.reset = function () {
         sponge.reset();
         return _this;
       };
-
       return this;
     };
   };
-
   var Keccak = createHash({
     allowedSizes: [224, 256, 384, 512],
     defaultSize: 512,
@@ -30477,1014 +20856,376 @@ var theta = {};
   exports["default"] = _default;
 })(sha3);
 
-function genHash(_x) {
-  return _genHash.apply(this, arguments);
+async function genHash(utf8String) {
+  const sha = new sha3.SHA3(256);
+  sha.update(rlp.Buffer.from(utf8String, "utf8"));
+  return sha.digest("hex");
 }
 
-function _genHash() {
-  _genHash = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(utf8String) {
-    var sha;
-    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            sha = new sha3.SHA3(256);
-            sha.update(rlp.Buffer.from(utf8String, "utf8"));
-            return _context.abrupt("return", sha.digest("hex"));
+/**
+ * @description Generates Interaction Template ID for a given Interaction Template
+ *  
+ * @param {object} params
+ * @param {object} params.template - Interaction Template
+ * @returns {Promise<string>} - Interaction Template ID
+ */
+async function generateTemplateId(_ref) {
+  let {
+    template
+  } = _ref;
+  sdk.invariant(template != undefined, "generateTemplateId({ template }) -- template must be defined");
+  sdk.invariant(typeof template === "object", "generateTemplateId({ template }) -- template must be an object");
+  sdk.invariant(typeof template.f_type === "InteractionTemplate", "generateTemplateId({ template }) -- template object must be an InteractionTemplate");
+  template = normalizeInteractionTemplate(template);
+  switch (template.f_version) {
+    case "1.0.0":
+      const templateData = template.data;
+      const messages = await Promise.all(Object.keys(templateData.messages).map(async messageKey => [await genHash(messageKey), await Promise.all(Object.keys(templateData.messages?.[messageKey]?.i18n).map(async i18nkeylanguage => [await genHash(i18nkeylanguage), await genHash(templateData.messages?.[messageKey]?.i18n?.[i18nkeylanguage])]))]));
+      const dependencies = await Promise.all(Object.keys(templateData?.dependencies).map(async dependencyAddressPlaceholder => [await genHash(dependencyAddressPlaceholder), await Promise.all(Object.keys(templateData?.dependencies?.[dependencyAddressPlaceholder]).map(async dependencyContract => [await genHash(dependencyContract), await Promise.all(Object.keys(templateData?.dependencies?.[dependencyAddressPlaceholder]?.[dependencyContract]).map(async dependencyContractNetwork => [await genHash(dependencyContractNetwork), [await genHash(templateData?.dependencies?.[dependencyAddressPlaceholder]?.[dependencyContract]?.[dependencyContractNetwork].address), await genHash(templateData?.dependencies?.[dependencyAddressPlaceholder]?.[dependencyContract]?.[dependencyContractNetwork].contract), await genHash(templateData?.dependencies?.[dependencyAddressPlaceholder]?.[dependencyContract]?.[dependencyContractNetwork].fq_address), await genHash(templateData?.dependencies?.[dependencyAddressPlaceholder]?.[dependencyContract]?.[dependencyContractNetwork].pin), await genHash(String(templateData?.dependencies?.[dependencyAddressPlaceholder]?.[dependencyContract]?.[dependencyContractNetwork].pin_block_height))]]))]))]));
+      const _arguments = await Promise.all(Object.keys(templateData?.["arguments"]).map(async argumentLabel => [await genHash(argumentLabel), [await genHash(String(templateData?.["arguments"]?.[argumentLabel].index)), await genHash(templateData?.["arguments"]?.[argumentLabel].type), await genHash(templateData?.["arguments"]?.[argumentLabel].balance || ""), await Promise.all(Object.keys(templateData?.["arguments"]?.[argumentLabel].messages).map(async argumentMessageKey => [await genHash(argumentMessageKey), await Promise.all(Object.keys(templateData?.["arguments"]?.[argumentLabel].messages?.[argumentMessageKey].i18n).map(async i18nkeylanguage => [await genHash(i18nkeylanguage), await genHash(templateData?.["arguments"]?.[argumentLabel].messages?.[argumentMessageKey].i18n?.[i18nkeylanguage])]))]))]]));
+      const encodedHex = rlp.encode([await genHash("InteractionTemplate"), await genHash("1.0.0"), await genHash(templateData?.type), await genHash(templateData?.interface), messages, await genHash(templateData?.cadence), dependencies, _arguments]).toString("hex");
+      return genHash(encodedHex);
+    default:
+      throw new Error("generateTemplateId Error: Unsupported template version");
+  }
+}
 
-          case 3:
-          case "end":
-            return _context.stop();
+/**
+ * @description Returns whether a set of auditors have audited a given Interaction Template
+ *
+ * @param {object} params
+ * @param {object} params.template - Interaction Template
+ * @param {Array<string>} params.auditors - Array of auditors
+ * @param {object} opts
+ * @param {string} opts.flowInteractionAuditContract - Flow Interaction Template Audit contract address
+ * @returns {Promise<object>} - Object of auditor addresses and audit status
+ */
+async function getInteractionTemplateAudits(_ref) {
+  let {
+    template,
+    auditors
+  } = _ref;
+  let opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  sdk.invariant(template != undefined, "getInteractionTemplateAudits({ template }) -- template must be defined");
+  template = normalizeInteractionTemplate(template);
+  sdk.invariant(template.f_type === "InteractionTemplate", "getInteractionTemplateAudits({ template }) -- template must be an InteractionTemplate");
+
+  // Recompute ID to be sure it matches
+  let recomputedTemplateID = await generateTemplateId({
+    template
+  });
+  if (recomputedTemplateID !== template.id) {
+    utilLogger.log({
+      title: "getInteractionTemplateAudits Debug Error",
+      message: `Could not recompute and match template ID
+                computed: ${recomputedTemplateID}
+                template: ${template.id}
+            `,
+      level: utilLogger.LEVELS.debug
+    });
+    throw new Error("getInteractionTemplateAudits Error: Could not recompute and match template ID");
+  }
+  switch (template.f_version) {
+    case "1.0.0":
+      const _auditors = auditors || (await sdk.config().get("flow.auditors"));
+      sdk.invariant(_auditors, "getInteractionTemplateAudits Error: Required configuration for 'fcl.auditors' is not set");
+      sdk.invariant(Array.isArray(_auditors), "getInteractionTemplateAudits Error: Required configuration for 'fcl.auditors' is not an array");
+      let FlowInteractionAuditContract = opts.flowInteractionAuditContract;
+      if (!FlowInteractionAuditContract) {
+        const fclNetwork = await getChainId(opts);
+        sdk.invariant(fclNetwork === "mainnet" || fclNetwork === "testnet", "getInteractionTemplateAudits Error: Unable to determine address for FlowInteractionTemplateAudit contract. Set configuration for 'fcl.network' to 'mainnet' or 'testnet'");
+        if (fclNetwork === "mainnet") {
+          FlowInteractionAuditContract = "0xfd100e39d50a13e6";
+        } else {
+          FlowInteractionAuditContract = "0xf78bfc12d0a786dc";
         }
       }
-    }, _callee);
-  }));
-  return _genHash.apply(this, arguments);
-}
-
-function generateTemplateId(_x) {
-  return _generateTemplateId.apply(this, arguments);
-}
-
-function _generateTemplateId() {
-  _generateTemplateId = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee9(_ref) {
-    var template, templateData, messages, dependencies, _arguments, encodedHex;
-
-    return _regeneratorRuntime__default["default"].wrap(function _callee9$(_context9) {
-      while (1) {
-        switch (_context9.prev = _context9.next) {
-          case 0:
-            template = _ref.template;
-            sdk.invariant(template != undefined, "generateTemplateId({ template }) -- template must be defined");
-            sdk.invariant(_typeof__default["default"](template) === "object", "generateTemplateId({ template }) -- template must be an object");
-            sdk.invariant(typeof template.f_type === "InteractionTemplate", "generateTemplateId({ template }) -- template object must be an InteractionTemplate");
-            template = normalizeInteractionTemplate(template);
-            _context9.t0 = template.f_version;
-            _context9.next = _context9.t0 === "1.0.0" ? 8 : 40;
-            break;
-
-          case 8:
-            templateData = template.data;
-            _context9.next = 11;
-            return Promise.all(Object.keys(templateData.messages).map( /*#__PURE__*/function () {
-              var _ref2 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee2(messageKey) {
-                var _templateData$message, _templateData$message2;
-
-                return _regeneratorRuntime__default["default"].wrap(function _callee2$(_context2) {
-                  while (1) {
-                    switch (_context2.prev = _context2.next) {
-                      case 0:
-                        _context2.next = 2;
-                        return genHash(messageKey);
-
-                      case 2:
-                        _context2.t0 = _context2.sent;
-                        _context2.next = 5;
-                        return Promise.all(Object.keys((_templateData$message = templateData.messages) === null || _templateData$message === void 0 ? void 0 : (_templateData$message2 = _templateData$message[messageKey]) === null || _templateData$message2 === void 0 ? void 0 : _templateData$message2.i18n).map( /*#__PURE__*/function () {
-                          var _ref3 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(i18nkeylanguage) {
-                            var _templateData$message3, _templateData$message4, _templateData$message5;
-
-                            return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
-                              while (1) {
-                                switch (_context.prev = _context.next) {
-                                  case 0:
-                                    _context.next = 2;
-                                    return genHash(i18nkeylanguage);
-
-                                  case 2:
-                                    _context.t0 = _context.sent;
-                                    _context.next = 5;
-                                    return genHash((_templateData$message3 = templateData.messages) === null || _templateData$message3 === void 0 ? void 0 : (_templateData$message4 = _templateData$message3[messageKey]) === null || _templateData$message4 === void 0 ? void 0 : (_templateData$message5 = _templateData$message4.i18n) === null || _templateData$message5 === void 0 ? void 0 : _templateData$message5[i18nkeylanguage]);
-
-                                  case 5:
-                                    _context.t1 = _context.sent;
-                                    return _context.abrupt("return", [_context.t0, _context.t1]);
-
-                                  case 7:
-                                  case "end":
-                                    return _context.stop();
-                                }
-                              }
-                            }, _callee);
-                          }));
-
-                          return function (_x3) {
-                            return _ref3.apply(this, arguments);
-                          };
-                        }()));
-
-                      case 5:
-                        _context2.t1 = _context2.sent;
-                        return _context2.abrupt("return", [_context2.t0, _context2.t1]);
-
-                      case 7:
-                      case "end":
-                        return _context2.stop();
-                    }
-                  }
-                }, _callee2);
-              }));
-
-              return function (_x2) {
-                return _ref2.apply(this, arguments);
-              };
-            }()));
-
-          case 11:
-            messages = _context9.sent;
-            _context9.next = 14;
-            return Promise.all(Object.keys(templateData === null || templateData === void 0 ? void 0 : templateData.dependencies).map( /*#__PURE__*/function () {
-              var _ref4 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee5(dependencyAddressPlaceholder) {
-                var _templateData$depende;
-
-                return _regeneratorRuntime__default["default"].wrap(function _callee5$(_context5) {
-                  while (1) {
-                    switch (_context5.prev = _context5.next) {
-                      case 0:
-                        _context5.next = 2;
-                        return genHash(dependencyAddressPlaceholder);
-
-                      case 2:
-                        _context5.t0 = _context5.sent;
-                        _context5.next = 5;
-                        return Promise.all(Object.keys(templateData === null || templateData === void 0 ? void 0 : (_templateData$depende = templateData.dependencies) === null || _templateData$depende === void 0 ? void 0 : _templateData$depende[dependencyAddressPlaceholder]).map( /*#__PURE__*/function () {
-                          var _ref5 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee4(dependencyContract) {
-                            var _templateData$depende2, _templateData$depende3;
-
-                            return _regeneratorRuntime__default["default"].wrap(function _callee4$(_context4) {
-                              while (1) {
-                                switch (_context4.prev = _context4.next) {
-                                  case 0:
-                                    _context4.next = 2;
-                                    return genHash(dependencyContract);
-
-                                  case 2:
-                                    _context4.t0 = _context4.sent;
-                                    _context4.next = 5;
-                                    return Promise.all(Object.keys(templateData === null || templateData === void 0 ? void 0 : (_templateData$depende2 = templateData.dependencies) === null || _templateData$depende2 === void 0 ? void 0 : (_templateData$depende3 = _templateData$depende2[dependencyAddressPlaceholder]) === null || _templateData$depende3 === void 0 ? void 0 : _templateData$depende3[dependencyContract]).map( /*#__PURE__*/function () {
-                                      var _ref6 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee3(dependencyContractNetwork) {
-                                        var _templateData$depende4, _templateData$depende5, _templateData$depende6, _templateData$depende7, _templateData$depende8, _templateData$depende9, _templateData$depende10, _templateData$depende11, _templateData$depende12, _templateData$depende13, _templateData$depende14, _templateData$depende15, _templateData$depende16, _templateData$depende17, _templateData$depende18;
-
-                                        return _regeneratorRuntime__default["default"].wrap(function _callee3$(_context3) {
-                                          while (1) {
-                                            switch (_context3.prev = _context3.next) {
-                                              case 0:
-                                                _context3.next = 2;
-                                                return genHash(dependencyContractNetwork);
-
-                                              case 2:
-                                                _context3.t0 = _context3.sent;
-                                                _context3.next = 5;
-                                                return genHash(templateData === null || templateData === void 0 ? void 0 : (_templateData$depende4 = templateData.dependencies) === null || _templateData$depende4 === void 0 ? void 0 : (_templateData$depende5 = _templateData$depende4[dependencyAddressPlaceholder]) === null || _templateData$depende5 === void 0 ? void 0 : (_templateData$depende6 = _templateData$depende5[dependencyContract]) === null || _templateData$depende6 === void 0 ? void 0 : _templateData$depende6[dependencyContractNetwork].address);
-
-                                              case 5:
-                                                _context3.t1 = _context3.sent;
-                                                _context3.next = 8;
-                                                return genHash(templateData === null || templateData === void 0 ? void 0 : (_templateData$depende7 = templateData.dependencies) === null || _templateData$depende7 === void 0 ? void 0 : (_templateData$depende8 = _templateData$depende7[dependencyAddressPlaceholder]) === null || _templateData$depende8 === void 0 ? void 0 : (_templateData$depende9 = _templateData$depende8[dependencyContract]) === null || _templateData$depende9 === void 0 ? void 0 : _templateData$depende9[dependencyContractNetwork].contract);
-
-                                              case 8:
-                                                _context3.t2 = _context3.sent;
-                                                _context3.next = 11;
-                                                return genHash(templateData === null || templateData === void 0 ? void 0 : (_templateData$depende10 = templateData.dependencies) === null || _templateData$depende10 === void 0 ? void 0 : (_templateData$depende11 = _templateData$depende10[dependencyAddressPlaceholder]) === null || _templateData$depende11 === void 0 ? void 0 : (_templateData$depende12 = _templateData$depende11[dependencyContract]) === null || _templateData$depende12 === void 0 ? void 0 : _templateData$depende12[dependencyContractNetwork].fq_address);
-
-                                              case 11:
-                                                _context3.t3 = _context3.sent;
-                                                _context3.next = 14;
-                                                return genHash(templateData === null || templateData === void 0 ? void 0 : (_templateData$depende13 = templateData.dependencies) === null || _templateData$depende13 === void 0 ? void 0 : (_templateData$depende14 = _templateData$depende13[dependencyAddressPlaceholder]) === null || _templateData$depende14 === void 0 ? void 0 : (_templateData$depende15 = _templateData$depende14[dependencyContract]) === null || _templateData$depende15 === void 0 ? void 0 : _templateData$depende15[dependencyContractNetwork].pin);
-
-                                              case 14:
-                                                _context3.t4 = _context3.sent;
-                                                _context3.next = 17;
-                                                return genHash(String(templateData === null || templateData === void 0 ? void 0 : (_templateData$depende16 = templateData.dependencies) === null || _templateData$depende16 === void 0 ? void 0 : (_templateData$depende17 = _templateData$depende16[dependencyAddressPlaceholder]) === null || _templateData$depende17 === void 0 ? void 0 : (_templateData$depende18 = _templateData$depende17[dependencyContract]) === null || _templateData$depende18 === void 0 ? void 0 : _templateData$depende18[dependencyContractNetwork].pin_block_height));
-
-                                              case 17:
-                                                _context3.t5 = _context3.sent;
-                                                _context3.t6 = [_context3.t1, _context3.t2, _context3.t3, _context3.t4, _context3.t5];
-                                                return _context3.abrupt("return", [_context3.t0, _context3.t6]);
-
-                                              case 20:
-                                              case "end":
-                                                return _context3.stop();
-                                            }
-                                          }
-                                        }, _callee3);
-                                      }));
-
-                                      return function (_x6) {
-                                        return _ref6.apply(this, arguments);
-                                      };
-                                    }()));
-
-                                  case 5:
-                                    _context4.t1 = _context4.sent;
-                                    return _context4.abrupt("return", [_context4.t0, _context4.t1]);
-
-                                  case 7:
-                                  case "end":
-                                    return _context4.stop();
-                                }
-                              }
-                            }, _callee4);
-                          }));
-
-                          return function (_x5) {
-                            return _ref5.apply(this, arguments);
-                          };
-                        }()));
-
-                      case 5:
-                        _context5.t1 = _context5.sent;
-                        return _context5.abrupt("return", [_context5.t0, _context5.t1]);
-
-                      case 7:
-                      case "end":
-                        return _context5.stop();
-                    }
-                  }
-                }, _callee5);
-              }));
-
-              return function (_x4) {
-                return _ref4.apply(this, arguments);
-              };
-            }()));
-
-          case 14:
-            dependencies = _context9.sent;
-            _context9.next = 17;
-            return Promise.all(Object.keys(templateData === null || templateData === void 0 ? void 0 : templateData["arguments"]).map( /*#__PURE__*/function () {
-              var _ref7 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee8(argumentLabel) {
-                var _templateData$argumen, _templateData$argumen2, _templateData$argumen3, _templateData$argumen4;
-
-                return _regeneratorRuntime__default["default"].wrap(function _callee8$(_context8) {
-                  while (1) {
-                    switch (_context8.prev = _context8.next) {
-                      case 0:
-                        _context8.next = 2;
-                        return genHash(argumentLabel);
-
-                      case 2:
-                        _context8.t0 = _context8.sent;
-                        _context8.next = 5;
-                        return genHash(String(templateData === null || templateData === void 0 ? void 0 : (_templateData$argumen = templateData["arguments"]) === null || _templateData$argumen === void 0 ? void 0 : _templateData$argumen[argumentLabel].index));
-
-                      case 5:
-                        _context8.t1 = _context8.sent;
-                        _context8.next = 8;
-                        return genHash(templateData === null || templateData === void 0 ? void 0 : (_templateData$argumen2 = templateData["arguments"]) === null || _templateData$argumen2 === void 0 ? void 0 : _templateData$argumen2[argumentLabel].type);
-
-                      case 8:
-                        _context8.t2 = _context8.sent;
-                        _context8.next = 11;
-                        return genHash((templateData === null || templateData === void 0 ? void 0 : (_templateData$argumen3 = templateData["arguments"]) === null || _templateData$argumen3 === void 0 ? void 0 : _templateData$argumen3[argumentLabel].balance) || "");
-
-                      case 11:
-                        _context8.t3 = _context8.sent;
-                        _context8.next = 14;
-                        return Promise.all(Object.keys(templateData === null || templateData === void 0 ? void 0 : (_templateData$argumen4 = templateData["arguments"]) === null || _templateData$argumen4 === void 0 ? void 0 : _templateData$argumen4[argumentLabel].messages).map( /*#__PURE__*/function () {
-                          var _ref8 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee7(argumentMessageKey) {
-                            var _templateData$argumen5, _templateData$argumen6;
-
-                            return _regeneratorRuntime__default["default"].wrap(function _callee7$(_context7) {
-                              while (1) {
-                                switch (_context7.prev = _context7.next) {
-                                  case 0:
-                                    _context7.next = 2;
-                                    return genHash(argumentMessageKey);
-
-                                  case 2:
-                                    _context7.t0 = _context7.sent;
-                                    _context7.next = 5;
-                                    return Promise.all(Object.keys(templateData === null || templateData === void 0 ? void 0 : (_templateData$argumen5 = templateData["arguments"]) === null || _templateData$argumen5 === void 0 ? void 0 : (_templateData$argumen6 = _templateData$argumen5[argumentLabel].messages) === null || _templateData$argumen6 === void 0 ? void 0 : _templateData$argumen6[argumentMessageKey].i18n).map( /*#__PURE__*/function () {
-                                      var _ref9 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee6(i18nkeylanguage) {
-                                        var _templateData$argumen7, _templateData$argumen8, _templateData$argumen9;
-
-                                        return _regeneratorRuntime__default["default"].wrap(function _callee6$(_context6) {
-                                          while (1) {
-                                            switch (_context6.prev = _context6.next) {
-                                              case 0:
-                                                _context6.next = 2;
-                                                return genHash(i18nkeylanguage);
-
-                                              case 2:
-                                                _context6.t0 = _context6.sent;
-                                                _context6.next = 5;
-                                                return genHash(templateData === null || templateData === void 0 ? void 0 : (_templateData$argumen7 = templateData["arguments"]) === null || _templateData$argumen7 === void 0 ? void 0 : (_templateData$argumen8 = _templateData$argumen7[argumentLabel].messages) === null || _templateData$argumen8 === void 0 ? void 0 : (_templateData$argumen9 = _templateData$argumen8[argumentMessageKey].i18n) === null || _templateData$argumen9 === void 0 ? void 0 : _templateData$argumen9[i18nkeylanguage]);
-
-                                              case 5:
-                                                _context6.t1 = _context6.sent;
-                                                return _context6.abrupt("return", [_context6.t0, _context6.t1]);
-
-                                              case 7:
-                                              case "end":
-                                                return _context6.stop();
-                                            }
-                                          }
-                                        }, _callee6);
-                                      }));
-
-                                      return function (_x9) {
-                                        return _ref9.apply(this, arguments);
-                                      };
-                                    }()));
-
-                                  case 5:
-                                    _context7.t1 = _context7.sent;
-                                    return _context7.abrupt("return", [_context7.t0, _context7.t1]);
-
-                                  case 7:
-                                  case "end":
-                                    return _context7.stop();
-                                }
-                              }
-                            }, _callee7);
-                          }));
-
-                          return function (_x8) {
-                            return _ref8.apply(this, arguments);
-                          };
-                        }()));
-
-                      case 14:
-                        _context8.t4 = _context8.sent;
-                        _context8.t5 = [_context8.t1, _context8.t2, _context8.t3, _context8.t4];
-                        return _context8.abrupt("return", [_context8.t0, _context8.t5]);
-
-                      case 17:
-                      case "end":
-                        return _context8.stop();
-                    }
-                  }
-                }, _callee8);
-              }));
-
-              return function (_x7) {
-                return _ref7.apply(this, arguments);
-              };
-            }()));
-
-          case 17:
-            _arguments = _context9.sent;
-            _context9.t1 = rlp.encode;
-            _context9.next = 21;
-            return genHash("InteractionTemplate");
-
-          case 21:
-            _context9.t2 = _context9.sent;
-            _context9.next = 24;
-            return genHash("1.0.0");
-
-          case 24:
-            _context9.t3 = _context9.sent;
-            _context9.next = 27;
-            return genHash(templateData === null || templateData === void 0 ? void 0 : templateData.type);
-
-          case 27:
-            _context9.t4 = _context9.sent;
-            _context9.next = 30;
-            return genHash(templateData === null || templateData === void 0 ? void 0 : templateData["interface"]);
-
-          case 30:
-            _context9.t5 = _context9.sent;
-            _context9.t6 = messages;
-            _context9.next = 34;
-            return genHash(templateData === null || templateData === void 0 ? void 0 : templateData.cadence);
-
-          case 34:
-            _context9.t7 = _context9.sent;
-            _context9.t8 = dependencies;
-            _context9.t9 = _arguments;
-            _context9.t10 = [_context9.t2, _context9.t3, _context9.t4, _context9.t5, _context9.t6, _context9.t7, _context9.t8, _context9.t9];
-            encodedHex = (0, _context9.t1)(_context9.t10).toString("hex");
-            return _context9.abrupt("return", genHash(encodedHex));
-
-          case 40:
-            throw new Error("generateTemplateId Error: Unsupported template version");
-
-          case 41:
-          case "end":
-            return _context9.stop();
+      const audits = await query({
+        cadence: `
+        import FlowInteractionTemplateAudit from ${FlowInteractionAuditContract}
+        pub fun main(templateId: String, auditors: [Address]): {Address:Bool} {
+          return FlowInteractionTemplateAudit.getHasTemplateBeenAuditedByAuditors(templateId: templateId, auditors: auditors)
         }
-      }
-    }, _callee9);
-  }));
-  return _generateTemplateId.apply(this, arguments);
-}
-
-function getInteractionTemplateAudits(_x) {
-  return _getInteractionTemplateAudits.apply(this, arguments);
-}
-
-function _getInteractionTemplateAudits() {
-  _getInteractionTemplateAudits = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(_ref) {
-    var template,
-        auditors,
-        opts,
-        recomputedTemplateID,
-        _auditors,
-        FlowInteractionAuditContract,
-        fclNetwork,
-        audits,
-        _args = arguments;
-
-    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            template = _ref.template, auditors = _ref.auditors;
-            opts = _args.length > 1 && _args[1] !== undefined ? _args[1] : {};
-            sdk.invariant(template != undefined, "getInteractionTemplateAudits({ template }) -- template must be defined");
-            template = normalizeInteractionTemplate(template);
-            sdk.invariant(template.f_type === "InteractionTemplate", "getInteractionTemplateAudits({ template }) -- template must be an InteractionTemplate"); // Recompute ID to be sure it matches
-
-            _context.next = 7;
-            return generateTemplateId({
-              template: template
-            });
-
-          case 7:
-            recomputedTemplateID = _context.sent;
-
-            if (!(recomputedTemplateID !== template.id)) {
-              _context.next = 11;
-              break;
-            }
-
-            utilLogger.log({
-              title: "getInteractionTemplateAudits Debug Error",
-              message: "Could not recompute and match template ID\n                computed: ".concat(recomputedTemplateID, "\n                template: ").concat(template.id, "\n            "),
-              level: utilLogger.LEVELS.debug
-            });
-            throw new Error("getInteractionTemplateAudits Error: Could not recompute and match template ID");
-
-          case 11:
-            _context.t0 = template.f_version;
-            _context.next = _context.t0 === "1.0.0" ? 14 : 33;
-            break;
-
-          case 14:
-            _context.t1 = auditors;
-
-            if (_context.t1) {
-              _context.next = 19;
-              break;
-            }
-
-            _context.next = 18;
-            return sdk.config().get("flow.auditors");
-
-          case 18:
-            _context.t1 = _context.sent;
-
-          case 19:
-            _auditors = _context.t1;
-            sdk.invariant(_auditors, "getInteractionTemplateAudits Error: Required configuration for 'fcl.auditors' is not set");
-            sdk.invariant(Array.isArray(_auditors), "getInteractionTemplateAudits Error: Required configuration for 'fcl.auditors' is not an array");
-            FlowInteractionAuditContract = opts.flowInteractionAuditContract;
-
-            if (FlowInteractionAuditContract) {
-              _context.next = 29;
-              break;
-            }
-
-            _context.next = 26;
-            return sdk.config().get("flow.network");
-
-          case 26:
-            fclNetwork = _context.sent;
-            sdk.invariant(fclNetwork === "mainnet" || fclNetwork === "testnet", "getInteractionTemplateAudits Error: Unable to determine address for FlowInteractionTemplateAudit contract. Set configuration for 'fcl.network' to 'mainnet' or 'testnet'");
-
-            if (fclNetwork === "mainnet") {
-              FlowInteractionAuditContract = "0xfd100e39d50a13e6";
-            } else {
-              FlowInteractionAuditContract = "0xf78bfc12d0a786dc";
-            }
-
-          case 29:
-            _context.next = 31;
-            return query({
-              cadence: "\n        import FlowInteractionTemplateAudit from ".concat(FlowInteractionAuditContract, "\n        pub fun main(templateId: String, auditors: [Address]): {Address:Bool} {\n          return FlowInteractionTemplateAudit.getHasTemplateBeenAuditedByAuditors(templateId: templateId, auditors: auditors)\n        }\n        "),
-              args: function args(arg, t) {
-                return [arg(recomputedTemplateID, t.String), arg(_auditors, t.Array(t.Address))];
-              }
-            });
-
-          case 31:
-            audits = _context.sent;
-            return _context.abrupt("return", audits);
-
-          case 33:
-            throw new Error("getInteractionTemplateAudits Error: Unsupported template version");
-
-          case 34:
-          case "end":
-            return _context.stop();
-        }
-      }
-    }, _callee);
-  }));
-  return _getInteractionTemplateAudits.apply(this, arguments);
+        `,
+        args: (arg, t) => [arg(recomputedTemplateID, t.String), arg(_auditors, t.Array(t.Address))]
+      });
+      return audits;
+    default:
+      throw new Error("getInteractionTemplateAudits Error: Unsupported template version");
+  }
 }
 
 function generateImport(_ref) {
-  var contractName = _ref.contractName,
-      address = _ref.address;
+  let {
+    contractName,
+    address
+  } = _ref;
   return {
-    contractName: contractName,
-    address: address,
+    contractName,
+    address,
     contract: ""
   };
 }
 
 function findImports(cadence) {
-  var imports = [];
-  var importsReg = /import ((\w|,| )+)* from 0x\w+/g;
-  var fileImports = cadence.match(importsReg) || [];
-
-  var _iterator = _createForOfIteratorHelper__default["default"](fileImports),
-      _step;
-
-  try {
-    for (_iterator.s(); !(_step = _iterator.n()).done;) {
-      var fileImport = _step.value;
-      var importLineReg = /import ((\w+|, |)*) from (0x\w+)/g;
-      var importLine = importLineReg.exec(fileImport);
-      var contractsReg = /((?:\w+)+),?/g;
-      var contracts = importLine[1].match(contractsReg) || [];
-
-      var _iterator2 = _createForOfIteratorHelper__default["default"](contracts),
-          _step2;
-
-      try {
-        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
-          var contract = _step2.value;
-          imports.push(generateImport({
-            address: importLine[3],
-            contractName: contract.replace(/,/g, "")
-          }));
-        }
-      } catch (err) {
-        _iterator2.e(err);
-      } finally {
-        _iterator2.f();
-      }
+  let imports = [];
+  let importsReg = /import ((\w|,| )+)* from 0x\w+/g;
+  let fileImports = cadence.match(importsReg) || [];
+  for (const fileImport of fileImports) {
+    const importLineReg = /import ((\w+|, |)*) from (0x\w+)/g;
+    const importLine = importLineReg.exec(fileImport);
+    const contractsReg = /((?:\w+)+),?/g;
+    const contracts = importLine[1].match(contractsReg) || [];
+    for (const contract of contracts) {
+      imports.push(generateImport({
+        address: importLine[3],
+        contractName: contract.replace(/,/g, "")
+      }));
     }
-  } catch (err) {
-    _iterator.e(err);
-  } finally {
-    _iterator.f();
   }
-
   return imports;
 }
 
-function generateDependencyPin(_x) {
-  return _generateDependencyPin.apply(this, arguments);
+/**
+ * @description Produces a dependency pin for a contract at a given block height
+ * @param {object} params
+ * @param {string} params.address - The address of the account containing the contract
+ * @param {string} params.contractName - The name of the contract
+ * @param {number} params.blockHeight - The block height to produce the dependency pin for
+ * @param {object} opts - Options to pass to the interaction
+ * @returns {Promise<string>} - The dependency pin
+ */
+async function generateDependencyPin(_ref) {
+  let {
+    address,
+    contractName,
+    blockHeight
+  } = _ref;
+  let opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  sdk.invariant(address != undefined, "generateDependencyPin({ address }) -- address must be defined");
+  sdk.invariant(contractName != undefined, "generateDependencyPin({ contractName }) -- contractName must be defined");
+  sdk.invariant(blockHeight != undefined, "generateDependencyPin({ blockHeight }) -- blockHeight must be defined");
+  sdk.invariant(typeof address === "string", "generateDependencyPin({ address }) -- address must be a string");
+  sdk.invariant(typeof contractName === "string", "generateDependencyPin({ contractName }) -- contractName must be a string");
+  sdk.invariant(typeof blockHeight === "number", "generateDependencyPin({ blockHeight }) -- blockHeight must be a number");
+  let horizon = [generateImport({
+    contractName,
+    address
+  })];
+  for (const horizonImport of horizon) {
+    let account = await sdk.send([sdk.getAccount(await sdk.config().get(horizonImport.address, horizonImport.address)), sdk.atBlockHeight(blockHeight)], opts).then(sdk.decode);
+    horizonImport.contract = account.contracts?.[horizonImport.contractName];
+    if (!horizonImport.contract) {
+      console.error("Did not find expected contract", horizonImport, account);
+      throw new Error("Did not find expected contract");
+    }
+    let contractImports = findImports(horizonImport.contract);
+    horizon.push(...contractImports);
+  }
+  let contractHashes = horizon.map(iport => genHash(iport.contract));
+  let contractHashesJoined = contractHashes.join("");
+  return genHash(contractHashesJoined);
 }
 
-function _generateDependencyPin() {
-  _generateDependencyPin = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(_ref) {
-    var address,
-        contractName,
-        blockHeight,
-        opts,
-        horizon,
-        _i,
-        _horizon,
-        _account$contracts,
-        horizonImport,
-        account,
-        contractImports,
-        contractHashes,
-        contractHashesJoined,
-        _args = arguments;
-
-    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            address = _ref.address, contractName = _ref.contractName, blockHeight = _ref.blockHeight;
-            opts = _args.length > 1 && _args[1] !== undefined ? _args[1] : {};
-            sdk.invariant(address != undefined, "generateDependencyPin({ address }) -- address must be defined");
-            sdk.invariant(contractName != undefined, "generateDependencyPin({ contractName }) -- contractName must be defined");
-            sdk.invariant(blockHeight != undefined, "generateDependencyPin({ blockHeight }) -- blockHeight must be defined");
-            sdk.invariant(typeof address === "string", "generateDependencyPin({ address }) -- address must be a string");
-            sdk.invariant(typeof contractName === "string", "generateDependencyPin({ contractName }) -- contractName must be a string");
-            sdk.invariant(typeof blockHeight === "number", "generateDependencyPin({ blockHeight }) -- blockHeight must be a number");
-            horizon = [generateImport({
-              contractName: contractName,
-              address: address
-            })];
-            _i = 0, _horizon = horizon;
-
-          case 10:
-            if (!(_i < _horizon.length)) {
-              _context.next = 33;
-              break;
-            }
-
-            horizonImport = _horizon[_i];
-            _context.t0 = sdk.send;
-            _context.t1 = sdk.getAccount;
-            _context.next = 16;
-            return sdk.config().get(horizonImport.address, horizonImport.address);
-
-          case 16:
-            _context.t2 = _context.sent;
-            _context.t3 = (0, _context.t1)(_context.t2);
-            _context.t4 = sdk.atBlockHeight(blockHeight);
-            _context.t5 = [_context.t3, _context.t4];
-            _context.t6 = opts;
-            _context.next = 23;
-            return (0, _context.t0)(_context.t5, _context.t6).then(sdk.decode);
-
-          case 23:
-            account = _context.sent;
-            horizonImport.contract = (_account$contracts = account.contracts) === null || _account$contracts === void 0 ? void 0 : _account$contracts[horizonImport.contractName];
-
-            if (horizonImport.contract) {
-              _context.next = 28;
-              break;
-            }
-
-            console.error("Did not find expected contract", horizonImport, account);
-            throw new Error("Did not find expected contract");
-
-          case 28:
-            contractImports = findImports(horizonImport.contract);
-            horizon.push.apply(horizon, _toConsumableArray__default["default"](contractImports));
-
-          case 30:
-            _i++;
-            _context.next = 10;
-            break;
-
-          case 33:
-            contractHashes = horizon.map(function (iport) {
-              return genHash(iport.contract);
-            });
-            contractHashesJoined = contractHashes.join("");
-            return _context.abrupt("return", genHash(contractHashesJoined));
-
-          case 36:
-          case "end":
-            return _context.stop();
-        }
-      }
-    }, _callee);
-  }));
-  return _generateDependencyPin.apply(this, arguments);
-}
-
-function generateDependencyPinAtLatestSealedBlock(_x2) {
-  return _generateDependencyPinAtLatestSealedBlock.apply(this, arguments);
-}
-
-function _generateDependencyPinAtLatestSealedBlock() {
-  _generateDependencyPinAtLatestSealedBlock = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee2(_ref2) {
-    var address,
-        contractName,
-        opts,
-        latestSealedBlock,
-        latestSealedBlockHeight,
-        _args2 = arguments;
-    return _regeneratorRuntime__default["default"].wrap(function _callee2$(_context2) {
-      while (1) {
-        switch (_context2.prev = _context2.next) {
-          case 0:
-            address = _ref2.address, contractName = _ref2.contractName;
-            opts = _args2.length > 1 && _args2[1] !== undefined ? _args2[1] : {};
-            _context2.next = 4;
-            return sdk.block({
-              sealed: true
-            }, opts);
-
-          case 4:
-            latestSealedBlock = _context2.sent;
-            latestSealedBlockHeight = latestSealedBlock === null || latestSealedBlock === void 0 ? void 0 : latestSealedBlock.height;
-            return _context2.abrupt("return", generateDependencyPin({
-              address: address,
-              contractName: contractName,
-              blockHeight: latestSealedBlockHeight
-            }, opts));
-
-          case 7:
-          case "end":
-            return _context2.stop();
-        }
-      }
-    }, _callee2);
-  }));
-  return _generateDependencyPinAtLatestSealedBlock.apply(this, arguments);
+/**
+ * @description Produces a dependency pin for a contract at latest sealed block
+ * @param {object} params
+ * @param {string} params.address - The address of the account containing the contract
+ * @param {string} params.contractName - The name of the contract
+ * @param {object} opts - Options to pass to the interaction
+ * @returns {Promise<string>} - The dependency pin
+ */
+async function generateDependencyPinAtLatestSealedBlock(_ref2) {
+  let {
+    address,
+    contractName
+  } = _ref2;
+  let opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  let latestSealedBlock = await sdk.block({
+    sealed: true
+  }, opts);
+  let latestSealedBlockHeight = latestSealedBlock?.height;
+  return generateDependencyPin({
+    address,
+    contractName,
+    blockHeight: latestSealedBlockHeight
+  }, opts);
 }
 
 function normalizeInteractionTemplateInterface(templateInterface) {
   if (templateInterface == null) return null;
-
   switch (templateInterface["f_version"]) {
     case "1.0.0":
       return templateInterface;
-
     default:
       throw new Error("normalizeInteractionTemplateInterface Error: Invalid InteractionTemplateInterface");
   }
 }
 
-function generateTemplateInterfaceId(_x) {
-  return _generateTemplateInterfaceId.apply(this, arguments);
+/**
+ * @description Generates Interaction Template Interface ID for a given Interaction Template Interface
+ * 
+ * @param {object} params
+ * @param {object} params.templateInterface - Interaction Template Interface
+ * @returns {Promise<string>} - Interaction Template Interface ID
+ */
+async function generateTemplateInterfaceId(_ref) {
+  let {
+    templateInterface
+  } = _ref;
+  sdk.invariant(templateInterface != undefined, "generateTemplateInterfaceId({ templateInterface }) -- templateInterface must be defined");
+  sdk.invariant(typeof templateInterface === "object", "generateTemplateInterfaceId({ templateInterface }) -- templateInterface must be an object");
+  sdk.invariant(typeof templateInterface.f_type === "InteractionTemplateInterface", "generateTemplateInterfaceId({ templateInterface }) -- templateInterface object must be an InteractionTemplate");
+  templateInterface = normalizeInteractionTemplateInterface(templateInterface);
+  switch (templateInterface.f_version) {
+    case "1.0.0":
+      const interfaceData = templateInterface.data;
+      const encodedHex = rlp.encode([await genHash("InteractionTemplateInterface"), await genHash("1.0.0"), await genHash(interfaceData.flip), await Promise.all(Object.keys(interfaceData.arguments).map(async argumentLabel => [await genHash(argumentLabel), await genHash(String(interfaceData.arguments[argumentLabel].index)), await genHash(interfaceData.arguments[argumentLabel].type)]))]).toString("hex");
+      return genHash(encodedHex);
+    default:
+      throw new Error("generateTemplateInterfaceId Error: Unsupported templateInterface version");
+  }
 }
 
-function _generateTemplateInterfaceId() {
-  _generateTemplateInterfaceId = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee2(_ref) {
-    var templateInterface, interfaceData, encodedHex;
-    return _regeneratorRuntime__default["default"].wrap(function _callee2$(_context2) {
-      while (1) {
-        switch (_context2.prev = _context2.next) {
-          case 0:
-            templateInterface = _ref.templateInterface;
-            sdk.invariant(templateInterface != undefined, "generateTemplateInterfaceId({ templateInterface }) -- templateInterface must be defined");
-            sdk.invariant(_typeof__default["default"](templateInterface) === "object", "generateTemplateInterfaceId({ templateInterface }) -- templateInterface must be an object");
-            sdk.invariant(typeof templateInterface.f_type === "InteractionTemplateInterface", "generateTemplateInterfaceId({ templateInterface }) -- templateInterface object must be an InteractionTemplate");
-            templateInterface = normalizeInteractionTemplateInterface(templateInterface);
-            _context2.t0 = templateInterface.f_version;
-            _context2.next = _context2.t0 === "1.0.0" ? 8 : 25;
-            break;
-
-          case 8:
-            interfaceData = templateInterface.data;
-            _context2.t1 = rlp.encode;
-            _context2.next = 12;
-            return genHash("InteractionTemplateInterface");
-
-          case 12:
-            _context2.t2 = _context2.sent;
-            _context2.next = 15;
-            return genHash("1.0.0");
-
-          case 15:
-            _context2.t3 = _context2.sent;
-            _context2.next = 18;
-            return genHash(interfaceData.flip);
-
-          case 18:
-            _context2.t4 = _context2.sent;
-            _context2.next = 21;
-            return Promise.all(Object.keys(interfaceData.arguments).map( /*#__PURE__*/function () {
-              var _ref2 = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(argumentLabel) {
-                return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
-                  while (1) {
-                    switch (_context.prev = _context.next) {
-                      case 0:
-                        _context.next = 2;
-                        return genHash(argumentLabel);
-
-                      case 2:
-                        _context.t0 = _context.sent;
-                        _context.next = 5;
-                        return genHash(String(interfaceData.arguments[argumentLabel].index));
-
-                      case 5:
-                        _context.t1 = _context.sent;
-                        _context.next = 8;
-                        return genHash(interfaceData.arguments[argumentLabel].type);
-
-                      case 8:
-                        _context.t2 = _context.sent;
-                        return _context.abrupt("return", [_context.t0, _context.t1, _context.t2]);
-
-                      case 10:
-                      case "end":
-                        return _context.stop();
-                    }
-                  }
-                }, _callee);
-              }));
-
-              return function (_x2) {
-                return _ref2.apply(this, arguments);
-              };
-            }()));
-
-          case 21:
-            _context2.t5 = _context2.sent;
-            _context2.t6 = [_context2.t2, _context2.t3, _context2.t4, _context2.t5];
-            encodedHex = (0, _context2.t1)(_context2.t6).toString("hex");
-            return _context2.abrupt("return", genHash(encodedHex));
-
-          case 25:
-            throw new Error("generateTemplateInterfaceId Error: Unsupported templateInterface version");
-
-          case 26:
-          case "end":
-            return _context2.stop();
-        }
-      }
-    }, _callee2);
-  }));
-  return _generateTemplateInterfaceId.apply(this, arguments);
-}
-
-function verifyDependencyPinsSame(_x) {
-  return _verifyDependencyPinsSame.apply(this, arguments);
-}
-
-function _verifyDependencyPinsSame() {
-  _verifyDependencyPinsSame = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee(_ref) {
-    var template,
-        blockHeight,
-        network,
-        opts,
-        templateDependenciesPlaceholderKeys,
-        _i,
-        _templateDependencies,
-        templateDependencyPlaceholderKey,
-        templateDependencyPlaceholder,
-        templateDependencyPlaceholderContractNames,
-        _i2,
-        _templateDependencyPl,
-        templateDependencyPlaceholderContractName,
-        templateDependencyPlaceholderContractNetworks,
-        templateDependency,
-        pin,
-        _args = arguments;
-
-    return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            template = _ref.template, blockHeight = _ref.blockHeight, network = _ref.network;
-            opts = _args.length > 1 && _args[1] !== undefined ? _args[1] : {};
-            sdk.invariant(template != undefined, "generateDependencyPin({ template }) -- template must be defined");
-            sdk.invariant(_typeof__default["default"](template) === "object", "generateDependencyPin({ template }) -- template must be an object");
-            sdk.invariant(template.f_type === "InteractionTemplate", "generateDependencyPin({ template }) -- template must be an InteractionTemplate");
-            template = normalizeInteractionTemplate(template);
-            sdk.invariant(network != undefined, "generateDependencyPin({ network }) network must be defined");
-            sdk.invariant(blockHeight != undefined, "generateDependencyPin({ blockHeight }) blockHeight must be defined");
-            sdk.invariant(typeof blockHeight === "number", "generateDependencyPin({ blockHeight }) blockHeight must be a number");
-            _context.t0 = template.f_version;
-            _context.next = _context.t0 === "1.0.0" ? 12 : 38;
-            break;
-
-          case 12:
-            templateDependenciesPlaceholderKeys = Object.keys(template.data.dependencies);
-            _i = 0, _templateDependencies = templateDependenciesPlaceholderKeys;
-
-          case 14:
-            if (!(_i < _templateDependencies.length)) {
-              _context.next = 37;
-              break;
-            }
-
-            templateDependencyPlaceholderKey = _templateDependencies[_i];
-            templateDependencyPlaceholder = template.data.dependencies[templateDependencyPlaceholderKey];
-            templateDependencyPlaceholderContractNames = Object.keys(templateDependencyPlaceholder);
-            _i2 = 0, _templateDependencyPl = templateDependencyPlaceholderContractNames;
-
-          case 19:
-            if (!(_i2 < _templateDependencyPl.length)) {
-              _context.next = 34;
-              break;
-            }
-
-            templateDependencyPlaceholderContractName = _templateDependencyPl[_i2];
-            templateDependencyPlaceholderContractNetworks = template.data.dependencies[templateDependencyPlaceholderKey][templateDependencyPlaceholderContractName];
-            templateDependency = templateDependencyPlaceholderContractNetworks[network];
-
-            if (!(typeof templateDependency === "undefined")) {
-              _context.next = 25;
-              break;
-            }
-
-            return _context.abrupt("continue", 31);
-
-          case 25:
-            _context.next = 27;
-            return generateDependencyPin({
-              address: templateDependency.address,
-              contractName: templateDependency.contract,
-              blockHeight: blockHeight
-            }, opts);
-
-          case 27:
-            pin = _context.sent;
-
-            if (!(pin !== templateDependency.pin)) {
-              _context.next = 31;
-              break;
-            }
-
+/**
+ * @description Checks if an Interaction Template's pins match those generated at a block height
+ * 
+ * @param {object} params
+ * @param {object} params.template - Interaction Template to check pins for
+ * @param {number} params.blockHeight - Block height to check pins at
+ * @param {string} params.network - Network to check pins on
+ * @param {object} opts
+ * @returns {Promise<boolean>} - Whether or not the pins match
+ */
+async function verifyDependencyPinsSame(_ref) {
+  let {
+    template,
+    blockHeight,
+    network
+  } = _ref;
+  let opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  sdk.invariant(template != undefined, "generateDependencyPin({ template }) -- template must be defined");
+  sdk.invariant(typeof template === "object", "generateDependencyPin({ template }) -- template must be an object");
+  sdk.invariant(template.f_type === "InteractionTemplate", "generateDependencyPin({ template }) -- template must be an InteractionTemplate");
+  template = normalizeInteractionTemplate(template);
+  sdk.invariant(network != undefined, "generateDependencyPin({ network }) network must be defined");
+  sdk.invariant(blockHeight != undefined, "generateDependencyPin({ blockHeight }) blockHeight must be defined");
+  sdk.invariant(typeof blockHeight === "number", "generateDependencyPin({ blockHeight }) blockHeight must be a number");
+  switch (template.f_version) {
+    case "1.0.0":
+      let templateDependenciesPlaceholderKeys = Object.keys(template.data.dependencies);
+      for (let templateDependencyPlaceholderKey of templateDependenciesPlaceholderKeys) {
+        let templateDependencyPlaceholder = template.data.dependencies[templateDependencyPlaceholderKey];
+        let templateDependencyPlaceholderContractNames = Object.keys(templateDependencyPlaceholder);
+        for (let templateDependencyPlaceholderContractName of templateDependencyPlaceholderContractNames) {
+          let templateDependencyPlaceholderContractNetworks = template.data.dependencies[templateDependencyPlaceholderKey][templateDependencyPlaceholderContractName];
+          let templateDependency = templateDependencyPlaceholderContractNetworks[network];
+          if (typeof templateDependency === "undefined") continue;
+          let pin = await generateDependencyPin({
+            address: templateDependency.address,
+            contractName: templateDependency.contract,
+            blockHeight
+          }, opts);
+          if (pin !== templateDependency.pin) {
             utilLogger.log({
               title: "verifyDependencyPinsSame Debug Error",
-              message: "Could not recompute and match dependency pin.\n                                address: ".concat(templateDependency.address, " | contract: ").concat(templateDependency.contract, "\n                                computed: ").concat(pin, "\n                                template: ").concat(templateDependency.pin, "\n                            "),
+              message: `Could not recompute and match dependency pin.
+                                address: ${templateDependency.address} | contract: ${templateDependency.contract}
+                                computed: ${pin}
+                                template: ${templateDependency.pin}
+                            `,
               level: utilLogger.LEVELS.debug
             });
-            return _context.abrupt("return", false);
-
-          case 31:
-            _i2++;
-            _context.next = 19;
-            break;
-
-          case 34:
-            _i++;
-            _context.next = 14;
-            break;
-
-          case 37:
-            return _context.abrupt("return", true);
-
-          case 38:
-            throw new Error("verifyDependencyPinsSame Error: Unsupported template version");
-
-          case 39:
-          case "end":
-            return _context.stop();
+            return false;
+          }
         }
       }
-    }, _callee);
-  }));
-  return _verifyDependencyPinsSame.apply(this, arguments);
+      return true;
+    default:
+      throw new Error("verifyDependencyPinsSame Error: Unsupported template version");
+  }
 }
 
-function verifyDependencyPinsSameAtLatestSealedBlock(_x2) {
-  return _verifyDependencyPinsSameAtLatestSealedBlock.apply(this, arguments);
+/**
+ * @description Checks if an Interaction Template's pins match those generated at the latest block height
+ * 
+ * @param {object} params
+ * @param {object} params.template - Interaction Template to check pins for
+ * @param {string} params.network - Network to check pins on
+ * @param {object} opts
+ * @returns {Promise<boolean>} - Whether or not the pins match
+ */
+async function verifyDependencyPinsSameAtLatestSealedBlock(_ref2) {
+  let {
+    template,
+    network
+  } = _ref2;
+  let opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  let latestSealedBlock = await sdk.block({
+    sealed: true
+  });
+  let latestSealedBlockHeight = latestSealedBlock?.height;
+  return verifyDependencyPinsSame({
+    template,
+    network,
+    blockHeight: latestSealedBlockHeight
+  }, opts);
 }
 
-function _verifyDependencyPinsSameAtLatestSealedBlock() {
-  _verifyDependencyPinsSameAtLatestSealedBlock = _asyncToGenerator__default["default"]( /*#__PURE__*/_regeneratorRuntime__default["default"].mark(function _callee2(_ref2) {
-    var template,
-        network,
-        opts,
-        latestSealedBlock,
-        latestSealedBlockHeight,
-        _args2 = arguments;
-    return _regeneratorRuntime__default["default"].wrap(function _callee2$(_context2) {
-      while (1) {
-        switch (_context2.prev = _context2.next) {
-          case 0:
-            template = _ref2.template, network = _ref2.network;
-            opts = _args2.length > 1 && _args2[1] !== undefined ? _args2[1] : {};
-            _context2.next = 4;
-            return sdk.block({
-              sealed: true
-            });
-
-          case 4:
-            latestSealedBlock = _context2.sent;
-            latestSealedBlockHeight = latestSealedBlock === null || latestSealedBlock === void 0 ? void 0 : latestSealedBlock.height;
-            return _context2.abrupt("return", verifyDependencyPinsSame({
-              template: template,
-              network: network,
-              blockHeight: latestSealedBlockHeight
-            }, opts));
-
-          case 7:
-          case "end":
-            return _context2.stop();
-        }
-      }
-    }, _callee2);
-  }));
-  return _verifyDependencyPinsSameAtLatestSealedBlock.apply(this, arguments);
-}
-
+/**
+ * @description Get Interaction Template argument message
+ * 
+ * @param {object} params
+ * @param {string} params.localization [localization="en-US"] - Localization code
+ * @param {string} params.messageKey - Message key
+ * @param {object} params.template - Interaction Template
+ * @returns {string} - Message
+ */
 function getTemplateMessage(_ref) {
-  var _template$data, _messages$messageKey, _messages$messageKey$;
-
-  var _ref$localization = _ref.localization,
-      localization = _ref$localization === void 0 ? "en-US" : _ref$localization,
-      messageKey = _ref.messageKey,
-      template = _ref.template;
-  sdk.invariant(messageKey, "getMessage({ messageKey }) -- messageKey must be defined");
-  sdk.invariant(typeof messageKey === "stirng", "getMessage({ messageKey }) -- messageKey must be a string");
-  sdk.invariant(localization, "getMessage({ localization }) -- localization must be defined");
-  sdk.invariant(typeof localization === "stirng", "getMessage({ localization }) -- localization must be a string");
-  sdk.invariant(template != undefined, "generateTemplateId({ template }) -- template must be defined");
-  sdk.invariant(_typeof__default["default"](template) === "object", "generateTemplateId({ template }) -- template must be an object");
-  sdk.invariant(typeof template.f_type === "InteractionTemplate", "generateTemplateId({ template }) -- template object must be an InteractionTemplate");
-  var messages = template === null || template === void 0 ? void 0 : (_template$data = template.data) === null || _template$data === void 0 ? void 0 : _template$data.messages;
-  return messages === null || messages === void 0 ? void 0 : (_messages$messageKey = messages[messageKey]) === null || _messages$messageKey === void 0 ? void 0 : (_messages$messageKey$ = _messages$messageKey.i18n) === null || _messages$messageKey$ === void 0 ? void 0 : _messages$messageKey$[localization];
+  let {
+    localization = "en-US",
+    messageKey,
+    template
+  } = _ref;
+  sdk.invariant(messageKey, "getTemplateMessage({ messageKey }) -- messageKey must be defined");
+  sdk.invariant(typeof messageKey === "string", "getTemplateMessage({ messageKey }) -- messageKey must be a string");
+  sdk.invariant(localization, "getTemplateMessage({ localization }) -- localization must be defined");
+  sdk.invariant(typeof localization === "string", "getTemplateMessage({ localization }) -- localization must be a string");
+  sdk.invariant(template != undefined, "getTemplateMessage({ template }) -- template must be defined");
+  sdk.invariant(typeof template === "object", "getTemplateMessage({ template }) -- template must be an object");
+  sdk.invariant(typeof template.f_type === "InteractionTemplate", "getTemplateMessage({ template }) -- template object must be an InteractionTemplate");
+  const messages = template?.data?.messages;
+  return messages?.[messageKey]?.i18n?.[localization];
 }
 
+/**
+ * @description Gets Interaction Template argument message by message key, argument label, and localization
+ * 
+ * @param {object} opts
+ * @param {string} opts.localization [localization="en-US"] - Localization to get message for
+ * @param {string} opts.argumentLabel - Argument label to get message for
+ * @param {string} opts.messageKey - Message key to get message for
+ * @param {object} opts.template - Interaction Template to get message from
+ * @returns {string} - Message
+ */
 function getTemplateArgumentMessage(_ref) {
-  var _template$data, _args$argumentLabel, _args$argumentLabel$m, _args$argumentLabel$m2, _args$argumentLabel$m3;
-
-  var _ref$localization = _ref.localization,
-      localization = _ref$localization === void 0 ? "en-US" : _ref$localization,
-      argumentLabel = _ref.argumentLabel,
-      messageKey = _ref.messageKey,
-      template = _ref.template;
-  sdk.invariant(messageKey, "getMessage({ messageKey }) -- messageKey must be defined");
-  sdk.invariant(typeof messageKey === "stirng", "getMessage({ messageKey }) -- messageKey must be a string");
-  sdk.invariant(argumentLabel, "getMessage({ argumentLabel }) -- argumentLabel must be defined");
-  sdk.invariant(typeof messageKey === "stirng", "getMessage({ argumentLabel }) -- argumentLabel must be a string");
-  sdk.invariant(localization, "getMessage({ localization }) -- localization must be defined");
-  sdk.invariant(typeof localization === "stirng", "getMessage({ localization }) -- localization must be a string");
-  sdk.invariant(template != undefined, "generateTemplateId({ template }) -- template must be defined");
-  sdk.invariant(_typeof__default["default"](template) === "object", "generateTemplateId({ template }) -- template must be an object");
-  sdk.invariant(typeof template.f_type === "InteractionTemplate", "generateTemplateId({ template }) -- template object must be an InteractionTemplate");
-  var args = template === null || template === void 0 ? void 0 : (_template$data = template.data) === null || _template$data === void 0 ? void 0 : _template$data.arguments;
-  return args === null || args === void 0 ? void 0 : (_args$argumentLabel = args[argumentLabel]) === null || _args$argumentLabel === void 0 ? void 0 : (_args$argumentLabel$m = _args$argumentLabel.messages) === null || _args$argumentLabel$m === void 0 ? void 0 : (_args$argumentLabel$m2 = _args$argumentLabel$m[messageKey]) === null || _args$argumentLabel$m2 === void 0 ? void 0 : (_args$argumentLabel$m3 = _args$argumentLabel$m2.i18n) === null || _args$argumentLabel$m3 === void 0 ? void 0 : _args$argumentLabel$m3[localization];
+  let {
+    localization = "en-US",
+    argumentLabel,
+    messageKey,
+    template
+  } = _ref;
+  sdk.invariant(messageKey, "getTemplateArgumentMessage({ messageKey }) -- messageKey must be defined");
+  sdk.invariant(typeof messageKey === "string", "getTemplateArgumentMessage({ messageKey }) -- messageKey must be a string");
+  sdk.invariant(argumentLabel, "getTemplateArgumentMessage({ argumentLabel }) -- argumentLabel must be defined");
+  sdk.invariant(typeof messageKey === "string", "getTemplateArgumentMessage({ argumentLabel }) -- argumentLabel must be a string");
+  sdk.invariant(localization, "getTemplateArgumentMessage({ localization }) -- localization must be defined");
+  sdk.invariant(typeof localization === "string", "getTemplateArgumentMessage({ localization }) -- localization must be a string");
+  sdk.invariant(template != undefined, "getTemplateArgumentMessage({ template }) -- template must be defined");
+  sdk.invariant(typeof template === "object", "getTemplateArgumentMessage({ template }) -- template must be an object");
+  sdk.invariant(typeof template.f_type === "InteractionTemplate", "getTemplateArgumentMessage({ template }) -- template object must be an InteractionTemplate");
+  const args = template?.data?.arguments;
+  return args?.[argumentLabel]?.messages?.[messageKey]?.i18n?.[localization];
 }
 
 var index = /*#__PURE__*/Object.freeze({
@@ -31501,33 +21242,2120 @@ var index = /*#__PURE__*/Object.freeze({
   getTemplateArgumentMessage: getTemplateArgumentMessage
 });
 
-var authenticate = function authenticate() {
-  var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+/**
+ * @type {Types}
+ */
+const t = t__namespace;
+
+// Set chain id default on access node change
+watchForChainIdChanges();
+
+async function fetchServices(servicesURL, code) {
+  if (servicesURL == null || code == null) return [];
+  const url = new URL(servicesURL);
+  url.searchParams.append("code", code);
+  const resp = await fetch(url, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json"
+    }
+  }).then(d => d.json());
+  if (Array.isArray(resp)) return resp;
+
+  // Backwards compatibility for First-Gen Wallet Providers
+  const services = [];
+
+  // Convert authorizations into authz services
+  if (Array.isArray(resp.authorizations)) {
+    for (let service of resp.authorizations) {
+      services.push({
+        type: "authz",
+        keyId: resp.keyId,
+        ...service
+      });
+    }
+  }
+
+  // Convert Provider info into an authn service
+  if (resp.provider != null) {
+    services.push({
+      type: "authn",
+      id: "wallet-provider#authn",
+      ...resp.provider
+    });
+  }
+  return services;
+}
+
+function mergeServices() {
+  let sx1 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+  let sx2 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+  // TODO: Make this smarter
+  return [...sx1, ...sx2];
+}
+
+// {
+//   "f_type": "Service",
+//   "f_vsn": "1.0.0",
+//   "type": "authn",
+//   "uid": "uniqueDedupeKey",
+//   "endpoint": "https://rawr",
+//   "id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", // wallets internal id for the user
+//   "identity": {
+//     "address": "0x____"
+//   },
+//   "provider": {
+//     "address": "0x____",
+//     "name": "Best Wallet",
+//     "description": "The Best Wallet"
+//     "icon": "https://",
+//   }
+// }
+function normalizeAuthn(service) {
+  if (service == null) return null;
+  if (!service["f_vsn"]) {
+    return {
+      ...SERVICE_PRAGMA,
+      type: service.type,
+      uid: service.id,
+      endpoint: service.authn,
+      id: service.pid,
+      provider: {
+        address: utilAddress.withPrefix(service.addr),
+        name: service.name,
+        icon: service.icon
+      }
+    };
+  }
+  switch (service["f_vsn"]) {
+    case "1.0.0":
+      return service;
+    default:
+      return null;
+  }
+}
+
+// {
+//   "f_type": "service",
+//   "f_vsn": "1.0.0",
+//   "type": "authz",
+//   "uid": "uniqueDedupeKey",
+//   "endpoint": "https://rawr",
+//   "method": "HTTP/POST", // HTTP/POST | IFRAME/RPC | HTTP/RPC
+//   "identity": {
+//      "address": "0x______",
+//      "keyId": 0,
+//   },
+//   "data": {}, // included in body of authz request
+//   "params": {}, // included as query params on endpoint url
+// }
+function normalizeAuthz(service) {
+  if (service == null) return null;
+  if (!service["f_vsn"]) {
+    return {
+      ...SERVICE_PRAGMA,
+      type: service.type,
+      uid: service.id,
+      endpoint: service.endpoint,
+      method: service.method,
+      identity: {
+        ...IDENTITY_PRAGMA,
+        address: utilAddress.withPrefix(service.addr),
+        keyId: service.keyId
+      },
+      params: service.params,
+      data: service.data
+    };
+  }
+  switch (service["f_vsn"]) {
+    case "1.0.0":
+      return service;
+    default:
+      return null;
+  }
+}
+
+// {
+//   "f_type": "service",
+//   "f_vsn": "1.0.0",
+//   "type": "pre-authz",
+//   "uid": "uniqueDedupeKey",
+//   "endpoint": "https://rawr",
+//   "method": "HTTP/POST", // HTTP/POST | IFRAME/RPC | HTTP/RPC
+//   "identity": {
+//      "address": "0x______",
+//      "keyId": 0,
+//   },
+//   "data": {}, // included in body of pre-authz request
+//   "params": {}, // included as query params on endpoint url
+// }
+function normalizePreAuthz(service) {
+  if (service == null) return null;
+  if (!service["f_vsn"]) {
+    return {
+      ...SERVICE_PRAGMA,
+      type: service.type,
+      uid: service.id,
+      endpoint: service.endpoint,
+      method: service.method,
+      identity: {
+        ...IDENTITY_PRAGMA,
+        address: utilAddress.withPrefix(service.addr),
+        keyId: service.keyId
+      },
+      params: service.params,
+      data: service.data
+    };
+  }
+  switch (service["f_vsn"]) {
+    case "1.0.0":
+      return service;
+    default:
+      return null;
+  }
+}
+
+// {
+//    "f_type": "Service",
+//    "f_vsn": "1.0.0",
+//    "type": "frame",
+//    "endpoint": "https://rawr",
+//    "data": {},   // Sent to frame when ready
+//    "params": {}, // include in query params on frame
+// }
+function normalizeFrame(service) {
+  if (service == null) return null;
+  if (!service["f_vsn"]) {
+    return {
+      old: service,
+      ...SERVICE_PRAGMA,
+      type: "frame",
+      endpoint: service.endpoint,
+      params: service.params || {},
+      data: service.data || {}
+    };
+  }
+  switch (service["f_vsn"]) {
+    case "1.0.0":
+      return service;
+    default:
+      return null;
+  }
+}
+
+// {
+//    "f_type": "Service",
+//    "f_vsn": "1.0.0",
+//    "type": "back-channel-rpc",
+//    "endpoint": "https://rawr",
+//    "method": "HTTP/GET", // HTTP/GET | HTTP/POST
+//    "data": {},           // included in body of rpc
+//    "params": {},         // included as query params on endpoint url
+// }
+function normalizeBackChannelRpc(service) {
+  if (service == null) return null;
+  if (!service["f_vsn"]) {
+    return {
+      ...SERVICE_PRAGMA,
+      type: "back-channel-rpc",
+      endpoint: service.endpoint,
+      method: service.method,
+      params: service.params || {},
+      data: service.data || {}
+    };
+  }
+  switch (service["f_vsn"]) {
+    case "1.0.0":
+      return service;
+    default:
+      return null;
+  }
+}
+
+// {
+//   "f_type": "Service",
+//   "f_vsn": "1.0.0",
+//   "type": "open-id",
+//   "uid": "uniqueDedupeKey",
+//   "method: "data",
+//   "data": {
+//      "profile": {
+//        "name": "Bob",
+//        "family_name": "Builder",
+//        "given_name": "Robert",
+//        "middle_name": "the",
+//        "nickname": "Bob the Builder",
+//        "perferred_username": "bob",
+//        "profile": "https://www.bobthebuilder.com/",
+//        "picture": "https://avatars.onflow.org/avatar/bob",
+//        "gender": "...",
+//        "birthday": "2001-01-18",
+//        "zoneinfo": "America/Vancouver",
+//        "locale": "en-us",
+//        "updated_at": "1614970797388"
+//      },
+//      "email": {
+//        "email": "bob@bob.bob",
+//        "email_verified": true
+//      },
+//      "address": {
+//        "address": "One Apple Park Way, Cupertino, CA 95014, USA"
+//      },
+//      "phone": {
+//        "phone_number": "+1 (xxx) yyy-zzzz",
+//        "phone_number_verified": true
+//      },
+//      "social": {
+//        "twitter": "@_qvvg",
+//        "twitter_verified": true
+//      },
+//   }
+// }
+function normalizeOpenId(service) {
+  if (service == null) return null;
+  switch (service["f_vsn"]) {
+    case "1.0.0":
+      return service;
+    default:
+      return null;
+  }
+}
+
+// {
+//   "f_type": "Service",
+//   "f_vsn": "1.0.0",
+//   "type": "user-signature",
+//   "uid": "uniqueDedupeKey",
+//   "endpoint": "https://rawr",
+//   "method": "IFRAME/RPC", // HTTP/POST | IFRAME/RPC | HTTP/RPC
+//   "id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", // wallets internal id for the user
+//   "data": {}, // included in body of user-signature request
+//   "params": {}, // included as query params on endpoint url
+// }
+function normalizeUserSignature(service) {
+  if (service == null) return null;
+  if (!service["f_vsn"]) {
+    throw new Error("Invalid user-signature service");
+  }
+  switch (service["f_vsn"]) {
+    case "1.0.0":
+      return service;
+    default:
+      return null;
+  }
+}
+
+// {
+//    "f_type": "Service",
+//    "f_vsn": "1.0.0",
+//    type: "local-view",
+//    method: "VIEW/IFRAME",
+//    endpoint: "https://woot.org/authz/local",
+//    data: {},
+//    params: {},
+// }
+function normalizeLocalView(resp) {
+  if (resp == null) return null;
+  if (resp.method == null) {
+    resp = {
+      ...resp,
+      type: "local-view",
+      method: "VIEW/IFRAME"
+    };
+  }
+  if (!resp["f_vsn"]) {
+    return {
+      ...SERVICE_PRAGMA,
+      type: resp.type || "local-view",
+      method: resp.method,
+      endpoint: resp.endpoint,
+      data: resp.data || {},
+      params: resp.params || {}
+    };
+  }
+  switch (resp["f_vsn"]) {
+    case "1.0.0":
+      return resp;
+    default:
+      return null;
+  }
+}
+
+// {
+//   "f_type": "Service",                    // Its a service!
+//   "f_vsn": "1.0.0",                       // Follows the v1.0.0 spec for the service
+//   "type": "account-proof",                // the type of service it is
+//   "method": "DATA",                       // Its data!
+//   "uid": "awesome-wallet#account-proof",  // A unique identifier for the service
+//   "data": {
+//     "f_type": "account-proof",
+//     "f_vsn": "1.0.0",
+//     "nonce": "0A1BC2FF",                  // Nonce signed by the current account-proof (minimum 32 bytes in total, i.e 64 hex characters)
+//     "address": "0xUSER",                  // The user's address (8 bytes, i.e 16 hex characters)
+//     "signature": CompositeSignature,      // address (sans-prefix), keyId, signature (hex)
+// }
+
+function normalizeAccountProof(service) {
+  if (service == null) return null;
+  if (!service["f_vsn"]) {
+    throw new Error(`FCL Normalizer Error: Invalid account-proof service`);
+  }
+  switch (service["f_vsn"]) {
+    case "1.0.0":
+      return service;
+    default:
+      return null;
+  }
+}
+
+// {
+//   "f_type": "Service",
+//   "f_vsn": "1.0.0",
+//   "type": "authn-refresh",
+//   "uid": "uniqueDedupeKey",
+//   "endpoint": "https://rawr",
+//   "method": "HTTP/POST",  // "HTTP/POST", // HTTP/POST | IFRAME/RPC | HTTP/RPC
+//   "id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", // wallets internal id for the user
+//   "data": {}, // included in body of request
+//   "params": {}, // included as query params on endpoint url
+// }
+function normalizeAuthnRefresh(service) {
+  if (service == null) return null;
+  if (!service["f_vsn"]) {
+    throw new Error("Invalid authn-refresh service");
+  }
+  switch (service["f_vsn"]) {
+    case "1.0.0":
+      return service;
+    default:
+      return null;
+  }
+}
+
+function normalizeServices(services, data) {
+  return services.map(service => normalizeService(service, data)).filter(Boolean);
+}
+const serviceNormalizers = {
+  "back-channel-rpc": normalizeBackChannelRpc,
+  "pre-authz": normalizePreAuthz,
+  authz: normalizeAuthz,
+  authn: normalizeAuthn,
+  frame: normalizeFrame,
+  "open-id": normalizeOpenId,
+  "user-signature": normalizeUserSignature,
+  "local-view": normalizeLocalView,
+  "account-proof": normalizeAccountProof,
+  "authn-refresh": normalizeAuthnRefresh
+};
+function normalizeService(service, data) {
+  try {
+    var normalized = serviceNormalizers[service.type](service, data);
+    return normalized;
+  } catch (error) {
+    console.error(`Unrecognized FCL Service Type [${service.type}]`, service, error);
+    return service;
+  }
+}
+
+function serviceOfType() {
+  let services = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+  let type = arguments.length > 1 ? arguments[1] : undefined;
+  // Find the greatest version of the service type
+  return services.reduce((mostRecent, service) => service.type === type ? !mostRecent || semver__namespace.compare(service.f_vsn, mostRecent.f_vsn) > 0 ? service : mostRecent : mostRecent, null);
+}
+
+function deriveCompositeId(authn) {
+  return rlp__namespace.encode([authn.provider.address || authn.provider.name || "UNSPECIFIED", authn.id]).toString("hex");
+}
+function normalizeData(data) {
+  data.addr = data.addr ? utilAddress.withPrefix(data.addr) : null;
+  data.paddr = data.paddr ? utilAddress.withPrefix(data.paddr) : null;
+  return data;
+}
+async function buildUser(data) {
+  data = normalizeData(data);
+  var services = normalizeServices(mergeServices(data.services || [], await fetchServices(data.hks, data.code)));
+  const authn = serviceOfType(services, "authn");
+  return {
+    ...USER_PRAGMA,
+    addr: utilAddress.withPrefix(data.addr),
+    cid: deriveCompositeId(authn),
+    loggedIn: true,
+    services: services,
+    expiresAt: data.expires
+  };
+}
+
+const execStrategy = async _ref => {
+  let {
+    service,
+    body,
+    config,
+    opts
+  } = _ref;
+  const strategy = getServiceRegistry().getStrategy(service.method);
+  return strategy({
+    service,
+    body,
+    config,
+    opts
+  });
+};
+async function execService(_ref2) {
+  let {
+    service,
+    msg = {},
+    config = {},
+    opts = {},
+    platform
+  } = _ref2;
+  msg.data = service.data;
+  const execConfig = {
+    services: await configLens(/^service\./),
+    app: await configLens(/^app\.detail\./),
+    client: {
+      ...config.client,
+      platform,
+      fclVersion: VERSION,
+      fclLibrary: "https://github.com/onflow/fcl-js",
+      hostname: window?.location?.hostname ?? null,
+      network: await getChainId(opts)
+    }
+  };
+  try {
+    const res = await execStrategy({
+      service,
+      body: msg,
+      config: execConfig,
+      opts
+    });
+    if (res.status === "REDIRECT") {
+      utilInvariant.invariant(service.type === res.data.type, "Cannot shift recursive service type in execService");
+      return await execService({
+        service: res.data,
+        msg,
+        config: execConfig,
+        opts
+      });
+    } else {
+      return res;
+    }
+  } catch (error) {
+    utilLogger.log({
+      title: `Error on execService ${service?.type}`,
+      message: error,
+      level: utilLogger.LEVELS.error
+    });
+    throw error;
+  }
+}
+
+// {
+//    "f_type": "CompositeSignature",
+//    "f_vsn": "1.0.0",
+//    "addr": "_____",         // sans-prefix
+//    "signature": "adfe1234", // hex
+//    "keyId": 3,
+// }
+function normalizeCompositeSignature(resp) {
+  if (resp == null) return null;
+  if (!resp["f_vsn"]) {
+    return {
+      ...COMPOSITE_SIGNATURE_PRAGMA,
+      addr: utilAddress.sansPrefix(resp.addr || resp.address),
+      signature: resp.signature || resp.sig,
+      keyId: resp.keyId
+    };
+  }
+  switch (resp["f_vsn"]) {
+    case "1.0.0":
+      return resp;
+    default:
+      return null;
+  }
+}
+
+/**
+ * @typedef {import("@onflow/typedefs").CurrentUser} CurrentUser
+ * @typedef {import("@onflow/typedefs").CompositeSignature} CompositeSignature
+ */
+
+const isFn = d => typeof d === "function";
+const NAME = "CURRENT_USER";
+const UPDATED = "CURRENT_USER/UPDATED";
+const SNAPSHOT = "SNAPSHOT";
+const SET_CURRENT_USER = "SET_CURRENT_USER";
+const DEL_CURRENT_USER = "DEL_CURRENT_USER";
+const DATA = `{
+  "f_type": "User",
+  "f_vsn": "1.0.0",
+  "addr":null,
+  "cid":null,
+  "loggedIn":null,
+  "expiresAt":null,
+  "services":[]
+}`;
+const getStoredUser = async storage => {
+  const fallback = JSON.parse(DATA);
+  const stored = await storage.get(NAME);
+  if (stored != null && fallback["f_vsn"] !== stored["f_vsn"]) {
+    storage.removeItem(NAME);
+    return fallback;
+  }
+  return stored || fallback;
+};
+const HANDLERS = {
+  [utilActor.INIT]: async ctx => {
+    if (typeof window === "undefined") {
+      console.warn(`
+        %cFCL Warning
+        ============================
+        "currentUser" is only available in the browser.
+        For more info, please see the docs: https://docs.onflow.org/fcl/
+        ============================
+        `, "font-weight:bold;font-family:monospace;");
+    }
+    ctx.merge(JSON.parse(DATA));
+    const storage = await config.config.first(["fcl.storage", "fcl.storage.default"]);
+    if (storage.can) {
+      const user = await getStoredUser(storage);
+      if (notExpired(user)) ctx.merge(user);
+    }
+  },
+  [utilActor.SUBSCRIBE]: (ctx, letter) => {
+    ctx.subscribe(letter.from);
+    ctx.send(letter.from, UPDATED, {
+      ...ctx.all()
+    });
+  },
+  [utilActor.UNSUBSCRIBE]: (ctx, letter) => {
+    ctx.unsubscribe(letter.from);
+  },
+  [SNAPSHOT]: async (ctx, letter) => {
+    letter.reply({
+      ...ctx.all()
+    });
+  },
+  [SET_CURRENT_USER]: async (ctx, letter, data) => {
+    ctx.merge(data);
+    const storage = await config.config.first(["fcl.storage", "fcl.storage.default"]);
+    if (storage.can) storage.put(NAME, ctx.all());
+    ctx.broadcast(UPDATED, {
+      ...ctx.all()
+    });
+  },
+  [DEL_CURRENT_USER]: async (ctx, letter) => {
+    ctx.merge(JSON.parse(DATA));
+    const storage = await config.config.first(["fcl.storage", "fcl.storage.default"]);
+    if (storage.can) storage.put(NAME, ctx.all());
+    ctx.broadcast(UPDATED, {
+      ...ctx.all()
+    });
+  }
+};
+const spawnCurrentUser = () => utilActor.spawn(HANDLERS, NAME);
+function notExpired(user) {
+  return user.expiresAt == null || user.expiresAt === 0 || user.expiresAt > Date.now();
+}
+async function getAccountProofData() {
+  let accountProofDataResolver = await config.config.get("fcl.accountProof.resolver");
+  if (accountProofDataResolver == null) return;
+  if (!isFn(accountProofDataResolver)) {
+    utilLogger.log({
+      title: "Account Proof Data Resolver must be a function",
+      message: `Check fcl.accountProof.resolver configuration.
+                Expected: fcl.accountProof.resolver: async () => { ... }
+                Received: fcl.accountProof.resolver: ${typeof accountProofDataResolver}
+                `,
+      level: utilLogger.LEVELS.warn
+    });
+    return;
+  }
+  const accountProofData = await accountProofDataResolver();
+  if (accountProofData == null) return;
+  utilInvariant.invariant(typeof accountProofData.appIdentifier === "string", "appIdentifier must be a string");
+  utilInvariant.invariant(/^[0-9a-f]+$/i.test(accountProofData.nonce), "Nonce must be a hex string");
+  return accountProofData;
+}
+const makeConfig = async _ref => {
+  let {
+    discoveryAuthnInclude,
+    discoveryFeaturesSuggested
+  } = _ref;
+  return {
+    client: {
+      discoveryAuthnInclude,
+      discoveryFeaturesSuggested,
+      clientServices: await makeDiscoveryServices(),
+      supportedStrategies: getServiceRegistry().getStrategies()
+    }
+  };
+};
+
+/**
+ * @description - Authenticate a user
+ * @param {object} [opts] - Options
+ * @param {object} [opts.platform] - platform that runs the function
+ * @param {object} [opts.service] - Optional service to use for authentication
+ * @param {boolean} [opts.redir=false] - Optional flag to allow window to stay open after authentication
+ * @returns {Promise<CurrentUser>} - User object
+ */
+const getAuthenticate = _ref2 => {
+  let {
+    platform
+  } = _ref2;
+  return async function () {
+    let {
+      service,
+      redir = false
+    } = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    if (service && !service?.provider?.is_installed && service?.provider?.requires_install) {
+      window.location.href = service?.provider?.install_link;
+      return;
+    }
+    return new Promise(async (resolve, reject) => {
+      spawnCurrentUser();
+      const opts = {
+        redir
+      };
+      const user = await snapshot();
+      const discoveryService = await getDiscoveryService(service);
+      const refreshService = serviceOfType(user.services, "authn-refresh");
+      let accountProofData;
+      if (user.loggedIn) {
+        if (refreshService) {
+          try {
+            const response = await execService({
+              service: refreshService,
+              msg: accountProofData,
+              opts,
+              platform
+            });
+            utilActor.send(NAME, SET_CURRENT_USER, await buildUser(response));
+          } catch (error) {
+            utilLogger.log({
+              title: `${error.name} Could not refresh wallet authentication.`,
+              message: error.message,
+              level: utilLogger.LEVELS.error
+            });
+          } finally {
+            return resolve(await snapshot());
+          }
+        } else {
+          return resolve(user);
+        }
+      }
+      try {
+        accountProofData = await getAccountProofData();
+      } catch (error) {
+        utilLogger.log({
+          title: `${error.name} On Authentication: Could not resolve account proof data.`,
+          message: error.message,
+          level: utilLogger.LEVELS.error
+        });
+        return reject(error);
+      }
+      try {
+        const response = await execService({
+          service: discoveryService,
+          msg: accountProofData,
+          config: await makeConfig(discoveryService),
+          opts,
+          platform
+        });
+        utilActor.send(NAME, SET_CURRENT_USER, await buildUser(response));
+      } catch (error) {
+        utilLogger.log({
+          title: `${error} On Authentication`,
+          message: error,
+          level: utilLogger.LEVELS.error
+        });
+      } finally {
+        resolve(await snapshot());
+      }
+    });
+  };
+};
+
+/**
+ * @description - Unauthenticate a user
+ * @returns {void}
+ */
+function unauthenticate$1() {
+  spawnCurrentUser();
+  utilActor.send(NAME, DEL_CURRENT_USER);
+}
+const normalizePreAuthzResponse = authz => ({
+  f_type: "PreAuthzResponse",
+  f_vsn: "1.0.0",
+  proposer: (authz || {}).proposer,
+  payer: (authz || {}).payer || [],
+  authorization: (authz || {}).authorization || []
+});
+const getResolvePreAuthz = _ref3 => {
+  let {
+    platform
+  } = _ref3;
+  return authz => {
+    const resp = normalizePreAuthzResponse(authz);
+    const axs = [];
+    if (resp.proposer != null) axs.push(["PROPOSER", resp.proposer]);
+    for (let az of resp.payer || []) axs.push(["PAYER", az]);
+    for (let az of resp.authorization || []) axs.push(["AUTHORIZER", az]);
+    var result = axs.map(_ref4 => {
+      let [role, az] = _ref4;
+      return {
+        tempId: [az.identity.address, az.identity.keyId].join("|"),
+        addr: az.identity.address,
+        keyId: az.identity.keyId,
+        signingFunction(signable) {
+          return execService({
+            service: az,
+            msg: signable,
+            platform
+          });
+        },
+        role: {
+          proposer: role === "PROPOSER",
+          payer: role === "PAYER",
+          authorizer: role === "AUTHORIZER"
+        }
+      };
+    });
+    return result;
+  };
+};
+
+/**
+ * @description
+ * Produces the needed authorization details for the current user to submit transactions to Flow
+ * It defines a signing function that connects to a user's wallet provider to produce signatures to submit transactions.
+ * 
+ * @param {object} ops - running options
+ * @param {string} ops.platform - platform that runs the function
+ * @param {object} account - Account object
+ * @returns {Promise<object>} - Account object with signing function
+ */
+const getAuthorization = _ref5 => {
+  let {
+    platform
+  } = _ref5;
+  return async account => {
+    spawnCurrentUser();
+    return {
+      ...account,
+      tempId: "CURRENT_USER",
+      async resolve(account, preSignable) {
+        const user = await getAuthenticate({
+          platform
+        })({
+          redir: true
+        });
+        const authz = serviceOfType(user.services, "authz");
+        const preAuthz = serviceOfType(user.services, "pre-authz");
+        if (preAuthz) return getResolvePreAuthz({
+          platform
+        })(await execService({
+          service: preAuthz,
+          msg: preSignable,
+          platform
+        }));
+        if (authz) {
+          let windowRef;
+          if (isMobile() && authz.method === "WC/RPC") {
+            windowRef = window.open("", "_blank");
+          }
+          return {
+            ...account,
+            tempId: "CURRENT_USER",
+            resolve: null,
+            addr: utilAddress.sansPrefix(authz.identity.address),
+            keyId: authz.identity.keyId,
+            sequenceNum: null,
+            signature: null,
+            async signingFunction(signable) {
+              return normalizeCompositeSignature(await execService({
+                service: authz,
+                msg: signable,
+                opts: {
+                  includeOlderJsonRpcCall: true,
+                  windowRef
+                },
+                platform
+              }));
+            }
+          };
+        }
+        throw new Error("No Authz or PreAuthz Service configured for CURRENT_USER");
+      }
+    };
+  };
+};
+
+/**
+ * @description
+ * The callback passed to subscribe will be called when the user authenticates and un-authenticates, making it easy to update the UI accordingly.
+ * 
+ * @param {Function} callback - Callback function
+ * @returns {Function} - Unsubscribe function
+ */
+function subscribe(callback) {
+  spawnCurrentUser();
+  const EXIT = "@EXIT";
+  const self = utilActor.spawn(async ctx => {
+    ctx.send(NAME, utilActor.SUBSCRIBE);
+    while (1) {
+      const letter = await ctx.receive();
+      if (letter.tag === EXIT) {
+        ctx.send(NAME, utilActor.UNSUBSCRIBE);
+        return;
+      }
+      callback(letter.data);
+    }
+  });
+  return () => utilActor.send(self, EXIT);
+}
+
+/**
+ * @description - Gets the current user
+ * @returns {Promise<CurrentUser>} - User object
+ */
+function snapshot() {
+  spawnCurrentUser();
+  return utilActor.send(NAME, SNAPSHOT, null, {
+    expectReply: true,
+    timeout: 0
+  });
+}
+
+/**
+ * @description - Resolves the current user as an argument
+ * 
+ * @param {object} ops - running options
+ * @param {string} ops.platform - platform that runs the function
+ * @returns {Promise<Function>}
+ */
+const getResolveArgument = _ref6 => {
+  let {
+    platform
+  } = _ref6;
+  return async () => {
+    const {
+      addr
+    } = await getAuthenticate({
+      platform
+    })();
+    return sdk.arg(utilAddress.withPrefix(addr), t__namespace.Address);
+  };
+};
+const makeSignable = msg => {
+  utilInvariant.invariant(/^[0-9a-f]+$/i.test(msg), "Message must be a hex string");
+  return {
+    message: msg
+  };
+};
+
+/**
+ * @description - A method to use allowing the user to personally sign data via FCL Compatible Wallets/Services.
+ * @param {string} msg - Message to sign
+ * @returns {Promise<CompositeSignature[]>} - Array of CompositeSignatures
+ */
+const getSignUserMessage = _ref7 => {
+  let {
+    platform
+  } = _ref7;
+  return async msg => {
+    spawnCurrentUser();
+    const user = await getAuthenticate({
+      platform
+    })({
+      redir: true
+    });
+    const signingService = serviceOfType(user.services, "user-signature");
+    utilInvariant.invariant(signingService, "Current user must have authorized a signing service.");
+    try {
+      const response = await execService({
+        service: signingService,
+        msg: makeSignable(msg),
+        platform
+      });
+      if (Array.isArray(response)) {
+        return response.map(compSigs => normalizeCompositeSignature(compSigs));
+      } else {
+        return [normalizeCompositeSignature(response)];
+      }
+    } catch (error) {
+      return error;
+    }
+  };
+};
+const getCurrentUser = _ref8 => {
+  let {
+    platform
+  } = _ref8;
+  let currentUser = () => {
+    return {
+      authenticate: getAuthenticate({
+        platform
+      }),
+      unauthenticate: unauthenticate$1,
+      authorization: getAuthorization({
+        platform
+      }),
+      signUserMessage: getSignUserMessage({
+        platform
+      }),
+      subscribe,
+      snapshot,
+      resolveArgument: getResolveArgument({
+        platform
+      })
+    };
+  };
+  currentUser.authenticate = getAuthenticate({
+    platform
+  });
+  currentUser.unauthenticate = unauthenticate$1;
+  currentUser.authorization = getAuthorization({
+    platform
+  });
+  currentUser.signUserMessage = getSignUserMessage({
+    platform
+  });
+  currentUser.subscribe = subscribe;
+  currentUser.snapshot = snapshot;
+  currentUser.resolveArgument = getResolveArgument({
+    platform
+  });
+  return currentUser;
+};
+
+const getMutate = _ref => {
+  let {
+    platform
+  } = _ref;
+  /**
+   * @description
+   * Allows you to submit transactions to the blockchain to potentially mutate the state.
+   *
+   * @param {object} [opts] - Mutation Options and configuration
+   * @param {string} [opts.cadence] - Cadence Transaction used to mutate Flow
+   * @param {import("../shared-exports").ArgsFn} [opts.args] - Arguments passed to cadence transaction
+   * @param {object | string} [opts.template] - Interaction Template for a transaction
+   * @param {number} [opts.limit] - Compute Limit for transaction
+   * @param {Function} [opts.authz] - Authorization function for transaction
+   * @param {Function} [opts.proposer] - Proposer Authorization function for transaction
+   * @param {Function} [opts.payer] - Payer Authorization function for transaction
+   * @param {Array<Function>} [opts.authorizations] - Authorizations function for transaction
+   * @returns {Promise<string>} Transaction Id
+   *
+   * @example
+   * fcl.mutate({
+   *   cadence: `
+   *     transaction(a: Int, b: Int, c: Address) {
+   *       prepare(acct: AuthAccount) {
+   *         log(acct)
+   *         log(a)
+   *         log(b)
+   *         log(c)
+   *       }
+   *     }
+   *   `,
+   *   args: (arg, t) => [
+   *     arg(6, t.Int),
+   *     arg(7, t.Int),
+   *     arg("0xba1132bc08f82fe2", t.Address),
+   *   ],
+   * })
+   *
+   *
+   * Options:
+   * type Options = {
+   *   template: InteractionTemplate | String // InteractionTemplate or url to one
+   *   cadence: String!,
+   *   args: (arg, t) => Array<Arg>,
+   *   limit: Number,
+   *   authz: AuthzFn, // will overload the trinity of signatory roles
+   *   proposer: AuthzFn, // will overload the proposer signatory role
+   *   payer: AuthzFn, // will overload the payer signatory role
+   *   authorizations: [AuthzFn], // an array of authorization functions used as authorizations signatory roles
+   * }
+   */
+  const mutate = async function () {
+    let opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    var txid;
+    try {
+      await preMutate(opts);
+      opts = await prepTemplateOpts(opts);
+      const currentUser = getCurrentUser({
+        platform
+      });
+      // Allow for a config to overwrite the authorization function.
+      // prettier-ignore
+      const authz = await sdk__namespace.config().get("fcl.authz", currentUser().authorization);
+      txid = sdk__namespace.config().overload(opts.dependencies || {}, async () =>
+      // prettier-ignore
+      sdk__namespace.send([sdk__namespace.transaction(opts.cadence), sdk__namespace.args(normalizeArgs(opts.args || [])), opts.limit && isNumber(opts.limit) && sdk__namespace.limit(opts.limit),
+      // opts.proposer > opts.authz > authz
+      sdk__namespace.proposer(opts.proposer || opts.authz || authz),
+      // opts.payer > opts.authz > authz
+      sdk__namespace.payer(opts.payer || opts.authz || authz),
+      // opts.authorizations > [opts.authz > authz]
+      sdk__namespace.authorizations(opts.authorizations || [opts.authz || authz])]).then(sdk__namespace.decode));
+      return txid;
+    } catch (error) {
+      throw error;
+    }
+  };
+  return mutate;
+};
+
+const FRAME = "FCL_IFRAME";
+const FRAME_STYLES = `
+  position:fixed;
+  top: 0px;
+  right: 0px;
+  bottom: 0px;
+  left: 0px;
+  height: 100%;
+  width: 100vw;
+  display:block;
+  background:rgba(0,0,0,0.25);
+  z-index: 2147483647;
+  box-sizing: border-box;
+  color-scheme: light;
+`;
+function renderFrame(src) {
+  utilInvariant.invariant(!document.getElementById(FRAME), "Attempt at triggering multiple Frames", {
+    src
+  });
+  const $frame = document.createElement("iframe");
+  $frame.src = src;
+  $frame.id = FRAME;
+  $frame.allow = "usb *; hid *";
+  $frame.frameBorder = "0";
+  $frame.style.cssText = FRAME_STYLES;
+  document.body.append($frame);
+  const unmount = () => {
+    if (document.getElementById(FRAME)) {
+      document.getElementById(FRAME).remove();
+    }
+  };
+  return [$frame.contentWindow, unmount];
+}
+
+const POP = "FCL_POP";
+let popup = null;
+let previousUrl$1 = null;
+function popupWindow(url, windowName, win, w, h) {
+  const y = win.top.outerHeight / 2 + win.top.screenY - h / 2;
+  const x = win.top.outerWidth / 2 + win.top.screenX - w / 2;
+  const popup = win.open(url, windowName, `toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=${w}, height=${h}, top=${y}, left=${x}`);
+  if (!popup) throw new Error("Popup failed to open (was it blocked by a popup blocker?)");
+  return popup;
+}
+function renderPop(src) {
+  if (popup == null || popup?.closed) {
+    popup = popupWindow(src, POP, window, 640, 770);
+  } else if (previousUrl$1 !== src) {
+    popup.location.replace(src);
+    popup.focus();
+  } else {
+    popup.focus();
+  }
+  previousUrl$1 = src;
+  const unmount = () => {
+    if (popup && !popup.closed) {
+      popup.close();
+    }
+    popup = null;
+  };
+  return [popup, unmount];
+}
+
+let tab$1 = null;
+let previousUrl = null;
+function renderTab(src) {
+  if (tab$1 == null || tab$1?.closed) {
+    tab$1 = window.open(src, "_blank");
+    if (!tab$1) throw new Error("Tab failed to open (was it blocked by the browser?)");
+  } else if (previousUrl !== src) {
+    tab$1.location.replace(src);
+    tab$1.focus();
+  } else {
+    tab$1.focus();
+  }
+  previousUrl = src;
+  const unmount = () => {
+    if (tab$1 && !tab$1.closed) {
+      tab$1.close();
+    }
+    tab$1 = null;
+  };
+  return [tab$1, unmount];
+}
+
+const isServerSide = () => typeof window === "undefined";
+const getSessionStorage = () => {
+  try {
+    const SESSION_STORAGE = {
+      can: !isServerSide(),
+      get: async key => JSON.parse(sessionStorage.getItem(key)),
+      put: async (key, value) => sessionStorage.setItem(key, JSON.stringify(value))
+    };
+    return SESSION_STORAGE;
+  } catch (error) {
+    return null;
+  }
+};
+const getDefaultConfig = () => {
+  return {
+    "discovery.wallet.method.default": "IFRAME/RPC",
+    "fcl.storage.default": getSessionStorage()
+  };
+};
+
+function serviceEndpoint(service) {
+  const url = new URL(service.endpoint);
+  if (window?.location?.origin) {
+    url.searchParams.append("l6n", window.location.origin);
+  }
+  if (service.params != null) {
+    for (let [key, value] of Object.entries(service.params || {})) {
+      url.searchParams.append(key, value);
+    }
+  }
+  return url;
+}
+
+function fetchService(service) {
+  let opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  const method = opts.method || "POST";
+  const body = method === "GET" ? undefined : JSON.stringify(opts.data || service.data || {});
+  return fetch(serviceEndpoint(service), {
+    method: method,
+    headers: {
+      ...(service.headers || {}),
+      ...(opts.headers || {}),
+      "Content-Type": "application/json"
+    },
+    body: body
+  }).then(d => d.json());
+}
+
+// {
+//    "f_type": "PollingResponse",
+//    "f_vsn": "1.0.0",
+//    "status": "PENDING", // PENDING | APPROVED | DECLINED | REDIRECT
+//    "reason": null,      // Reason for Declining Transaction
+//    "data": null,        // Return value for APPROVED
+//    "updates": BackChannelRpc,
+//    "local": Frame,
+// }
+function normalizePollingResponse(resp) {
+  if (resp == null) return null;
+  if (!resp["f_vsn"]) {
+    return {
+      ...POLLING_RESPONSE_PRAGMA,
+      status: resp.status ?? "APPROVED",
+      reason: resp.reason ?? null,
+      data: resp.compositeSignature || resp.data || {
+        ...resp
+      } || {},
+      updates: normalizeBackChannelRpc(resp.authorizationUpdates),
+      local: normalizeFrame((resp.local || [])[0])
+    };
+  }
+  switch (resp["f_vsn"]) {
+    case "1.0.0":
+      return resp;
+    default:
+      return null;
+  }
+}
+
+const OPTIONS = {
+  "HTTP/GET": "GET",
+  "HTTP/POST": "POST"
+};
+const serviceMethod = service => {
+  utilInvariant.invariant(OPTIONS[service.method], "Invalid Service Method for type back-channel-rpc", {
+    service
+  });
+  return OPTIONS[service.method];
+};
+async function poll(service) {
+  let checkCanContinue = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : () => true;
+  utilInvariant.invariant(service, "Missing Polling Service", {
+    service
+  });
+  const canContinue = checkCanContinue();
+  if (!canContinue) throw new Error("Externally Halted");
+  let resp;
+  try {
+    if (typeof document !== "undefined" && document.visibilityState === "hidden") {
+      await new Promise(r => setTimeout(r, 500));
+      return poll(service, checkCanContinue);
+    }
+    resp = await fetchService(service, {
+      method: serviceMethod(service)
+    }).then(normalizePollingResponse);
+  } catch (error) {
+    throw error;
+  }
+  switch (resp.status) {
+    case "APPROVED":
+      return resp.data;
+    case "DECLINED":
+      throw new Error(`Declined: ${resp.reason || "No reason supplied."}`);
+    default:
+      await new Promise(r => setTimeout(r, 500));
+      return poll(resp.updates, checkCanContinue);
+  }
+}
+
+const getExecHttpPost = execLocal => async _ref => {
+  let {
+    service,
+    body,
+    config,
+    opts
+  } = _ref;
+  const resp = await fetchService(service, {
+    data: {
+      fclVersion: VERSION,
+      service: {
+        params: service.params,
+        data: service.data,
+        type: service.type
+      },
+      config,
+      ...body
+    }
+  }).then(normalizePollingResponse);
+  if (resp.status === "APPROVED") {
+    return resp.data;
+  } else if (resp.status === "DECLINED") {
+    throw new Error(`Declined: ${resp.reason || "No reason supplied."}`);
+  } else if (resp.status === "REDIRECT") {
+    return resp;
+  } else if (resp.status === "PENDING") {
+    // these two flags are required to run polling one more time before it stops
+    var canContinue = true;
+    var shouldContinue = true;
+    const [_, unmount] = await execLocal(normalizeLocalView(resp.local), {
+      serviceEndpoint,
+      onClose: () => shouldContinue = false
+    });
+    const close = () => {
+      try {
+        unmount();
+        shouldContinue = false;
+      } catch (error) {
+        console.error("Frame Close Error", error);
+      }
+    };
+    /**
+     * this function is run once per poll call.
+     * Offsetting canContinue flag to make sure that
+     * the polling is performed one extra time after canContinue flag is set to false
+     * to prevent halting on Android when a browser calls window.close
+     * before FCL receives a successful result from polling
+     *
+     * @returns {boolean} 
+     */
+    const checkCanContinue = () => {
+      const offsetCanContinue = canContinue;
+      canContinue = shouldContinue;
+      return offsetCanContinue;
+    };
+    return poll(resp.updates, checkCanContinue).then(serviceResponse => {
+      close();
+      return serviceResponse;
+    }).catch(error => {
+      console.error(error);
+      close();
+      throw error;
+    });
+  } else {
+    console.error(`Auto Decline: Invalid Response`, {
+      service,
+      resp
+    });
+    throw new Error(`Auto Decline: Invalid Response`);
+  }
+};
+
+const CLOSE_EVENT = "FCL:VIEW:CLOSE";
+const READY_EVENT = "FCL:VIEW:READY";
+const RESPONSE_EVENT = "FCL:VIEW:RESPONSE";
+const _ = e => typeof e === "string" && e.toLowerCase();
+const IGNORE = new Set(["monetizationstart", "monetizationpending", "monetizationprogress", "monetizationstop"]);
+const deprecate = (was, want) => console.warn("DEPRECATION NOTICE", `Received ${was}, please use ${want} for this and future versions of FCL`);
+const buildMessageHandler = _ref => {
+  let {
+    close,
+    send,
+    onReady,
+    onResponse,
+    onMessage
+  } = _ref;
+  return e => {
+    try {
+      if (typeof e.data !== "object") return;
+      if (IGNORE.has(e.data.type)) return;
+      if (_(e.data.type) === _(CLOSE_EVENT)) close();
+      if (_(e.data.type) === _(READY_EVENT)) onReady(e, {
+        send,
+        close
+      });
+      if (_(e.data.type) === _(RESPONSE_EVENT)) onResponse(e, {
+        send,
+        close
+      });
+      onMessage(e, {
+        send,
+        close
+      });
+
+      // Backwards Compatible
+      if (_(e.data.type) === _("FCL:FRAME:READY")) {
+        deprecate(e.data.type, READY_EVENT);
+        onReady(e, {
+          send,
+          close
+        });
+      }
+      if (_(e.data.type) === _("FCL:FRAME:RESPONSE")) {
+        deprecate(e.data.type, RESPONSE_EVENT);
+        onResponse(e, {
+          send,
+          close
+        });
+      }
+      if (_(e.data.type) === _("FCL:FRAME:CLOSE")) {
+        deprecate(e.data.type, CLOSE_EVENT);
+        close();
+      }
+      //
+      if (_(e.data.type) === _("FCL::CHALLENGE::RESPONSE")) {
+        deprecate(e.data.type, RESPONSE_EVENT);
+        onResponse(e, {
+          send,
+          close
+        });
+      }
+      if (_(e.data.type) === _("FCL::AUTHZ_READY")) {
+        deprecate(e.data.type, READY_EVENT);
+        onReady(e, {
+          send,
+          close
+        });
+      }
+      if (_(e.data.type) === _("FCL::CHALLENGE::CANCEL")) {
+        deprecate(e.data.type, CLOSE_EVENT);
+        close();
+      }
+      if (_(e.data.type) === _("FCL::CANCEL")) {
+        deprecate(e.data.type, CLOSE_EVENT);
+        close();
+      }
+    } catch (error) {
+      console.error("Frame Callback Error", error);
+      close();
+    }
+  };
+};
+
+const noop$3 = () => {};
+function frame(service) {
+  let opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  if (service == null) return {
+    send: noop$3,
+    close: noop$3
+  };
+  const onClose = opts.onClose || noop$3;
+  const onMessage = opts.onMessage || noop$3;
+  const onReady = opts.onReady || noop$3;
+  const onResponse = opts.onResponse || noop$3;
+  const handler = buildMessageHandler({
+    close,
+    send,
+    onReady,
+    onResponse,
+    onMessage
+  });
+  window.addEventListener("message", handler);
+  const [$frame, unmount] = renderFrame(serviceEndpoint(service));
+  return {
+    send,
+    close
+  };
+  function close() {
+    try {
+      window.removeEventListener("message", handler);
+      unmount();
+      onClose();
+    } catch (error) {
+      console.error("Frame Close Error", error);
+    }
+  }
+  function send(msg) {
+    try {
+      $frame.postMessage(JSON.parse(JSON.stringify(msg || {})), "*");
+    } catch (error) {
+      console.error("Frame Send Error", msg, error);
+    }
+  }
+}
+
+function execIframeRPC(_ref) {
+  let {
+    service,
+    body,
+    config,
+    opts
+  } = _ref;
+  return new Promise((resolve, reject) => {
+    const id = utilUid.uid();
+    const includeOlderJsonRpcCall = opts.includeOlderJsonRpcCall;
+    frame(service, {
+      async onReady(_, _ref2) {
+        let {
+          send
+        } = _ref2;
+        try {
+          send({
+            type: "FCL:VIEW:READY:RESPONSE",
+            fclVersion: VERSION,
+            body,
+            service: {
+              params: service.params,
+              data: service.data,
+              type: service.type
+            },
+            config
+          });
+          send({
+            fclVersion: VERSION,
+            type: "FCL:FRAME:READY:RESPONSE",
+            body,
+            service: {
+              params: service.params,
+              data: service.data,
+              type: service.type
+            },
+            config,
+            deprecated: {
+              message: "FCL:FRAME:READY:RESPONSE is deprecated and replaced with type: FCL:VIEW:READY:RESPONSE"
+            }
+          });
+          if (includeOlderJsonRpcCall) {
+            send({
+              jsonrpc: "2.0",
+              id: id,
+              method: "fcl:sign",
+              params: [body, service.params],
+              deprecated: {
+                message: "jsonrpc is deprecated and replaced with type: FCL:VIEW:READY:RESPONSE"
+              }
+            });
+          }
+        } catch (error) {
+          throw error;
+        }
+      },
+      onResponse(e, _ref3) {
+        let {
+          close
+        } = _ref3;
+        try {
+          if (typeof e.data !== "object") return;
+          const resp = normalizePollingResponse(e.data);
+          switch (resp.status) {
+            case "APPROVED":
+              resolve(resp.data);
+              close();
+              break;
+            case "DECLINED":
+              reject(`Declined: ${resp.reason || "No reason supplied"}`);
+              close();
+              break;
+            case "REDIRECT":
+              resolve(resp);
+              close();
+              break;
+            default:
+              reject(`Declined: No reason supplied`);
+              close();
+              break;
+          }
+        } catch (error) {
+          console.error("execIframeRPC onResponse error", error);
+          throw error;
+        }
+      },
+      onMessage(e, _ref4) {
+        let {
+          close
+        } = _ref4;
+        try {
+          if (typeof e.data !== "object") return;
+          if (e.data.jsonrpc !== "2.0") return;
+          if (e.data.id !== id) return;
+          const resp = normalizePollingResponse(e.data.result);
+          switch (resp.status) {
+            case "APPROVED":
+              resolve(resp.data);
+              close();
+              break;
+            case "DECLINED":
+              reject(`Declined: ${resp.reason || "No reason supplied"}`);
+              close();
+              break;
+            case "REDIRECT":
+              resolve(resp);
+              close();
+              break;
+            default:
+              reject(`Declined: No reason supplied`);
+              close();
+              break;
+          }
+        } catch (error) {
+          console.error("execIframeRPC onMessage error", error);
+          throw error;
+        }
+      },
+      onClose() {
+        reject(`Declined: Externally Halted`);
+      }
+    });
+  });
+}
+
+const noop$2 = () => {};
+function pop(service) {
+  let opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  if (service == null) return {
+    send: noop$2,
+    close: noop$2
+  };
+  const onClose = opts.onClose || noop$2;
+  const onMessage = opts.onMessage || noop$2;
+  const onReady = opts.onReady || noop$2;
+  const onResponse = opts.onResponse || noop$2;
+  const handler = buildMessageHandler({
+    close,
+    send,
+    onReady,
+    onResponse,
+    onMessage
+  });
+  window.addEventListener("message", handler);
+  const [$pop, unmount] = renderPop(serviceEndpoint(service));
+  const timer = setInterval(function () {
+    if ($pop && $pop.closed) {
+      close();
+    }
+  }, 500);
+  return {
+    send,
+    close
+  };
+  function close() {
+    try {
+      window.removeEventListener("message", handler);
+      clearInterval(timer);
+      unmount();
+      onClose();
+    } catch (error) {
+      console.error("Popup Close Error", error);
+    }
+  }
+  function send(msg) {
+    try {
+      $pop.postMessage(JSON.parse(JSON.stringify(msg || {})), "*");
+    } catch (error) {
+      console.error("Popup Send Error", msg, error);
+    }
+  }
+}
+
+function execPopRPC(_ref) {
+  let {
+    service,
+    body,
+    config,
+    opts
+  } = _ref;
+  return new Promise((resolve, reject) => {
+    const id = utilUid.uid();
+    const {
+      redir,
+      includeOlderJsonRpcCall
+    } = opts;
+    pop(service, {
+      async onReady(_, _ref2) {
+        let {
+          send
+        } = _ref2;
+        try {
+          send({
+            fclVersion: VERSION,
+            type: "FCL:VIEW:READY:RESPONSE",
+            body,
+            service: {
+              params: service.params,
+              data: service.data,
+              type: service.type
+            },
+            config
+          });
+          send({
+            fclVersion: VERSION,
+            type: "FCL:FRAME:READY:RESPONSE",
+            body,
+            service: {
+              params: service.params,
+              data: service.data,
+              type: service.type
+            },
+            config,
+            deprecated: {
+              message: "FCL:FRAME:READY:RESPONSE is deprecated and replaced with type: FCL:VIEW:READY:RESPONSE"
+            }
+          });
+          if (includeOlderJsonRpcCall) {
+            send({
+              jsonrpc: "2.0",
+              id: id,
+              method: "fcl:sign",
+              params: [body, service.params]
+            });
+          }
+        } catch (error) {
+          throw error;
+        }
+      },
+      onResponse(e, _ref3) {
+        let {
+          close
+        } = _ref3;
+        try {
+          if (typeof e.data !== "object") return;
+          const resp = normalizePollingResponse(e.data);
+          switch (resp.status) {
+            case "APPROVED":
+              resolve(resp.data);
+              !redir && close();
+              break;
+            case "DECLINED":
+              reject(`Declined: ${resp.reason || "No reason supplied"}`);
+              close();
+              break;
+            case "REDIRECT":
+              resolve(resp);
+              close();
+              break;
+            default:
+              reject(`Declined: No reason supplied`);
+              close();
+              break;
+          }
+        } catch (error) {
+          console.error("execPopRPC onResponse error", error);
+          throw error;
+        }
+      },
+      onMessage(e, _ref4) {
+        let {
+          close
+        } = _ref4;
+        try {
+          if (typeof e.data !== "object") return;
+          if (e.data.jsonrpc !== "2.0") return;
+          if (e.data.id !== id) return;
+          const resp = normalizePollingResponse(e.data.result);
+          switch (resp.status) {
+            case "APPROVED":
+              resolve(resp.data);
+              !redir && close();
+              break;
+            case "DECLINED":
+              reject(`Declined: ${resp.reason || "No reason supplied"}`);
+              close();
+              break;
+            case "REDIRECT":
+              resolve(resp);
+              close();
+              break;
+            default:
+              reject(`Declined: No reason supplied`);
+              close();
+              break;
+          }
+        } catch (error) {
+          console.error("execPopRPC onMessage error", error);
+          throw error;
+        }
+      },
+      onClose() {
+        reject(`Declined: Externally Halted`);
+      }
+    });
+  });
+}
+
+const noop$1 = () => {};
+function tab(service) {
+  let opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  if (service == null) return {
+    send: noop$1,
+    close: noop$1
+  };
+  const onClose = opts.onClose || noop$1;
+  const onMessage = opts.onMessage || noop$1;
+  const onReady = opts.onReady || noop$1;
+  const onResponse = opts.onResponse || noop$1;
+  const handler = buildMessageHandler({
+    close,
+    send,
+    onReady,
+    onResponse,
+    onMessage
+  });
+  window.addEventListener("message", handler);
+  const [$tab, unmount] = renderTab(serviceEndpoint(service));
+  const timer = setInterval(function () {
+    if ($tab && $tab.closed) {
+      close();
+    }
+  }, 500);
+  return {
+    send,
+    close
+  };
+  function close() {
+    try {
+      window.removeEventListener("message", handler);
+      clearInterval(timer);
+      unmount();
+      onClose();
+    } catch (error) {
+      console.error("Tab Close Error", error);
+    }
+  }
+  function send(msg) {
+    try {
+      $tab.postMessage(JSON.parse(JSON.stringify(msg || {})), "*");
+    } catch (error) {
+      console.error("Tab Send Error", msg, error);
+    }
+  }
+}
+
+function execTabRPC(_ref) {
+  let {
+    service,
+    body,
+    config,
+    opts
+  } = _ref;
+  return new Promise((resolve, reject) => {
+    const id = utilUid.uid();
+    const {
+      redir,
+      includeOlderJsonRpcCall
+    } = opts;
+    tab(service, {
+      async onReady(_, _ref2) {
+        let {
+          send
+        } = _ref2;
+        try {
+          send({
+            fclVersion: VERSION,
+            type: "FCL:VIEW:READY:RESPONSE",
+            body,
+            service: {
+              params: service.params,
+              data: service.data,
+              type: service.type
+            },
+            config
+          });
+          send({
+            fclVersion: VERSION,
+            type: "FCL:FRAME:READY:RESPONSE",
+            body,
+            service: {
+              params: service.params,
+              data: service.data,
+              type: service.type
+            },
+            config,
+            deprecated: {
+              message: "FCL:FRAME:READY:RESPONSE is deprecated and replaced with type: FCL:VIEW:READY:RESPONSE"
+            }
+          });
+          if (includeOlderJsonRpcCall) {
+            send({
+              jsonrpc: "2.0",
+              id: id,
+              method: "fcl:sign",
+              params: [body, service.params]
+            });
+          }
+        } catch (error) {
+          throw error;
+        }
+      },
+      onResponse(e, _ref3) {
+        let {
+          close
+        } = _ref3;
+        try {
+          if (typeof e.data !== "object") return;
+          const resp = normalizePollingResponse(e.data);
+          switch (resp.status) {
+            case "APPROVED":
+              resolve(resp.data);
+              !redir && close();
+              break;
+            case "DECLINED":
+              reject(`Declined: ${resp.reason || "No reason supplied"}`);
+              close();
+              break;
+            case "REDIRECT":
+              resolve(resp);
+              close();
+              break;
+            default:
+              reject(`Declined: No reason supplied`);
+              close();
+              break;
+          }
+        } catch (error) {
+          console.error("execPopRPC onResponse error", error);
+          throw error;
+        }
+      },
+      onMessage(e, _ref4) {
+        let {
+          close
+        } = _ref4;
+        try {
+          if (typeof e.data !== "object") return;
+          if (e.data.jsonrpc !== "2.0") return;
+          if (e.data.id !== id) return;
+          const resp = normalizePollingResponse(e.data.result);
+          switch (resp.status) {
+            case "APPROVED":
+              resolve(resp.data);
+              !redir && close();
+              break;
+            case "DECLINED":
+              reject(`Declined: ${resp.reason || "No reason supplied"}`);
+              close();
+              break;
+            case "REDIRECT":
+              resolve(resp);
+              close();
+              break;
+            default:
+              reject(`Declined: No reason supplied`);
+              close();
+              break;
+          }
+        } catch (error) {
+          console.error("execPopRPC onMessage error", error);
+          throw error;
+        }
+      },
+      onClose() {
+        reject(`Declined: Externally Halted`);
+      }
+    });
+  });
+}
+
+const noop = () => {};
+function extension(service) {
+  let opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  if (service == null) return {
+    send: noop,
+    close: noop
+  };
+  const onClose = opts.onClose || noop;
+  const onMessage = opts.onMessage || noop;
+  const onReady = opts.onReady || noop;
+  const onResponse = opts.onResponse || noop;
+  const handler = buildMessageHandler({
+    close,
+    send,
+    onReady,
+    onResponse,
+    onMessage
+  });
+  window.addEventListener("message", handler);
+  send({
+    service
+  });
+  return {
+    send,
+    close
+  };
+  function close() {
+    try {
+      window.removeEventListener("message", handler);
+      onClose();
+    } catch (error) {
+      console.error("Ext Close Error", error);
+    }
+  }
+  function send(msg) {
+    try {
+      window && window.postMessage(JSON.parse(JSON.stringify(msg || {})), "*");
+    } catch (error) {
+      console.error("Ext Send Error", msg, error);
+    }
+  }
+}
+
+function execExtRPC(_ref) {
+  let {
+    service,
+    body,
+    config,
+    opts
+  } = _ref;
+  return new Promise((resolve, reject) => {
+    extension(service, {
+      async onReady(_, _ref2) {
+        let {
+          send
+        } = _ref2;
+        try {
+          send({
+            fclVersion: VERSION,
+            type: "FCL:VIEW:READY:RESPONSE",
+            body,
+            service: {
+              params: service.params,
+              data: service.data,
+              type: service.type
+            },
+            config
+          });
+        } catch (error) {
+          throw error;
+        }
+      },
+      onResponse(e, _ref3) {
+        let {
+          close
+        } = _ref3;
+        try {
+          if (typeof e.data !== "object") return;
+          const resp = normalizePollingResponse(e.data);
+          switch (resp.status) {
+            case "APPROVED":
+              resolve(resp.data);
+              close();
+              break;
+            case "DECLINED":
+              reject(`Declined: ${resp.reason || "No reason supplied"}`);
+              close();
+              break;
+            case "REDIRECT":
+              resolve(resp);
+              close();
+              break;
+            default:
+              reject(`Declined: No reason supplied`);
+              close();
+              break;
+          }
+        } catch (error) {
+          console.error("execExtRPC onResponse error", error);
+          throw error;
+        }
+      },
+      onClose() {
+        reject(`Declined: Externally Halted`);
+      }
+    });
+  });
+}
+
+const NOT_IMPLEMENTED = () => {
+  throw new Error("Strategy util has not been implemented on this platform");
+};
+const VIEWS = {
+  "VIEW/IFRAME": renderFrame,
+  "VIEW/POP": renderPop,
+  "VIEW/TAB": renderTab,
+  "VIEW/MOBILE_BROWSER": NOT_IMPLEMENTED,
+  "VIEW/DEEPLINK": NOT_IMPLEMENTED
+};
+async function execLocal(service) {
+  let opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {
+    serviceEndpoint: () => {}
+  };
+  const {
+    serviceEndpoint
+  } = opts;
+  try {
+    return VIEWS[service.method](serviceEndpoint(service), opts);
+  } catch (error) {
+    console.error("execLocal({service, opts = {}})", error, {
+      service,
+      opts
+    });
+    throw error;
+  }
+}
+
+const coreStrategies = {
+  [CORE_STRATEGIES["HTTP/RPC"]]: getExecHttpPost(execLocal),
+  [CORE_STRATEGIES["HTTP/POST"]]: getExecHttpPost(execLocal),
+  [CORE_STRATEGIES["IFRAME/RPC"]]: execIframeRPC,
+  [CORE_STRATEGIES["POP/RPC"]]: execPopRPC,
+  [CORE_STRATEGIES["TAB/RPC"]]: execTabRPC,
+  [CORE_STRATEGIES["EXT/RPC"]]: execExtRPC
+};
+
+const mutate = getMutate({
+  platform: "web"
+});
+const currentUser = getCurrentUser({
+  platform: "web"
+});
+const authenticate = function () {
+  let opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
   return currentUser().authenticate(opts);
 };
-var unauthenticate = function unauthenticate() {
-  return currentUser().unauthenticate();
-};
-var reauthenticate = function reauthenticate() {
-  var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+const unauthenticate = () => currentUser().unauthenticate();
+const reauthenticate = function () {
+  let opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
   currentUser().unauthenticate();
   return currentUser().authenticate(opts);
 };
-var signUp = function signUp() {
-  var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+const signUp = function () {
+  let opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
   return currentUser().authenticate(opts);
 };
-var logIn = function logIn() {
-  var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+const logIn = function () {
+  let opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
   return currentUser().authenticate(opts);
 };
-var authz = currentUser().authorization;
-var t = t__namespace;
-
-Object.defineProperty(exports, 'config', {
-  enumerable: true,
-  get: function () { return config.config; }
+const authz = currentUser().authorization;
+config.config(getDefaultConfig());
+initServiceRegistry({
+  coreStrategies
 });
+
 Object.defineProperty(exports, 'TestUtils', {
   enumerable: true,
   get: function () { return sdk.TestUtils; }
@@ -31603,6 +23431,10 @@ Object.defineProperty(exports, 'getEventsAtBlockHeightRange', {
 Object.defineProperty(exports, 'getEventsAtBlockIds', {
   enumerable: true,
   get: function () { return sdk.getEventsAtBlockIds; }
+});
+Object.defineProperty(exports, 'getNetworkParameters', {
+  enumerable: true,
+  get: function () { return sdk.getNetworkParameters; }
 });
 Object.defineProperty(exports, 'getTransaction', {
   enumerable: true,
@@ -31684,6 +23516,10 @@ Object.defineProperty(exports, 'why', {
   enumerable: true,
   get: function () { return sdk.why; }
 });
+Object.defineProperty(exports, 'config', {
+  enumerable: true,
+  get: function () { return config.config; }
+});
 Object.defineProperty(exports, 'display', {
   enumerable: true,
   get: function () { return utilAddress.display; }
@@ -31713,6 +23549,7 @@ exports.authz = authz;
 exports.currentUser = currentUser;
 exports.discovery = discovery;
 exports.events = events;
+exports.getChainId = getChainId;
 exports.logIn = logIn;
 exports.mutate = mutate;
 exports.pluginRegistry = pluginRegistry;
@@ -31726,7 +23563,7 @@ exports.unauthenticate = unauthenticate;
 exports.verifyUserSignatures = verifyUserSignatures;
 
 
-},{"@babel/runtime/helpers/asyncToGenerator":4,"@babel/runtime/helpers/createForOfIteratorHelper":5,"@babel/runtime/helpers/defineProperty":6,"@babel/runtime/helpers/objectSpread2":11,"@babel/runtime/helpers/slicedToArray":13,"@babel/runtime/helpers/toConsumableArray":14,"@babel/runtime/helpers/typeof":17,"@babel/runtime/regenerator":19,"@onflow/config":179,"@onflow/rlp":181,"@onflow/sdk":182,"@onflow/types":184,"@onflow/util-actor":185,"@onflow/util-address":186,"@onflow/util-invariant":187,"@onflow/util-logger":188,"@onflow/util-template":189,"@onflow/util-uid":190,"buffer":198,"node-fetch":245}],181:[function(require,module,exports){
+},{"@onflow/config":125,"@onflow/rlp":127,"@onflow/sdk":128,"@onflow/types":130,"@onflow/util-actor":131,"@onflow/util-address":132,"@onflow/util-invariant":133,"@onflow/util-logger":134,"@onflow/util-semver":135,"@onflow/util-template":136,"@onflow/util-uid":137,"buffer":145,"cross-fetch":146}],127:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -31984,7 +23821,7 @@ exports.getLength = getLength;
 exports.toBuffer = toBuffer;
 
 
-},{"buffer":198}],182:[function(require,module,exports){
+},{"buffer":145}],128:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -33974,7 +25811,7 @@ exports.voucherToTxId = voucherToTxId;
 exports.why = why;
 
 
-},{"@onflow/config":179,"@onflow/rlp":181,"@onflow/transport-http":183,"@onflow/util-address":186,"@onflow/util-invariant":187,"@onflow/util-logger":188,"@onflow/util-template":189,"sha3":249,"uuid":261}],183:[function(require,module,exports){
+},{"@onflow/config":125,"@onflow/rlp":127,"@onflow/transport-http":129,"@onflow/util-address":132,"@onflow/util-invariant":133,"@onflow/util-logger":134,"@onflow/util-template":136,"sha3":189,"uuid":201}],129:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -34762,7 +26599,7 @@ exports.sendPing = sendPing;
 exports.sendTransaction = sendTransaction;
 
 
-},{"@onflow/rlp":181,"@onflow/util-address":186,"@onflow/util-invariant":187,"@onflow/util-logger":188,"abort-controller":191,"cross-fetch":199}],184:[function(require,module,exports){
+},{"@onflow/rlp":127,"@onflow/util-address":132,"@onflow/util-invariant":133,"@onflow/util-logger":134,"abort-controller":138,"cross-fetch":146}],130:[function(require,module,exports){
 (function (global){(function (){
 'use strict';
 
@@ -36171,7 +28008,7 @@ exports._Array = _Array;
 
 
 }).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],185:[function(require,module,exports){
+},{}],131:[function(require,module,exports){
 (function (global){(function (){
 'use strict';
 
@@ -36401,7 +28238,7 @@ exports.subscriber = subscriber;
 
 
 }).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"queue-microtask":247}],186:[function(require,module,exports){
+},{"queue-microtask":187}],132:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -36440,7 +28277,7 @@ exports.sansPrefix = sansPrefix;
 exports.withPrefix = withPrefix;
 
 
-},{}],187:[function(require,module,exports){
+},{}],133:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -36467,7 +28304,7 @@ function invariant(fact, msg) {
 exports.invariant = invariant;
 
 
-},{}],188:[function(require,module,exports){
+},{}],134:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -36619,7 +28456,87 @@ exports.log = log;
 exports.setConfig = setConfig;
 
 
-},{}],189:[function(require,module,exports){
+},{}],135:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+/*
+compareIdentifiers was taken from semver package, which is licensed under ISC
+
+GitHub: https://github.com/npm/node-semver/
+NPM: https://www.npmjs.com/package/semver
+License: https://github.com/npm/node-semver/blob/main/LICENSE
+
+The ISC License
+
+Copyright (c) Isaac Z. Schlueter and Contributors
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+*/
+
+var numeric = /^[0-9]+$/;
+var compareIdentifiers = function compareIdentifiers(a, b) {
+  var anum = numeric.test(a);
+  var bnum = numeric.test(b);
+  if (anum && bnum) {
+    a = +a;
+    b = +b;
+  }
+  return a === b ? 0 : anum && !bnum ? -1 : bnum && !anum ? 1 : a < b ? -1 : 1;
+};
+
+// Official Semver Regex https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
+var VERSION_REGEX = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
+
+/**
+ * Compares two semver versions
+ * @param {string} a - The first version to compare
+ * @param {string} b - The second version to compare
+ * @returns {number} - Returns 1 if a is greater than b, -1 if a is less than b, and 0 if they are equal
+ */
+var compare = function compare(a, b) {
+  if (typeof a !== "string" || typeof b !== "string") throw new Error("Invalid input");
+  var vsnA = a.match(VERSION_REGEX);
+  var vsnB = b.match(VERSION_REGEX);
+  if (!vsnA || !vsnB) throw new Error("Invalid input");
+  for (var i = 1; i <= 3; i++) {
+    // If either is greater than the other, return
+    if (parseInt(vsnA[i]) > parseInt(vsnB[i])) return 1;
+    if (parseInt(vsnA[i]) < parseInt(vsnB[i])) return -1;
+  }
+
+  // If equal, compare prerelease
+  if (vsnA[4] && vsnB[4]) {
+    var prereleaseA = (vsnA[4] || "").split(".");
+    var prereleaseB = (vsnB[4] || "").split(".");
+    for (var _i = 0; _i < Math.max(prereleaseA.length, prereleaseB.length); _i++) {
+      // If one identifier has more fields than the other & the rest is equal, the one with more fields is greater
+      if (prereleaseA[_i] === undefined) return -1;
+      if (prereleaseB[_i] === undefined) return 1;
+
+      // Compare field identifiers
+      var cmp = compareIdentifiers(prereleaseA[_i], prereleaseB[_i]);
+      if (cmp !== 0) return cmp;
+    }
+  }
+  return 0;
+};
+
+exports.compare = compare;
+
+
+},{}],136:[function(require,module,exports){
 (function (global){(function (){
 'use strict';
 
@@ -38121,7 +30038,7 @@ exports.template = template;
 
 
 }).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],190:[function(require,module,exports){
+},{}],137:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -38142,7 +30059,7 @@ function uid() {
 exports.uid = uid;
 
 
-},{}],191:[function(require,module,exports){
+},{}],138:[function(require,module,exports){
 /*globals self, window */
 "use strict"
 
@@ -38157,7 +30074,7 @@ module.exports = AbortController
 module.exports.AbortSignal = AbortSignal
 module.exports.default = AbortController
 
-},{}],192:[function(require,module,exports){
+},{}],139:[function(require,module,exports){
 "use strict";
 
 (function(root) {
@@ -38957,7 +30874,7 @@ module.exports.default = AbortController
 
 })(this);
 
-},{}],193:[function(require,module,exports){
+},{}],140:[function(require,module,exports){
 'use strict'
 
 exports.byteLength = byteLength
@@ -39109,7 +31026,7 @@ function fromByteArray (uint8) {
   return parts.join('')
 }
 
-},{}],194:[function(require,module,exports){
+},{}],141:[function(require,module,exports){
 'use strict'
 var ALPHABET = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l'
 
@@ -39293,7 +31210,7 @@ module.exports = {
   fromWords: fromWords
 }
 
-},{}],195:[function(require,module,exports){
+},{}],142:[function(require,module,exports){
 (function (module, exports) {
   'use strict';
 
@@ -42842,7 +34759,7 @@ module.exports = {
   };
 })(typeof module === 'undefined' || module, this);
 
-},{"buffer":197}],196:[function(require,module,exports){
+},{"buffer":144}],143:[function(require,module,exports){
 var r;
 
 module.exports = function rand(len) {
@@ -42909,9 +34826,9 @@ if (typeof self === 'object') {
   }
 }
 
-},{"crypto":197}],197:[function(require,module,exports){
+},{"crypto":144}],144:[function(require,module,exports){
 
-},{}],198:[function(require,module,exports){
+},{}],145:[function(require,module,exports){
 (function (Buffer){(function (){
 /*!
  * The buffer module from node.js, for the browser.
@@ -44692,7 +36609,7 @@ function numberIsNaN (obj) {
 }
 
 }).call(this)}).call(this,require("buffer").Buffer)
-},{"base64-js":193,"buffer":198,"ieee754":240}],199:[function(require,module,exports){
+},{"base64-js":140,"buffer":145,"ieee754":181}],146:[function(require,module,exports){
 var global = typeof self !== 'undefined' ? self : this;
 var __self__ = (function () {
 function F() {
@@ -45248,7 +37165,7 @@ exports.Request = ctx.Request
 exports.Response = ctx.Response
 module.exports = exports
 
-},{}],200:[function(require,module,exports){
+},{}],147:[function(require,module,exports){
 'use strict';
 
 var elliptic = exports;
@@ -45263,7 +37180,7 @@ elliptic.curves = require('./elliptic/curves');
 elliptic.ec = require('./elliptic/ec');
 elliptic.eddsa = require('./elliptic/eddsa');
 
-},{"../package.json":216,"./elliptic/curve":203,"./elliptic/curves":206,"./elliptic/ec":207,"./elliptic/eddsa":210,"./elliptic/utils":214,"brorand":196}],201:[function(require,module,exports){
+},{"../package.json":163,"./elliptic/curve":150,"./elliptic/curves":153,"./elliptic/ec":154,"./elliptic/eddsa":157,"./elliptic/utils":161,"brorand":143}],148:[function(require,module,exports){
 'use strict';
 
 var BN = require('bn.js');
@@ -45646,7 +37563,7 @@ BasePoint.prototype.dblp = function dblp(k) {
   return r;
 };
 
-},{"../utils":214,"bn.js":215}],202:[function(require,module,exports){
+},{"../utils":161,"bn.js":162}],149:[function(require,module,exports){
 'use strict';
 
 var utils = require('../utils');
@@ -46083,7 +38000,7 @@ Point.prototype.eqXToP = function eqXToP(x) {
 Point.prototype.toP = Point.prototype.normalize;
 Point.prototype.mixedAdd = Point.prototype.add;
 
-},{"../utils":214,"./base":201,"bn.js":215,"inherits":241}],203:[function(require,module,exports){
+},{"../utils":161,"./base":148,"bn.js":162,"inherits":182}],150:[function(require,module,exports){
 'use strict';
 
 var curve = exports;
@@ -46093,7 +38010,7 @@ curve.short = require('./short');
 curve.mont = require('./mont');
 curve.edwards = require('./edwards');
 
-},{"./base":201,"./edwards":202,"./mont":204,"./short":205}],204:[function(require,module,exports){
+},{"./base":148,"./edwards":149,"./mont":151,"./short":152}],151:[function(require,module,exports){
 'use strict';
 
 var BN = require('bn.js');
@@ -46273,7 +38190,7 @@ Point.prototype.getX = function getX() {
   return this.x.fromRed();
 };
 
-},{"../utils":214,"./base":201,"bn.js":215,"inherits":241}],205:[function(require,module,exports){
+},{"../utils":161,"./base":148,"bn.js":162,"inherits":182}],152:[function(require,module,exports){
 'use strict';
 
 var utils = require('../utils');
@@ -47213,7 +39130,7 @@ JPoint.prototype.isInfinity = function isInfinity() {
   return this.z.cmpn(0) === 0;
 };
 
-},{"../utils":214,"./base":201,"bn.js":215,"inherits":241}],206:[function(require,module,exports){
+},{"../utils":161,"./base":148,"bn.js":162,"inherits":182}],153:[function(require,module,exports){
 'use strict';
 
 var curves = exports;
@@ -47421,7 +39338,7 @@ defineCurve('secp256k1', {
   ],
 });
 
-},{"./curve":203,"./precomputed/secp256k1":213,"./utils":214,"hash.js":227}],207:[function(require,module,exports){
+},{"./curve":150,"./precomputed/secp256k1":160,"./utils":161,"hash.js":168}],154:[function(require,module,exports){
 'use strict';
 
 var BN = require('bn.js');
@@ -47666,7 +39583,7 @@ EC.prototype.getKeyRecoveryParam = function(e, signature, Q, enc) {
   throw new Error('Unable to find valid recovery factor');
 };
 
-},{"../curves":206,"../utils":214,"./key":208,"./signature":209,"bn.js":215,"brorand":196,"hmac-drbg":239}],208:[function(require,module,exports){
+},{"../curves":153,"../utils":161,"./key":155,"./signature":156,"bn.js":162,"brorand":143,"hmac-drbg":180}],155:[function(require,module,exports){
 'use strict';
 
 var BN = require('bn.js');
@@ -47789,7 +39706,7 @@ KeyPair.prototype.inspect = function inspect() {
          ' pub: ' + (this.pub && this.pub.inspect()) + ' >';
 };
 
-},{"../utils":214,"bn.js":215}],209:[function(require,module,exports){
+},{"../utils":161,"bn.js":162}],156:[function(require,module,exports){
 'use strict';
 
 var BN = require('bn.js');
@@ -47957,7 +39874,7 @@ Signature.prototype.toDER = function toDER(enc) {
   return utils.encode(res, enc);
 };
 
-},{"../utils":214,"bn.js":215}],210:[function(require,module,exports){
+},{"../utils":161,"bn.js":162}],157:[function(require,module,exports){
 'use strict';
 
 var hash = require('hash.js');
@@ -48077,7 +39994,7 @@ EDDSA.prototype.isPoint = function isPoint(val) {
   return val instanceof this.pointClass;
 };
 
-},{"../curves":206,"../utils":214,"./key":211,"./signature":212,"hash.js":227}],211:[function(require,module,exports){
+},{"../curves":153,"../utils":161,"./key":158,"./signature":159,"hash.js":168}],158:[function(require,module,exports){
 'use strict';
 
 var utils = require('../utils');
@@ -48174,7 +40091,7 @@ KeyPair.prototype.getPublic = function getPublic(enc) {
 
 module.exports = KeyPair;
 
-},{"../utils":214}],212:[function(require,module,exports){
+},{"../utils":161}],159:[function(require,module,exports){
 'use strict';
 
 var BN = require('bn.js');
@@ -48241,7 +40158,7 @@ Signature.prototype.toHex = function toHex() {
 
 module.exports = Signature;
 
-},{"../utils":214,"bn.js":215}],213:[function(require,module,exports){
+},{"../utils":161,"bn.js":162}],160:[function(require,module,exports){
 module.exports = {
   doubles: {
     step: 4,
@@ -49023,7 +40940,7 @@ module.exports = {
   },
 };
 
-},{}],214:[function(require,module,exports){
+},{}],161:[function(require,module,exports){
 'use strict';
 
 var utils = exports;
@@ -49144,7 +41061,7 @@ function intFromLE(bytes) {
 utils.intFromLE = intFromLE;
 
 
-},{"bn.js":215,"minimalistic-assert":243,"minimalistic-crypto-utils":244}],215:[function(require,module,exports){
+},{"bn.js":162,"minimalistic-assert":184,"minimalistic-crypto-utils":185}],162:[function(require,module,exports){
 (function (module, exports) {
   'use strict';
 
@@ -52592,7 +44509,7 @@ utils.intFromLE = intFromLE;
   };
 })(typeof module === 'undefined' || module, this);
 
-},{"buffer":197}],216:[function(require,module,exports){
+},{"buffer":144}],163:[function(require,module,exports){
 module.exports={
   "name": "elliptic",
   "version": "6.5.4",
@@ -52650,122 +44567,13 @@ module.exports={
   }
 }
 
-},{}],217:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.keccak512 = exports.keccak384 = exports.keccak256 = exports.keccak224 = void 0;
-const sha3_1 = require("@noble/hashes/sha3");
-const utils_js_1 = require("./utils.js");
-exports.keccak224 = (0, utils_js_1.wrapHash)(sha3_1.keccak_224);
-exports.keccak256 = (() => {
-    const k = (0, utils_js_1.wrapHash)(sha3_1.keccak_256);
-    k.create = sha3_1.keccak_256.create;
-    return k;
-})();
-exports.keccak384 = (0, utils_js_1.wrapHash)(sha3_1.keccak_384);
-exports.keccak512 = (0, utils_js_1.wrapHash)(sha3_1.keccak_512);
-
-},{"./utils.js":221,"@noble/hashes/sha3":177}],218:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getRandomBytes = exports.getRandomBytesSync = void 0;
-const utils_1 = require("@noble/hashes/utils");
-function getRandomBytesSync(bytes) {
-    return (0, utils_1.randomBytes)(bytes);
-}
-exports.getRandomBytesSync = getRandomBytesSync;
-async function getRandomBytes(bytes) {
-    return (0, utils_1.randomBytes)(bytes);
-}
-exports.getRandomBytes = getRandomBytes;
-
-},{"@noble/hashes/utils":178}],219:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.secp256k1 = void 0;
-var secp256k1_1 = require("@noble/curves/secp256k1");
-Object.defineProperty(exports, "secp256k1", { enumerable: true, get: function () { return secp256k1_1.secp256k1; } });
-
-},{"@noble/curves/secp256k1":170}],220:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.sha256 = void 0;
-const sha256_1 = require("@noble/hashes/sha256");
-const utils_js_1 = require("./utils.js");
-exports.sha256 = (0, utils_js_1.wrapHash)(sha256_1.sha256);
-
-},{"./utils.js":221,"@noble/hashes/sha256":176}],221:[function(require,module,exports){
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.crypto = exports.wrapHash = exports.equalsBytes = exports.hexToBytes = exports.bytesToUtf8 = exports.utf8ToBytes = exports.createView = exports.concatBytes = exports.toHex = exports.bytesToHex = exports.assertBytes = exports.assertBool = void 0;
-const _assert_1 = __importDefault(require("@noble/hashes/_assert"));
-const utils_1 = require("@noble/hashes/utils");
-const assertBool = _assert_1.default.bool;
-exports.assertBool = assertBool;
-const assertBytes = _assert_1.default.bytes;
-exports.assertBytes = assertBytes;
-var utils_2 = require("@noble/hashes/utils");
-Object.defineProperty(exports, "bytesToHex", { enumerable: true, get: function () { return utils_2.bytesToHex; } });
-Object.defineProperty(exports, "toHex", { enumerable: true, get: function () { return utils_2.bytesToHex; } });
-Object.defineProperty(exports, "concatBytes", { enumerable: true, get: function () { return utils_2.concatBytes; } });
-Object.defineProperty(exports, "createView", { enumerable: true, get: function () { return utils_2.createView; } });
-Object.defineProperty(exports, "utf8ToBytes", { enumerable: true, get: function () { return utils_2.utf8ToBytes; } });
-// buf.toString('utf8') -> bytesToUtf8(buf)
-function bytesToUtf8(data) {
-    if (!(data instanceof Uint8Array)) {
-        throw new TypeError(`bytesToUtf8 expected Uint8Array, got ${typeof data}`);
-    }
-    return new TextDecoder().decode(data);
-}
-exports.bytesToUtf8 = bytesToUtf8;
-function hexToBytes(data) {
-    const sliced = data.startsWith("0x") ? data.substring(2) : data;
-    return (0, utils_1.hexToBytes)(sliced);
-}
-exports.hexToBytes = hexToBytes;
-// buf.equals(buf2) -> equalsBytes(buf, buf2)
-function equalsBytes(a, b) {
-    if (a.length !== b.length) {
-        return false;
-    }
-    for (let i = 0; i < a.length; i++) {
-        if (a[i] !== b[i]) {
-            return false;
-        }
-    }
-    return true;
-}
-exports.equalsBytes = equalsBytes;
-// Internal utils
-function wrapHash(hash) {
-    return (msg) => {
-        _assert_1.default.bytes(msg);
-        return hash(msg);
-    };
-}
-exports.wrapHash = wrapHash;
-// TODO(v3): switch away from node crypto, remove this unnecessary variable.
-exports.crypto = (() => {
-    const webCrypto = typeof globalThis === "object" && "crypto" in globalThis ? globalThis.crypto : undefined;
-    const nodeRequire = typeof module !== "undefined" &&
-        typeof module.require === "function" &&
-        module.require.bind(module);
-    return {
-        node: nodeRequire && !webCrypto ? nodeRequire("crypto") : undefined,
-        web: webCrypto
-    };
-})();
-
-},{"@noble/hashes/_assert":171,"@noble/hashes/utils":178}],222:[function(require,module,exports){
+},{}],164:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
 exports.version = "ethers/5.7.2";
 
-},{}],223:[function(require,module,exports){
+},{}],165:[function(require,module,exports){
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -52821,7 +44629,7 @@ Object.defineProperty(exports, "version", { enumerable: true, get: function () {
 var logger = new logger_1.Logger(_version_1.version);
 exports.logger = logger;
 
-},{"./_version":222,"./utils":225,"@ethersproject/abstract-signer":59,"@ethersproject/bignumber":68,"@ethersproject/constants":74,"@ethersproject/contracts":77,"@ethersproject/logger":97,"@ethersproject/providers":114,"@ethersproject/wallet":148,"@ethersproject/wordlists":153}],224:[function(require,module,exports){
+},{"./_version":164,"./utils":167,"@ethersproject/abstract-signer":20,"@ethersproject/bignumber":29,"@ethersproject/constants":35,"@ethersproject/contracts":38,"@ethersproject/logger":58,"@ethersproject/providers":75,"@ethersproject/wallet":109,"@ethersproject/wordlists":114}],166:[function(require,module,exports){
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -52875,7 +44683,7 @@ Object.defineProperty(exports, "wordlists", { enumerable: true, get: function ()
 Object.defineProperty(exports, "version", { enumerable: true, get: function () { return ethers_1.version; } });
 Object.defineProperty(exports, "Wordlist", { enumerable: true, get: function () { return ethers_1.Wordlist; } });
 
-},{"./ethers":223}],225:[function(require,module,exports){
+},{"./ethers":165}],167:[function(require,module,exports){
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -53024,506 +44832,7 @@ var strings_2 = require("@ethersproject/strings");
 Object.defineProperty(exports, "UnicodeNormalizationForm", { enumerable: true, get: function () { return strings_2.UnicodeNormalizationForm; } });
 Object.defineProperty(exports, "Utf8ErrorReason", { enumerable: true, get: function () { return strings_2.Utf8ErrorReason; } });
 
-},{"@ethersproject/abi":54,"@ethersproject/address":61,"@ethersproject/base64":63,"@ethersproject/basex":64,"@ethersproject/bytes":70,"@ethersproject/hash":83,"@ethersproject/hdnode":88,"@ethersproject/json-wallets":91,"@ethersproject/keccak256":95,"@ethersproject/logger":97,"@ethersproject/properties":103,"@ethersproject/random":125,"@ethersproject/rlp":128,"@ethersproject/sha2":131,"@ethersproject/signing-key":135,"@ethersproject/solidity":137,"@ethersproject/strings":141,"@ethersproject/transactions":144,"@ethersproject/units":146,"@ethersproject/wallet":148,"@ethersproject/web":151}],226:[function(require,module,exports){
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-'use strict';
-
-var R = typeof Reflect === 'object' ? Reflect : null
-var ReflectApply = R && typeof R.apply === 'function'
-  ? R.apply
-  : function ReflectApply(target, receiver, args) {
-    return Function.prototype.apply.call(target, receiver, args);
-  }
-
-var ReflectOwnKeys
-if (R && typeof R.ownKeys === 'function') {
-  ReflectOwnKeys = R.ownKeys
-} else if (Object.getOwnPropertySymbols) {
-  ReflectOwnKeys = function ReflectOwnKeys(target) {
-    return Object.getOwnPropertyNames(target)
-      .concat(Object.getOwnPropertySymbols(target));
-  };
-} else {
-  ReflectOwnKeys = function ReflectOwnKeys(target) {
-    return Object.getOwnPropertyNames(target);
-  };
-}
-
-function ProcessEmitWarning(warning) {
-  if (console && console.warn) console.warn(warning);
-}
-
-var NumberIsNaN = Number.isNaN || function NumberIsNaN(value) {
-  return value !== value;
-}
-
-function EventEmitter() {
-  EventEmitter.init.call(this);
-}
-module.exports = EventEmitter;
-module.exports.once = once;
-
-// Backwards-compat with node 0.10.x
-EventEmitter.EventEmitter = EventEmitter;
-
-EventEmitter.prototype._events = undefined;
-EventEmitter.prototype._eventsCount = 0;
-EventEmitter.prototype._maxListeners = undefined;
-
-// By default EventEmitters will print a warning if more than 10 listeners are
-// added to it. This is a useful default which helps finding memory leaks.
-var defaultMaxListeners = 10;
-
-function checkListener(listener) {
-  if (typeof listener !== 'function') {
-    throw new TypeError('The "listener" argument must be of type Function. Received type ' + typeof listener);
-  }
-}
-
-Object.defineProperty(EventEmitter, 'defaultMaxListeners', {
-  enumerable: true,
-  get: function() {
-    return defaultMaxListeners;
-  },
-  set: function(arg) {
-    if (typeof arg !== 'number' || arg < 0 || NumberIsNaN(arg)) {
-      throw new RangeError('The value of "defaultMaxListeners" is out of range. It must be a non-negative number. Received ' + arg + '.');
-    }
-    defaultMaxListeners = arg;
-  }
-});
-
-EventEmitter.init = function() {
-
-  if (this._events === undefined ||
-      this._events === Object.getPrototypeOf(this)._events) {
-    this._events = Object.create(null);
-    this._eventsCount = 0;
-  }
-
-  this._maxListeners = this._maxListeners || undefined;
-};
-
-// Obviously not all Emitters should be limited to 10. This function allows
-// that to be increased. Set to zero for unlimited.
-EventEmitter.prototype.setMaxListeners = function setMaxListeners(n) {
-  if (typeof n !== 'number' || n < 0 || NumberIsNaN(n)) {
-    throw new RangeError('The value of "n" is out of range. It must be a non-negative number. Received ' + n + '.');
-  }
-  this._maxListeners = n;
-  return this;
-};
-
-function _getMaxListeners(that) {
-  if (that._maxListeners === undefined)
-    return EventEmitter.defaultMaxListeners;
-  return that._maxListeners;
-}
-
-EventEmitter.prototype.getMaxListeners = function getMaxListeners() {
-  return _getMaxListeners(this);
-};
-
-EventEmitter.prototype.emit = function emit(type) {
-  var args = [];
-  for (var i = 1; i < arguments.length; i++) args.push(arguments[i]);
-  var doError = (type === 'error');
-
-  var events = this._events;
-  if (events !== undefined)
-    doError = (doError && events.error === undefined);
-  else if (!doError)
-    return false;
-
-  // If there is no 'error' event listener then throw.
-  if (doError) {
-    var er;
-    if (args.length > 0)
-      er = args[0];
-    if (er instanceof Error) {
-      // Note: The comments on the `throw` lines are intentional, they show
-      // up in Node's output if this results in an unhandled exception.
-      throw er; // Unhandled 'error' event
-    }
-    // At least give some kind of context to the user
-    var err = new Error('Unhandled error.' + (er ? ' (' + er.message + ')' : ''));
-    err.context = er;
-    throw err; // Unhandled 'error' event
-  }
-
-  var handler = events[type];
-
-  if (handler === undefined)
-    return false;
-
-  if (typeof handler === 'function') {
-    ReflectApply(handler, this, args);
-  } else {
-    var len = handler.length;
-    var listeners = arrayClone(handler, len);
-    for (var i = 0; i < len; ++i)
-      ReflectApply(listeners[i], this, args);
-  }
-
-  return true;
-};
-
-function _addListener(target, type, listener, prepend) {
-  var m;
-  var events;
-  var existing;
-
-  checkListener(listener);
-
-  events = target._events;
-  if (events === undefined) {
-    events = target._events = Object.create(null);
-    target._eventsCount = 0;
-  } else {
-    // To avoid recursion in the case that type === "newListener"! Before
-    // adding it to the listeners, first emit "newListener".
-    if (events.newListener !== undefined) {
-      target.emit('newListener', type,
-                  listener.listener ? listener.listener : listener);
-
-      // Re-assign `events` because a newListener handler could have caused the
-      // this._events to be assigned to a new object
-      events = target._events;
-    }
-    existing = events[type];
-  }
-
-  if (existing === undefined) {
-    // Optimize the case of one listener. Don't need the extra array object.
-    existing = events[type] = listener;
-    ++target._eventsCount;
-  } else {
-    if (typeof existing === 'function') {
-      // Adding the second element, need to change to array.
-      existing = events[type] =
-        prepend ? [listener, existing] : [existing, listener];
-      // If we've already got an array, just append.
-    } else if (prepend) {
-      existing.unshift(listener);
-    } else {
-      existing.push(listener);
-    }
-
-    // Check for listener leak
-    m = _getMaxListeners(target);
-    if (m > 0 && existing.length > m && !existing.warned) {
-      existing.warned = true;
-      // No error code for this since it is a Warning
-      // eslint-disable-next-line no-restricted-syntax
-      var w = new Error('Possible EventEmitter memory leak detected. ' +
-                          existing.length + ' ' + String(type) + ' listeners ' +
-                          'added. Use emitter.setMaxListeners() to ' +
-                          'increase limit');
-      w.name = 'MaxListenersExceededWarning';
-      w.emitter = target;
-      w.type = type;
-      w.count = existing.length;
-      ProcessEmitWarning(w);
-    }
-  }
-
-  return target;
-}
-
-EventEmitter.prototype.addListener = function addListener(type, listener) {
-  return _addListener(this, type, listener, false);
-};
-
-EventEmitter.prototype.on = EventEmitter.prototype.addListener;
-
-EventEmitter.prototype.prependListener =
-    function prependListener(type, listener) {
-      return _addListener(this, type, listener, true);
-    };
-
-function onceWrapper() {
-  if (!this.fired) {
-    this.target.removeListener(this.type, this.wrapFn);
-    this.fired = true;
-    if (arguments.length === 0)
-      return this.listener.call(this.target);
-    return this.listener.apply(this.target, arguments);
-  }
-}
-
-function _onceWrap(target, type, listener) {
-  var state = { fired: false, wrapFn: undefined, target: target, type: type, listener: listener };
-  var wrapped = onceWrapper.bind(state);
-  wrapped.listener = listener;
-  state.wrapFn = wrapped;
-  return wrapped;
-}
-
-EventEmitter.prototype.once = function once(type, listener) {
-  checkListener(listener);
-  this.on(type, _onceWrap(this, type, listener));
-  return this;
-};
-
-EventEmitter.prototype.prependOnceListener =
-    function prependOnceListener(type, listener) {
-      checkListener(listener);
-      this.prependListener(type, _onceWrap(this, type, listener));
-      return this;
-    };
-
-// Emits a 'removeListener' event if and only if the listener was removed.
-EventEmitter.prototype.removeListener =
-    function removeListener(type, listener) {
-      var list, events, position, i, originalListener;
-
-      checkListener(listener);
-
-      events = this._events;
-      if (events === undefined)
-        return this;
-
-      list = events[type];
-      if (list === undefined)
-        return this;
-
-      if (list === listener || list.listener === listener) {
-        if (--this._eventsCount === 0)
-          this._events = Object.create(null);
-        else {
-          delete events[type];
-          if (events.removeListener)
-            this.emit('removeListener', type, list.listener || listener);
-        }
-      } else if (typeof list !== 'function') {
-        position = -1;
-
-        for (i = list.length - 1; i >= 0; i--) {
-          if (list[i] === listener || list[i].listener === listener) {
-            originalListener = list[i].listener;
-            position = i;
-            break;
-          }
-        }
-
-        if (position < 0)
-          return this;
-
-        if (position === 0)
-          list.shift();
-        else {
-          spliceOne(list, position);
-        }
-
-        if (list.length === 1)
-          events[type] = list[0];
-
-        if (events.removeListener !== undefined)
-          this.emit('removeListener', type, originalListener || listener);
-      }
-
-      return this;
-    };
-
-EventEmitter.prototype.off = EventEmitter.prototype.removeListener;
-
-EventEmitter.prototype.removeAllListeners =
-    function removeAllListeners(type) {
-      var listeners, events, i;
-
-      events = this._events;
-      if (events === undefined)
-        return this;
-
-      // not listening for removeListener, no need to emit
-      if (events.removeListener === undefined) {
-        if (arguments.length === 0) {
-          this._events = Object.create(null);
-          this._eventsCount = 0;
-        } else if (events[type] !== undefined) {
-          if (--this._eventsCount === 0)
-            this._events = Object.create(null);
-          else
-            delete events[type];
-        }
-        return this;
-      }
-
-      // emit removeListener for all listeners on all events
-      if (arguments.length === 0) {
-        var keys = Object.keys(events);
-        var key;
-        for (i = 0; i < keys.length; ++i) {
-          key = keys[i];
-          if (key === 'removeListener') continue;
-          this.removeAllListeners(key);
-        }
-        this.removeAllListeners('removeListener');
-        this._events = Object.create(null);
-        this._eventsCount = 0;
-        return this;
-      }
-
-      listeners = events[type];
-
-      if (typeof listeners === 'function') {
-        this.removeListener(type, listeners);
-      } else if (listeners !== undefined) {
-        // LIFO order
-        for (i = listeners.length - 1; i >= 0; i--) {
-          this.removeListener(type, listeners[i]);
-        }
-      }
-
-      return this;
-    };
-
-function _listeners(target, type, unwrap) {
-  var events = target._events;
-
-  if (events === undefined)
-    return [];
-
-  var evlistener = events[type];
-  if (evlistener === undefined)
-    return [];
-
-  if (typeof evlistener === 'function')
-    return unwrap ? [evlistener.listener || evlistener] : [evlistener];
-
-  return unwrap ?
-    unwrapListeners(evlistener) : arrayClone(evlistener, evlistener.length);
-}
-
-EventEmitter.prototype.listeners = function listeners(type) {
-  return _listeners(this, type, true);
-};
-
-EventEmitter.prototype.rawListeners = function rawListeners(type) {
-  return _listeners(this, type, false);
-};
-
-EventEmitter.listenerCount = function(emitter, type) {
-  if (typeof emitter.listenerCount === 'function') {
-    return emitter.listenerCount(type);
-  } else {
-    return listenerCount.call(emitter, type);
-  }
-};
-
-EventEmitter.prototype.listenerCount = listenerCount;
-function listenerCount(type) {
-  var events = this._events;
-
-  if (events !== undefined) {
-    var evlistener = events[type];
-
-    if (typeof evlistener === 'function') {
-      return 1;
-    } else if (evlistener !== undefined) {
-      return evlistener.length;
-    }
-  }
-
-  return 0;
-}
-
-EventEmitter.prototype.eventNames = function eventNames() {
-  return this._eventsCount > 0 ? ReflectOwnKeys(this._events) : [];
-};
-
-function arrayClone(arr, n) {
-  var copy = new Array(n);
-  for (var i = 0; i < n; ++i)
-    copy[i] = arr[i];
-  return copy;
-}
-
-function spliceOne(list, index) {
-  for (; index + 1 < list.length; index++)
-    list[index] = list[index + 1];
-  list.pop();
-}
-
-function unwrapListeners(arr) {
-  var ret = new Array(arr.length);
-  for (var i = 0; i < ret.length; ++i) {
-    ret[i] = arr[i].listener || arr[i];
-  }
-  return ret;
-}
-
-function once(emitter, name) {
-  return new Promise(function (resolve, reject) {
-    function errorListener(err) {
-      emitter.removeListener(name, resolver);
-      reject(err);
-    }
-
-    function resolver() {
-      if (typeof emitter.removeListener === 'function') {
-        emitter.removeListener('error', errorListener);
-      }
-      resolve([].slice.call(arguments));
-    };
-
-    eventTargetAgnosticAddListener(emitter, name, resolver, { once: true });
-    if (name !== 'error') {
-      addErrorHandlerIfEventEmitter(emitter, errorListener, { once: true });
-    }
-  });
-}
-
-function addErrorHandlerIfEventEmitter(emitter, handler, flags) {
-  if (typeof emitter.on === 'function') {
-    eventTargetAgnosticAddListener(emitter, 'error', handler, flags);
-  }
-}
-
-function eventTargetAgnosticAddListener(emitter, name, listener, flags) {
-  if (typeof emitter.on === 'function') {
-    if (flags.once) {
-      emitter.once(name, listener);
-    } else {
-      emitter.on(name, listener);
-    }
-  } else if (typeof emitter.addEventListener === 'function') {
-    // EventTarget does not have `error` event semantics like Node
-    // EventEmitters, we do not listen for `error` events here.
-    emitter.addEventListener(name, function wrapListener(arg) {
-      // IE does not have builtin `{ once: true }` support so we
-      // have to do it manually.
-      if (flags.once) {
-        emitter.removeEventListener(name, wrapListener);
-      }
-      listener(arg);
-    });
-  } else {
-    throw new TypeError('The "emitter" argument must be of type EventEmitter. Received type ' + typeof emitter);
-  }
-}
-
-},{}],227:[function(require,module,exports){
+},{"@ethersproject/abi":15,"@ethersproject/address":22,"@ethersproject/base64":24,"@ethersproject/basex":25,"@ethersproject/bytes":31,"@ethersproject/hash":44,"@ethersproject/hdnode":49,"@ethersproject/json-wallets":52,"@ethersproject/keccak256":56,"@ethersproject/logger":58,"@ethersproject/properties":64,"@ethersproject/random":86,"@ethersproject/rlp":89,"@ethersproject/sha2":92,"@ethersproject/signing-key":96,"@ethersproject/solidity":98,"@ethersproject/strings":102,"@ethersproject/transactions":105,"@ethersproject/units":107,"@ethersproject/wallet":109,"@ethersproject/web":112}],168:[function(require,module,exports){
 var hash = exports;
 
 hash.utils = require('./hash/utils');
@@ -53540,7 +44849,7 @@ hash.sha384 = hash.sha.sha384;
 hash.sha512 = hash.sha.sha512;
 hash.ripemd160 = hash.ripemd.ripemd160;
 
-},{"./hash/common":228,"./hash/hmac":229,"./hash/ripemd":230,"./hash/sha":231,"./hash/utils":238}],228:[function(require,module,exports){
+},{"./hash/common":169,"./hash/hmac":170,"./hash/ripemd":171,"./hash/sha":172,"./hash/utils":179}],169:[function(require,module,exports){
 'use strict';
 
 var utils = require('./utils');
@@ -53634,7 +44943,7 @@ BlockHash.prototype._pad = function pad() {
   return res;
 };
 
-},{"./utils":238,"minimalistic-assert":243}],229:[function(require,module,exports){
+},{"./utils":179,"minimalistic-assert":184}],170:[function(require,module,exports){
 'use strict';
 
 var utils = require('./utils');
@@ -53683,7 +44992,7 @@ Hmac.prototype.digest = function digest(enc) {
   return this.outer.digest(enc);
 };
 
-},{"./utils":238,"minimalistic-assert":243}],230:[function(require,module,exports){
+},{"./utils":179,"minimalistic-assert":184}],171:[function(require,module,exports){
 'use strict';
 
 var utils = require('./utils');
@@ -53831,7 +45140,7 @@ var sh = [
   8, 5, 12, 9, 12, 5, 14, 6, 8, 13, 6, 5, 15, 13, 11, 11
 ];
 
-},{"./common":228,"./utils":238}],231:[function(require,module,exports){
+},{"./common":169,"./utils":179}],172:[function(require,module,exports){
 'use strict';
 
 exports.sha1 = require('./sha/1');
@@ -53840,7 +45149,7 @@ exports.sha256 = require('./sha/256');
 exports.sha384 = require('./sha/384');
 exports.sha512 = require('./sha/512');
 
-},{"./sha/1":232,"./sha/224":233,"./sha/256":234,"./sha/384":235,"./sha/512":236}],232:[function(require,module,exports){
+},{"./sha/1":173,"./sha/224":174,"./sha/256":175,"./sha/384":176,"./sha/512":177}],173:[function(require,module,exports){
 'use strict';
 
 var utils = require('../utils');
@@ -53916,7 +45225,7 @@ SHA1.prototype._digest = function digest(enc) {
     return utils.split32(this.h, 'big');
 };
 
-},{"../common":228,"../utils":238,"./common":237}],233:[function(require,module,exports){
+},{"../common":169,"../utils":179,"./common":178}],174:[function(require,module,exports){
 'use strict';
 
 var utils = require('../utils');
@@ -53948,7 +45257,7 @@ SHA224.prototype._digest = function digest(enc) {
 };
 
 
-},{"../utils":238,"./256":234}],234:[function(require,module,exports){
+},{"../utils":179,"./256":175}],175:[function(require,module,exports){
 'use strict';
 
 var utils = require('../utils');
@@ -54055,7 +45364,7 @@ SHA256.prototype._digest = function digest(enc) {
     return utils.split32(this.h, 'big');
 };
 
-},{"../common":228,"../utils":238,"./common":237,"minimalistic-assert":243}],235:[function(require,module,exports){
+},{"../common":169,"../utils":179,"./common":178,"minimalistic-assert":184}],176:[function(require,module,exports){
 'use strict';
 
 var utils = require('../utils');
@@ -54092,7 +45401,7 @@ SHA384.prototype._digest = function digest(enc) {
     return utils.split32(this.h.slice(0, 12), 'big');
 };
 
-},{"../utils":238,"./512":236}],236:[function(require,module,exports){
+},{"../utils":179,"./512":177}],177:[function(require,module,exports){
 'use strict';
 
 var utils = require('../utils');
@@ -54424,7 +45733,7 @@ function g1_512_lo(xh, xl) {
   return r;
 }
 
-},{"../common":228,"../utils":238,"minimalistic-assert":243}],237:[function(require,module,exports){
+},{"../common":169,"../utils":179,"minimalistic-assert":184}],178:[function(require,module,exports){
 'use strict';
 
 var utils = require('../utils');
@@ -54475,7 +45784,7 @@ function g1_256(x) {
 }
 exports.g1_256 = g1_256;
 
-},{"../utils":238}],238:[function(require,module,exports){
+},{"../utils":179}],179:[function(require,module,exports){
 'use strict';
 
 var assert = require('minimalistic-assert');
@@ -54755,7 +46064,7 @@ function shr64_lo(ah, al, num) {
 }
 exports.shr64_lo = shr64_lo;
 
-},{"inherits":241,"minimalistic-assert":243}],239:[function(require,module,exports){
+},{"inherits":182,"minimalistic-assert":184}],180:[function(require,module,exports){
 'use strict';
 
 var hash = require('hash.js');
@@ -54870,7 +46179,7 @@ HmacDRBG.prototype.generate = function generate(len, enc, add, addEnc) {
   return utils.encode(res, enc);
 };
 
-},{"hash.js":227,"minimalistic-assert":243,"minimalistic-crypto-utils":244}],240:[function(require,module,exports){
+},{"hash.js":168,"minimalistic-assert":184,"minimalistic-crypto-utils":185}],181:[function(require,module,exports){
 /*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> */
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
@@ -54957,7 +46266,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128
 }
 
-},{}],241:[function(require,module,exports){
+},{}],182:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -54986,7 +46295,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],242:[function(require,module,exports){
+},{}],183:[function(require,module,exports){
 (function (process,global){(function (){
 /**
  * [js-sha3]{@link https://github.com/emn178/js-sha3}
@@ -55646,7 +46955,7 @@ if (typeof Object.create === 'function') {
 })();
 
 }).call(this)}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":246}],243:[function(require,module,exports){
+},{"_process":186}],184:[function(require,module,exports){
 module.exports = assert;
 
 function assert(val, msg) {
@@ -55659,7 +46968,7 @@ assert.equal = function assertEqual(l, r, msg) {
     throw new Error(msg || ('Assertion failed: ' + l + ' != ' + r));
 };
 
-},{}],244:[function(require,module,exports){
+},{}],185:[function(require,module,exports){
 'use strict';
 
 var utils = exports;
@@ -55719,36 +47028,7 @@ utils.encode = function encode(arr, enc) {
     return arr;
 };
 
-},{}],245:[function(require,module,exports){
-(function (global){(function (){
-"use strict";
-
-// ref: https://github.com/tc39/proposal-global
-var getGlobal = function () {
-	// the only reliable means to get the global object is
-	// `Function('return this')()`
-	// However, this causes CSP violations in Chrome apps.
-	if (typeof self !== 'undefined') { return self; }
-	if (typeof window !== 'undefined') { return window; }
-	if (typeof global !== 'undefined') { return global; }
-	throw new Error('unable to locate global object');
-}
-
-var globalObject = getGlobal();
-
-module.exports = exports = globalObject.fetch;
-
-// Needed for TypeScript and Webpack.
-if (globalObject.fetch) {
-	exports.default = globalObject.fetch.bind(globalObject);
-}
-
-exports.Headers = globalObject.Headers;
-exports.Request = globalObject.Request;
-exports.Response = globalObject.Response;
-
-}).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],246:[function(require,module,exports){
+},{}],186:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -55934,7 +47214,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],247:[function(require,module,exports){
+},{}],187:[function(require,module,exports){
 (function (global){(function (){
 /*! queue-microtask. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> */
 let promise
@@ -55947,7 +47227,7 @@ module.exports = typeof queueMicrotask === 'function'
     .catch(err => setTimeout(() => { throw err }, 0))
 
 }).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],248:[function(require,module,exports){
+},{}],188:[function(require,module,exports){
 (function (setImmediate){(function (){
 "use strict";
 
@@ -56439,29 +47719,29 @@ module.exports = typeof queueMicrotask === 'function'
 })(this);
 
 }).call(this)}).call(this,require("timers").setImmediate)
-},{"timers":260}],249:[function(require,module,exports){
+},{"timers":200}],189:[function(require,module,exports){
 "use strict";Object.defineProperty(exports,"__esModule",{value:true});exports["default"]=exports.SHAKE=exports.SHA3Hash=exports.SHA3=exports.Keccak=void 0;var _buffer=require("buffer");var _sponge=_interopRequireDefault(require("./sponge"));function _interopRequireDefault(obj){return obj&&obj.__esModule?obj:{"default":obj}}var createHash=function createHash(_ref){var allowedSizes=_ref.allowedSizes,defaultSize=_ref.defaultSize,padding=_ref.padding;return function Hash(){var _this=this;var size=arguments.length>0&&arguments[0]!==undefined?arguments[0]:defaultSize;if(!this||this.constructor!==Hash){return new Hash(size)}if(allowedSizes&&!allowedSizes.includes(size)){throw new Error("Unsupported hash length")}var sponge=new _sponge["default"]({capacity:size});this.update=function(input){var encoding=arguments.length>1&&arguments[1]!==undefined?arguments[1]:"utf8";if(_buffer.Buffer.isBuffer(input)){sponge.absorb(input);return _this}if(typeof input==="string"){return _this.update(_buffer.Buffer.from(input,encoding))}throw new TypeError("Not a string or buffer")};this.digest=function(){var formatOrOptions=arguments.length>0&&arguments[0]!==undefined?arguments[0]:"binary";var options=typeof formatOrOptions==="string"?{format:formatOrOptions}:formatOrOptions;var buffer=sponge.squeeze({buffer:options.buffer,padding:options.padding||padding});if(options.format&&options.format!=="binary"){return buffer.toString(options.format)}return buffer};this.reset=function(){sponge.reset();return _this};return this}};var Keccak=createHash({allowedSizes:[224,256,384,512],defaultSize:512,padding:1});exports.Keccak=Keccak;var SHA3=createHash({allowedSizes:[224,256,384,512],defaultSize:512,padding:6});exports.SHA3=SHA3;var SHAKE=createHash({allowedSizes:[128,256],defaultSize:256,padding:31});exports.SHAKE=SHAKE;var SHA3Hash=Keccak;exports.SHA3Hash=SHA3Hash;SHA3.SHA3Hash=SHA3Hash;var _default=SHA3;exports["default"]=_default;
-},{"./sponge":250,"buffer":198}],250:[function(require,module,exports){
+},{"./sponge":190,"buffer":145}],190:[function(require,module,exports){
 "use strict";Object.defineProperty(exports,"__esModule",{value:true});exports["default"]=void 0;var _buffer=require("buffer");var _permute=_interopRequireDefault(require("./permute"));function _interopRequireDefault(obj){return obj&&obj.__esModule?obj:{"default":obj}}var xorWords=function xorWords(I,O){for(var i=0;i<I.length;i+=8){var o=i/4;O[o]^=I[i+7]<<24|I[i+6]<<16|I[i+5]<<8|I[i+4];O[o+1]^=I[i+3]<<24|I[i+2]<<16|I[i+1]<<8|I[i]}return O};var readWords=function readWords(I,O){for(var o=0;o<O.length;o+=8){var i=o/4;O[o]=I[i+1];O[o+1]=I[i+1]>>>8;O[o+2]=I[i+1]>>>16;O[o+3]=I[i+1]>>>24;O[o+4]=I[i];O[o+5]=I[i]>>>8;O[o+6]=I[i]>>>16;O[o+7]=I[i]>>>24}return O};var Sponge=function Sponge(_ref){var _this=this;var capacity=_ref.capacity,padding=_ref.padding;var keccak=(0,_permute["default"])();var stateSize=200;var blockSize=capacity/8;var queueSize=stateSize-capacity/4;var queueOffset=0;var state=new Uint32Array(stateSize/4);var queue=_buffer.Buffer.allocUnsafe(queueSize);this.absorb=function(buffer){for(var i=0;i<buffer.length;i++){queue[queueOffset]=buffer[i];queueOffset+=1;if(queueOffset>=queueSize){xorWords(queue,state);keccak(state);queueOffset=0}}return _this};this.squeeze=function(){var options=arguments.length>0&&arguments[0]!==undefined?arguments[0]:{};var output={buffer:options.buffer||_buffer.Buffer.allocUnsafe(blockSize),padding:options.padding||padding,queue:_buffer.Buffer.allocUnsafe(queue.length),state:new Uint32Array(state.length)};queue.copy(output.queue);for(var i=0;i<state.length;i++){output.state[i]=state[i]}output.queue.fill(0,queueOffset);output.queue[queueOffset]|=output.padding;output.queue[queueSize-1]|=128;xorWords(output.queue,output.state);for(var offset=0;offset<output.buffer.length;offset+=queueSize){keccak(output.state);readWords(output.state,output.buffer.slice(offset,offset+queueSize))}return output.buffer};this.reset=function(){queue.fill(0);state.fill(0);queueOffset=0;return _this};return this};var _default=Sponge;exports["default"]=_default;
-},{"./permute":253,"buffer":198}],251:[function(require,module,exports){
+},{"./permute":193,"buffer":145}],191:[function(require,module,exports){
 "use strict";Object.defineProperty(exports,"__esModule",{value:true});exports["default"]=void 0;var _copy=_interopRequireDefault(require("../copy"));function _interopRequireDefault(obj){return obj&&obj.__esModule?obj:{"default":obj}}var chi=function chi(_ref){var A=_ref.A,C=_ref.C;for(var y=0;y<25;y+=5){for(var x=0;x<5;x++){(0,_copy["default"])(A,y+x)(C,x)}for(var _x=0;_x<5;_x++){var xy=(y+_x)*2;var x1=(_x+1)%5*2;var x2=(_x+2)%5*2;A[xy]^=~C[x1]&C[x2];A[xy+1]^=~C[x1+1]&C[x2+1]}}};var _default=chi;exports["default"]=_default;
-},{"../copy":252}],252:[function(require,module,exports){
+},{"../copy":192}],192:[function(require,module,exports){
 "use strict";var copy=function copy(I,i){return function(O,o){var oi=o*2;var ii=i*2;O[oi]=I[ii];O[oi+1]=I[ii+1]}};module.exports=copy;
-},{}],253:[function(require,module,exports){
+},{}],193:[function(require,module,exports){
 "use strict";Object.defineProperty(exports,"__esModule",{value:true});exports["default"]=void 0;var _chi=_interopRequireDefault(require("./chi"));var _iota=_interopRequireDefault(require("./iota"));var _rhoPi=_interopRequireDefault(require("./rho-pi"));var _theta=_interopRequireDefault(require("./theta"));function _interopRequireDefault(obj){return obj&&obj.__esModule?obj:{"default":obj}}var permute=function permute(){var C=new Uint32Array(10);var D=new Uint32Array(10);var W=new Uint32Array(2);return function(A){for(var roundIndex=0;roundIndex<24;roundIndex++){(0,_theta["default"])({A:A,C:C,D:D,W:W});(0,_rhoPi["default"])({A:A,C:C,W:W});(0,_chi["default"])({A:A,C:C});(0,_iota["default"])({A:A,roundIndex:roundIndex})}C.fill(0);D.fill(0);W.fill(0)}};var _default=permute;exports["default"]=_default;
-},{"./chi":251,"./iota":254,"./rho-pi":256,"./theta":259}],254:[function(require,module,exports){
+},{"./chi":191,"./iota":194,"./rho-pi":196,"./theta":199}],194:[function(require,module,exports){
 "use strict";Object.defineProperty(exports,"__esModule",{value:true});exports["default"]=void 0;var _roundConstants=_interopRequireDefault(require("./round-constants"));function _interopRequireDefault(obj){return obj&&obj.__esModule?obj:{"default":obj}}var iota=function iota(_ref){var A=_ref.A,roundIndex=_ref.roundIndex;var i=roundIndex*2;A[0]^=_roundConstants["default"][i];A[1]^=_roundConstants["default"][i+1]};var _default=iota;exports["default"]=_default;
-},{"./round-constants":255}],255:[function(require,module,exports){
+},{"./round-constants":195}],195:[function(require,module,exports){
 "use strict";Object.defineProperty(exports,"__esModule",{value:true});exports["default"]=void 0;var ROUND_CONSTANTS=new Uint32Array([0,1,0,32898,2147483648,32906,2147483648,2147516416,0,32907,0,2147483649,2147483648,2147516545,2147483648,32777,0,138,0,136,0,2147516425,0,2147483658,0,2147516555,2147483648,139,2147483648,32905,2147483648,32771,2147483648,32770,2147483648,128,0,32778,2147483648,2147483658,2147483648,2147516545,2147483648,32896,0,2147483649,2147483648,2147516424]);var _default=ROUND_CONSTANTS;exports["default"]=_default;
-},{}],256:[function(require,module,exports){
+},{}],196:[function(require,module,exports){
 "use strict";Object.defineProperty(exports,"__esModule",{value:true});exports["default"]=void 0;var _piShuffles=_interopRequireDefault(require("./pi-shuffles"));var _rhoOffsets=_interopRequireDefault(require("./rho-offsets"));var _copy=_interopRequireDefault(require("../copy"));function _interopRequireDefault(obj){return obj&&obj.__esModule?obj:{"default":obj}}var rhoPi=function rhoPi(_ref){var A=_ref.A,C=_ref.C,W=_ref.W;(0,_copy["default"])(A,1)(W,0);var H=0;var L=0;var Wi=0;var ri=32;for(var i=0;i<24;i++){var j=_piShuffles["default"][i];var r=_rhoOffsets["default"][i];(0,_copy["default"])(A,j)(C,0);H=W[0];L=W[1];ri=32-r;Wi=r<32?0:1;W[Wi]=H<<r|L>>>ri;W[(Wi+1)%2]=L<<r|H>>>ri;(0,_copy["default"])(W,0)(A,j);(0,_copy["default"])(C,0)(W,0)}};var _default=rhoPi;exports["default"]=_default;
-},{"../copy":252,"./pi-shuffles":257,"./rho-offsets":258}],257:[function(require,module,exports){
+},{"../copy":192,"./pi-shuffles":197,"./rho-offsets":198}],197:[function(require,module,exports){
 "use strict";Object.defineProperty(exports,"__esModule",{value:true});exports["default"]=void 0;var PI_SHUFFLES=[10,7,11,17,18,3,5,16,8,21,24,4,15,23,19,13,12,2,20,14,22,9,6,1];var _default=PI_SHUFFLES;exports["default"]=_default;
-},{}],258:[function(require,module,exports){
+},{}],198:[function(require,module,exports){
 "use strict";Object.defineProperty(exports,"__esModule",{value:true});exports["default"]=void 0;var RHO_OFFSETS=[1,3,6,10,15,21,28,36,45,55,2,14,27,41,56,8,25,43,62,18,39,61,20,44];var _default=RHO_OFFSETS;exports["default"]=_default;
-},{}],259:[function(require,module,exports){
+},{}],199:[function(require,module,exports){
 "use strict";Object.defineProperty(exports,"__esModule",{value:true});exports["default"]=void 0;var _copy=_interopRequireDefault(require("../copy"));function _interopRequireDefault(obj){return obj&&obj.__esModule?obj:{"default":obj}}var theta=function theta(_ref){var A=_ref.A,C=_ref.C,D=_ref.D,W=_ref.W;var H=0;var L=0;for(var x=0;x<5;x++){var x20=x*2;var x21=(x+5)*2;var x22=(x+10)*2;var x23=(x+15)*2;var x24=(x+20)*2;C[x20]=A[x20]^A[x21]^A[x22]^A[x23]^A[x24];C[x20+1]=A[x20+1]^A[x21+1]^A[x22+1]^A[x23+1]^A[x24+1]}for(var _x=0;_x<5;_x++){(0,_copy["default"])(C,(_x+1)%5)(W,0);H=W[0];L=W[1];W[0]=H<<1|L>>>31;W[1]=L<<1|H>>>31;D[_x*2]=C[(_x+4)%5*2]^W[0];D[_x*2+1]=C[(_x+4)%5*2+1]^W[1];for(var y=0;y<25;y+=5){A[(y+_x)*2]^=D[_x*2];A[(y+_x)*2+1]^=D[_x*2+1]}}};var _default=theta;exports["default"]=_default;
-},{"../copy":252}],260:[function(require,module,exports){
+},{"../copy":192}],200:[function(require,module,exports){
 (function (setImmediate,clearImmediate){(function (){
 var nextTick = require('process/browser.js').nextTick;
 var apply = Function.prototype.apply;
@@ -56540,7 +47820,7 @@ exports.clearImmediate = typeof clearImmediate === "function" ? clearImmediate :
   delete immediateIds[id];
 };
 }).call(this)}).call(this,require("timers").setImmediate,require("timers").clearImmediate)
-},{"process/browser.js":246,"timers":260}],261:[function(require,module,exports){
+},{"process/browser.js":186,"timers":200}],201:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -56620,7 +47900,7 @@ var _stringify = _interopRequireDefault(require("./stringify.js"));
 var _parse = _interopRequireDefault(require("./parse.js"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-},{"./nil.js":264,"./parse.js":265,"./stringify.js":269,"./v1.js":270,"./v3.js":271,"./v4.js":273,"./v5.js":274,"./validate.js":275,"./version.js":276}],262:[function(require,module,exports){
+},{"./nil.js":204,"./parse.js":205,"./stringify.js":209,"./v1.js":210,"./v3.js":211,"./v4.js":213,"./v5.js":214,"./validate.js":215,"./version.js":216}],202:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -56844,7 +48124,7 @@ function md5ii(a, b, c, d, x, s, t) {
 
 var _default = md5;
 exports.default = _default;
-},{}],263:[function(require,module,exports){
+},{}],203:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -56856,7 +48136,7 @@ var _default = {
   randomUUID
 };
 exports.default = _default;
-},{}],264:[function(require,module,exports){
+},{}],204:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -56865,7 +48145,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.default = void 0;
 var _default = '00000000-0000-0000-0000-000000000000';
 exports.default = _default;
-},{}],265:[function(require,module,exports){
+},{}],205:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -56911,7 +48191,7 @@ function parse(uuid) {
 
 var _default = parse;
 exports.default = _default;
-},{"./validate.js":275}],266:[function(require,module,exports){
+},{"./validate.js":215}],206:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -56920,7 +48200,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.default = void 0;
 var _default = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|00000000-0000-0000-0000-000000000000)$/i;
 exports.default = _default;
-},{}],267:[function(require,module,exports){
+},{}],207:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -56946,7 +48226,7 @@ function rng() {
 
   return getRandomValues(rnds8);
 }
-},{}],268:[function(require,module,exports){
+},{}],208:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -57051,7 +48331,7 @@ function sha1(bytes) {
 
 var _default = sha1;
 exports.default = _default;
-},{}],269:[function(require,module,exports){
+},{}],209:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -57096,7 +48376,7 @@ function stringify(arr, offset = 0) {
 
 var _default = stringify;
 exports.default = _default;
-},{"./validate.js":275}],270:[function(require,module,exports){
+},{"./validate.js":215}],210:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -57204,7 +48484,7 @@ function v1(options, buf, offset) {
 
 var _default = v1;
 exports.default = _default;
-},{"./rng.js":267,"./stringify.js":269}],271:[function(require,module,exports){
+},{"./rng.js":207,"./stringify.js":209}],211:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -57221,7 +48501,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 const v3 = (0, _v.default)('v3', 0x30, _md.default);
 var _default = v3;
 exports.default = _default;
-},{"./md5.js":262,"./v35.js":272}],272:[function(require,module,exports){
+},{"./md5.js":202,"./v35.js":212}],212:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -57302,7 +48582,7 @@ function v35(name, version, hashfunc) {
   generateUUID.URL = URL;
   return generateUUID;
 }
-},{"./parse.js":265,"./stringify.js":269}],273:[function(require,module,exports){
+},{"./parse.js":205,"./stringify.js":209}],213:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -57346,7 +48626,7 @@ function v4(options, buf, offset) {
 
 var _default = v4;
 exports.default = _default;
-},{"./native.js":263,"./rng.js":267,"./stringify.js":269}],274:[function(require,module,exports){
+},{"./native.js":203,"./rng.js":207,"./stringify.js":209}],214:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -57363,7 +48643,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 const v5 = (0, _v.default)('v5', 0x50, _sha.default);
 var _default = v5;
 exports.default = _default;
-},{"./sha1.js":268,"./v35.js":272}],275:[function(require,module,exports){
+},{"./sha1.js":208,"./v35.js":212}],215:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -57381,7 +48661,7 @@ function validate(uuid) {
 
 var _default = validate;
 exports.default = _default;
-},{"./regex.js":266}],276:[function(require,module,exports){
+},{"./regex.js":206}],216:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -57403,26 +48683,71 @@ function version(uuid) {
 
 var _default = version;
 exports.default = _default;
-},{"./validate.js":275}],277:[function(require,module,exports){
+},{"./validate.js":215}],217:[function(require,module,exports){
+// Replace with import alias
+module.exports.CREATE_ATTESTATION = `
+import ETHAffiliatedAccount from 0xf8d6e0586b0a20c7
+
+transaction(hexPublicKey: String, signature: String, ethAddress: String) {
+
+    let manager: &ETHAffiliatedAccount.AttestationManager
+
+    prepare(signer: AuthAccount) {
+
+        if signer.type(at: ETHAffiliatedAccount.STORAGE_PATH) == nil {
+            signer.save(<-ETHAffiliatedAccount.createManager(), to: ETHAffiliatedAccount.STORAGE_PATH)
+
+            signer.unlink(ETHAffiliatedAccount.PUBLIC_PATH)
+            signer.link<&{ETHAffiliatedAccount.AttestationManagerPublic}>(
+                ETHAffiliatedAccount.PUBLIC_PATH,
+                target: ETHAffiliatedAccount.STORAGE_PATH
+            )
+        }
+
+        self.manager = signer.borrow<&ETHAffiliatedAccount.AttestationManager>(from: ETHAffiliatedAccount.STORAGE_PATH)
+            ?? panic("Could not borrow a reference to the AttestationManager")
+
+    }
+
+    execute {
+        self.manager.createAttestation(
+            hexPublicKey: hexPublicKey,
+            signature: signature,
+            ethAddress: ethAddress
+        )
+    }
+}
+`;
+// Replace with import alias
+module.exports.GET_ATTESTED_ADDRESSES = `
+import ETHAffiliatedAccount from 0xf8d6e0586b0a20c7
+
+access(all) fun main(address: Address): [String] {
+    return getAccount(address).getCapability<&{ETHAffiliatedAccount.AttestationManagerPublic}>(
+            ETHAffiliatedAccount.PUBLIC_PATH
+        ).borrow()
+        ?.getAttestedAddresses()
+        ?? panic("Could not borrow reference to AttestationManagerPublic from the provided account")
+}
+`
+},{}],218:[function(require,module,exports){
 const ethers = require('ethers');
-const {
-    ecrecover,
-    toBuffer,
-    pubToAddress,
-} = require('@ethereumjs/util');
 const fcl = require('@onflow/fcl');
 const {
     network,
     fclConfigInfo,
     updateAuthUI
 } = require('./utils.js');
+const {
+    CREATE_ATTESTATION,
+    GET_ATTESTED_ADDRESSES
+} = require('./cadence.js')
 
 document.addEventListener('DOMContentLoaded', (event) => {
-    document.getElementById('signButton').addEventListener('click', signMessageWithMetaMask);
+    document.getElementById('attestButton').addEventListener('click', attestAsAffiliate);
     document.getElementById('loginButton').addEventListener('click', authenticateWithFlow);
     document.getElementById('logoutButton').addEventListener('click', unauthenticateWithFlow);
 });
-
 
 fcl.config({
     "app.detail.title": "Flow Affiliated Accounts", // the name of your DApp
@@ -57446,7 +48771,8 @@ fcl.currentUser().subscribe((currentUser) => {
 
 // Authenticate with Flow
 async function authenticateWithFlow() {
-    await fcl.authenticate();
+    const user = await fcl.authenticate();
+    await getAttestedAddresses(user.addr);
 }
 
 // Unauthenticate with Flow
@@ -57454,7 +48780,33 @@ function unauthenticateWithFlow() {
     fcl.unauthenticate();
 }
 
-async function signMessageWithMetaMask() {
+async function createAttestation(hexPublicKey, signature, ethAddress) {
+    const txId =
+        await fcl.mutate({
+            cadence: CREATE_ATTESTATION,
+            proposer: fcl.currentUser,
+            payer: fcl.currentUser,
+            authorizations: [fcl.currentUser],
+            args: (arg, t) => [
+                arg(hexPublicKey, t.String),
+                arg(signature, t.String),
+                arg(ethAddress, t.String)
+            ],
+            limit: 9999
+        })
+    const tx = await fcl.tx(txId).onceSealed();
+    console.log(tx);
+};
+
+async function getAttestedAddresses(address) {
+    const result = await fcl.query({
+        cadence: GET_ATTESTED_ADDRESSES,
+        args: (arg, t) => [fcl.arg(address, t.Address)]
+    });
+    console.log(result);
+};
+
+async function attestAsAffiliate() {
     // Check if MetaMask is installed
     if (!window.ethereum) {
         alert('Please install MetaMask first.');
@@ -57508,63 +48860,14 @@ async function signMessageWithMetaMask() {
         console.log(`Signer address: ${signerAddress}`);
         console.log(`Signer public key: ${publicKey}`);
 
+        await createAttestation(publicKey, signature, signerAddress);
+
     } catch (err) {
         console.error(err);  // Log any errors
     }
 }
-
-async function verifySignature() {
-    const signerAddress = document.getElementById('verifyAddressInput').value.trim();
-    const originalMessage = document.getElementById('verifyMessageInput').value.trim();
-    const signature = document.getElementById('verifySignatureInput').value.trim();
-    const verificationResultElement = document.getElementById('verificationResult');
-
-    if (!signerAddress || !originalMessage || !signature) {
-        alert('Please enter the signer address, the original message, and the signature.');
-        return;
-    }
-
-    try {
-        // Ensure the signature includes the 'v' value
-        if (signature.length !== 132) {
-            throw new Error('The signature is not the correct length.');
-        }
-
-        // Extract the 'v' value from the signature
-        const r = signature.slice(0, 66);
-        const s = '0x' + signature.slice(66, 130);
-        const v = '0x' + signature.slice(130, 132);
-
-        // Construct a full signature object expected by ethers
-        const fullSignature = {
-            r: r,
-            s: s,
-            v: parseInt(v, 16)
-        };
-
-        // Hash the original message in the same way it was hashed during signing
-        const messageHash = ethers.hashMessage(originalMessage);
-        const messageHashBytes = ethers.arrayify(messageHash);
-
-        // Recover the address from the signature
-        const recoveredAddress = ethers.recoverAddress(messageHashBytes, fullSignature);
-
-        if (recoveredAddress.toLowerCase() === signerAddress.toLowerCase()) {
-            verificationResultElement.textContent = 'Signature is valid.';
-            verificationResultElement.style.color = 'green';
-        } else {
-            verificationResultElement.textContent = 'Signature is invalid.';
-            verificationResultElement.style.color = 'red';
-        }
-    } catch (err) {
-        console.error('Error during FCL authentication or MetaMask signing:', err);
-        verificationResultElement.textContent = 'An error occurred during the verification process.';
-        verificationResultElement.style.color = 'red';
-    }
-}
-
-},{"./utils.js":278,"@ethereumjs/util":30,"@onflow/fcl":180,"ethers":224}],278:[function(require,module,exports){
-module.exports.network = 'emulator'
+},{"./cadence.js":217,"./utils.js":219,"@onflow/fcl":126,"ethers":166}],219:[function(require,module,exports){
+module.exports.network = 'emulator';
 
 module.exports.fclConfigInfo = {
     emulator: {
@@ -57586,7 +48889,7 @@ module.exports.fclConfigInfo = {
         // Adds in Dapper + Ledger
         discoveryAuthInclude: ["0xead892083b3e2c6c", "0xe5cd26afebe62781"]
     }
-}
+};
 
     // Update UI based on authentication state
 module.exports.updateAuthUI = function(user) {
@@ -57603,5 +48906,6 @@ module.exports.updateAuthUI = function(user) {
         logoutButton.style.display = 'none';
         userAddress.textContent = 'Please log in.';
     }
-}
-},{}]},{},[277]);
+};
+
+},{}]},{},[218]);

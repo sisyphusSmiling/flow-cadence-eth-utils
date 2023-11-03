@@ -1,22 +1,20 @@
 const ethers = require('ethers');
-const {
-    ecrecover,
-    toBuffer,
-    pubToAddress,
-} = require('@ethereumjs/util');
 const fcl = require('@onflow/fcl');
 const {
     network,
     fclConfigInfo,
     updateAuthUI
 } = require('./utils.js');
+const {
+    CREATE_ATTESTATION,
+    GET_ATTESTED_ADDRESSES
+} = require('./cadence.js')
 
 document.addEventListener('DOMContentLoaded', (event) => {
-    document.getElementById('signButton').addEventListener('click', signMessageWithMetaMask);
+    document.getElementById('attestButton').addEventListener('click', attestAsAffiliate);
     document.getElementById('loginButton').addEventListener('click', authenticateWithFlow);
     document.getElementById('logoutButton').addEventListener('click', unauthenticateWithFlow);
 });
-
 
 fcl.config({
     "app.detail.title": "Flow Affiliated Accounts", // the name of your DApp
@@ -40,7 +38,8 @@ fcl.currentUser().subscribe((currentUser) => {
 
 // Authenticate with Flow
 async function authenticateWithFlow() {
-    await fcl.authenticate();
+    const user = await fcl.authenticate();
+    await getAttestedAddresses(user.addr);
 }
 
 // Unauthenticate with Flow
@@ -48,7 +47,33 @@ function unauthenticateWithFlow() {
     fcl.unauthenticate();
 }
 
-async function signMessageWithMetaMask() {
+async function createAttestation(hexPublicKey, signature, ethAddress) {
+    const txId =
+        await fcl.mutate({
+            cadence: CREATE_ATTESTATION,
+            proposer: fcl.currentUser,
+            payer: fcl.currentUser,
+            authorizations: [fcl.currentUser],
+            args: (arg, t) => [
+                arg(hexPublicKey, t.String),
+                arg(signature, t.String),
+                arg(ethAddress, t.String)
+            ],
+            limit: 9999
+        })
+    const tx = await fcl.tx(txId).onceSealed();
+    console.log(tx);
+};
+
+async function getAttestedAddresses(address) {
+    const result = await fcl.query({
+        cadence: GET_ATTESTED_ADDRESSES,
+        args: (arg, t) => [fcl.arg(address, t.Address)]
+    });
+    console.log(result);
+};
+
+async function attestAsAffiliate() {
     // Check if MetaMask is installed
     if (!window.ethereum) {
         alert('Please install MetaMask first.');
@@ -102,57 +127,9 @@ async function signMessageWithMetaMask() {
         console.log(`Signer address: ${signerAddress}`);
         console.log(`Signer public key: ${publicKey}`);
 
+        await createAttestation(publicKey, signature, signerAddress);
+
     } catch (err) {
         console.error(err);  // Log any errors
-    }
-}
-
-async function verifySignature() {
-    const signerAddress = document.getElementById('verifyAddressInput').value.trim();
-    const originalMessage = document.getElementById('verifyMessageInput').value.trim();
-    const signature = document.getElementById('verifySignatureInput').value.trim();
-    const verificationResultElement = document.getElementById('verificationResult');
-
-    if (!signerAddress || !originalMessage || !signature) {
-        alert('Please enter the signer address, the original message, and the signature.');
-        return;
-    }
-
-    try {
-        // Ensure the signature includes the 'v' value
-        if (signature.length !== 132) {
-            throw new Error('The signature is not the correct length.');
-        }
-
-        // Extract the 'v' value from the signature
-        const r = signature.slice(0, 66);
-        const s = '0x' + signature.slice(66, 130);
-        const v = '0x' + signature.slice(130, 132);
-
-        // Construct a full signature object expected by ethers
-        const fullSignature = {
-            r: r,
-            s: s,
-            v: parseInt(v, 16)
-        };
-
-        // Hash the original message in the same way it was hashed during signing
-        const messageHash = ethers.hashMessage(originalMessage);
-        const messageHashBytes = ethers.arrayify(messageHash);
-
-        // Recover the address from the signature
-        const recoveredAddress = ethers.recoverAddress(messageHashBytes, fullSignature);
-
-        if (recoveredAddress.toLowerCase() === signerAddress.toLowerCase()) {
-            verificationResultElement.textContent = 'Signature is valid.';
-            verificationResultElement.style.color = 'green';
-        } else {
-            verificationResultElement.textContent = 'Signature is invalid.';
-            verificationResultElement.style.color = 'red';
-        }
-    } catch (err) {
-        console.error('Error during FCL authentication or MetaMask signing:', err);
-        verificationResultElement.textContent = 'An error occurred during the verification process.';
-        verificationResultElement.style.color = 'red';
     }
 }

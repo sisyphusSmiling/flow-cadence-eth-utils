@@ -1,4 +1,4 @@
-module.exports.network = 'emulator'
+module.exports.network = 'emulator';
 
 module.exports.fclConfigInfo = {
     emulator: {
@@ -20,7 +20,7 @@ module.exports.fclConfigInfo = {
         // Adds in Dapper + Ledger
         discoveryAuthInclude: ["0xead892083b3e2c6c", "0xe5cd26afebe62781"]
     }
-}
+};
 
     // Update UI based on authentication state
 module.exports.updateAuthUI = function(user) {
@@ -37,4 +37,4 @@ module.exports.updateAuthUI = function(user) {
         logoutButton.style.display = 'none';
         userAddress.textContent = 'Please log in.';
     }
-}
+};
