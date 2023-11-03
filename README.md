@@ -8,7 +8,6 @@ This function depends on the following libraries:
 - `ethers.js`: Ethereum's JavaScript library used for interacting with Ethereum's network and its smart contracts.
 - `@onflow/fcl`: Flow's JavaScript library used for interacting with Flow's network and its smart contracts.
 
-
 ## Fork Commands
 
 Install packages
@@ -17,15 +16,15 @@ Install packages
 npm i
 ```
 
-Run the server
+Run the server which should automatically open the hosted frontend in your browser.
 
 ```sh
 npm run dev
 ```
 
-Continue to locally hosted signature util where you can sign messages with MetaMask. Upon signing, you'll be met with all pertinent signature, signer and message information which can be verified with this repo's contracts.
+You'll want to run both emulator and dev-wallet. This is most easily done with Flowser. And, of course, deploy the project's contracts before interacting with the frontend.
 
-![Notary Frontend Screenshot](./images/notary_frontend.png)
+![Frontend Screenshot](./images/screenshot.png)
 
 > :information_source: If you make any changes to [`main.js`](./main.js), you'll want to run `browserify main.js -o bundle.js` and restart the server.
 
