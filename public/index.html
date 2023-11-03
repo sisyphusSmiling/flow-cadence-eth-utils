@@ -85,6 +85,42 @@
         .invalid {
             background-color: #F44336;
         }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table a {
+            color: #4CAF50; /* This is a bright green color, you can choose any color that contrasts well with your background */
+            text-decoration: none; /* Optional: removes the underline from links */
+        }
+
+        table a:hover {
+            color: #66ff66; /* Slightly lighter green color for hover effect */
+            text-decoration: underline; /* Optional: adds underline on hover */
+        }
+
+        table, th, td {
+            border: 1px solid #fff;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .user-link {
+            color: #4CAF50; /* This is a bright green color, you can choose any color that contrasts well with your background */
+            text-decoration: none; /* Optional: removes the underline from links */
+        }
+
+        .user-link:hover {
+            color: #66ff66; /* Slightly lighter green color for hover effect */
+            text-decoration: underline; /* Optional: adds underline on hover */
+        }
     </style>
 </head>
 
@@ -99,7 +135,7 @@
     <h1 class="title">Flow Affiliated Accounts</h1>
 
     <h3 class="subheading">Verify your Ethereum account ownership on your Flow account</h3>
-   
+    <div id="attestedAddressesTable"></div> <!-- Placeholder for the table -->
     <div class="container">
         <button id="attestButton">Affiliate ETH Account</button>
     </div>

@@ -7,8 +7,10 @@ const {
 } = require('./utils.js');
 const {
     CREATE_ATTESTATION,
-    GET_ATTESTED_ADDRESSES
+    GET_ATTESTED_ADDRESSES,
+    GET_ATTESTED_ADDRESSES_WITH_STATUS
 } = require('./cadence.js')
+const flowJSON = require('../flow.json')
 
 document.addEventListener('DOMContentLoaded', (event) => {
     document.getElementById('attestButton').addEventListener('click', attestAsAffiliate);
@@ -25,27 +27,27 @@ fcl.config({
     "discovery.authn.endpoint": fclConfigInfo[network].discoveryAuthnEndpoint,
     // adds in opt-in wallets like Dapper and Ledger
     "discovery.authn.include": fclConfigInfo[network].discoveryAuthInclude
-});
+}).load({ flowJSON });
 
 // Initialize user state
 let user = { loggedIn: false, addr: "" };
 
-// Subscribe to user changes
 fcl.currentUser().subscribe((currentUser) => {
     user = currentUser;
     updateAuthUI(user);
 });
 
-// Authenticate with Flow
 async function authenticateWithFlow() {
     const user = await fcl.authenticate();
     await getAttestedAddresses(user.addr);
-}
+    return user;
+};
 
-// Unauthenticate with Flow
 function unauthenticateWithFlow() {
+    console.log('Logging out...');
     fcl.unauthenticate();
-}
+    clearAttestedAddresses();
+};
 
 async function createAttestation(hexPublicKey, signature, ethAddress) {
     const txId =
@@ -63,15 +65,54 @@ async function createAttestation(hexPublicKey, signature, ethAddress) {
         })
     const tx = await fcl.tx(txId).onceSealed();
     console.log(tx);
+    await getAttestedAddresses(user.addr)
 };
 
 async function getAttestedAddresses(address) {
     const result = await fcl.query({
-        cadence: GET_ATTESTED_ADDRESSES,
+        cadence: GET_ATTESTED_ADDRESSES_WITH_STATUS,
         args: (arg, t) => [fcl.arg(address, t.Address)]
     });
     console.log(result);
+    renderAttestedAddresses(result);
 };
+
+function renderAttestedAddresses(addressStatuses) {
+    const tableDiv = document.getElementById('attestedAddressesTable');
+    if (Object.keys(addressStatuses).length === 0) {
+        tableDiv.innerHTML = '<p>No attested addresses found.</p>';
+        return;
+    }
+
+    let tableHTML = '<table>';
+    tableHTML += '<tr><th>Attested Address</th><th>Verified</th></tr>';
+
+    // Iterate over the addressStatuses object
+    for (const [address, isVerified] of Object.entries(addressStatuses)) {
+        const etherscanUrl = `https://etherscan.io/address/${address}`;
+        const verificationStatus = isVerified ? '✅' : '❌'; // Green checkmark for true, red X for false
+        tableHTML += `
+            <tr>
+                <td><a href="${etherscanUrl}" target="_blank">${address}</a></td>
+                <td>${verificationStatus}</td>
+            </tr>
+        `;
+    }
+    tableHTML += '</table>';
+
+    tableDiv.innerHTML = tableHTML;
+}
+
+function clearAttestedAddresses() {
+    console.log('Clearing attested addresses table...');
+    const tableDiv = document.getElementById('attestedAddressesTable');
+    if (tableDiv) {
+        tableDiv.innerHTML = ''; // Clear the table contents
+        console.log('Table cleared.');
+    } else {
+        console.log('Table div not found.');
+    }
+}
 
 async function attestAsAffiliate() {
     // Check if MetaMask is installed
@@ -90,7 +131,7 @@ async function attestAsAffiliate() {
         const signerAddress = (await signer.getAddress()).toLowerCase();
 
         // Define a string message to be signed
-        const user = await fcl.authenticate()
+        const user = await authenticateWithFlow()
         const message = `${user.addr}:${signerAddress}`
 
         const ethSig = await signer.signMessage(message);

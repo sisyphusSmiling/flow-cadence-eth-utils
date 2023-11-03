@@ -1,6 +1,6 @@
 // Replace with import alias
 module.exports.CREATE_ATTESTATION = `
-import ETHAffiliatedAccount from 0xf8d6e0586b0a20c7
+import "ETHAffiliatedAccount"
 
 transaction(hexPublicKey: String, signature: String, ethAddress: String) {
 
@@ -32,9 +32,10 @@ transaction(hexPublicKey: String, signature: String, ethAddress: String) {
     }
 }
 `;
+
 // Replace with import alias
 module.exports.GET_ATTESTED_ADDRESSES = `
-import ETHAffiliatedAccount from 0xf8d6e0586b0a20c7
+import "ETHAffiliatedAccount"
 
 access(all) fun main(address: Address): [String] {
     return getAccount(address).getCapability<&{ETHAffiliatedAccount.AttestationManagerPublic}>(
@@ -43,4 +44,24 @@ access(all) fun main(address: Address): [String] {
         ?.getAttestedAddresses()
         ?? panic("Could not borrow reference to AttestationManagerPublic from the provided account")
 }
-`
+`;
+
+// Replace with import alias
+module.exports.GET_ATTESTED_ADDRESSES_WITH_STATUS = `
+import "ETHAffiliatedAccount"
+
+access(all) fun main(address: Address): {String: Bool} {
+    let manager = getAccount(address).getCapability<&{ETHAffiliatedAccount.AttestationManagerPublic}>(
+            ETHAffiliatedAccount.PUBLIC_PATH
+        ).borrow()
+        ?? panic("Could not borrow reference to AttestationManagerPublic from the provided account")
+    let attestedAffiliates: [String] = manager.getAttestedAddresses()
+
+    let response: {String: Bool} = {}
+    for affiliate in attestedAffiliates {
+        response.insert(key: affiliate, manager.borrowAttestation(ethAddress: affiliate)!.verify())
+    }
+
+    return response
+}
+`;

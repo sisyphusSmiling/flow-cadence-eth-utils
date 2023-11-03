@@ -1,6 +1,6 @@
-module.exports.network = 'emulator';
+const network = 'emulator';
 
-module.exports.fclConfigInfo = {
+const fclConfigInfo = {
     emulator: {
         accessNode: 'http://127.0.0.1:8888',
         discoveryWallet: 'http://localhost:8701/fcl/authn',
@@ -22,8 +22,8 @@ module.exports.fclConfigInfo = {
     }
 };
 
-    // Update UI based on authentication state
-module.exports.updateAuthUI = function(user) {
+// Update UI based on authentication state
+function updateAuthUI(user) {
     const loginButton = document.getElementById('loginButton');
     const logoutButton = document.getElementById('logoutButton');
     const userAddress = document.getElementById('userAddress');
@@ -31,10 +31,23 @@ module.exports.updateAuthUI = function(user) {
     if (user.loggedIn) {
         loginButton.style.display = 'none';
         logoutButton.style.display = 'block';
-        userAddress.textContent = `Welcome, ${user.addr}!`;
+
+        // Determine the correct FlowView URL based on the network
+        const flowViewURL = network === 'mainnet'
+            ? `https://flowview.app/account/${user.addr}`
+            : `https://${network}.flowview.app/account/${user.addr}`;
+
+        // Set the address as a hyperlink
+        userAddress.innerHTML = `Welcome, <a href="${flowViewURL}" target="_blank" class="user-link">${user.addr}</a>!`;
+
     } else {
         loginButton.style.display = 'block';
         logoutButton.style.display = 'none';
-        userAddress.textContent = 'Please log in.';
     }
+};
+
+module.exports = {
+    network,
+    fclConfigInfo,
+    updateAuthUI
 };
