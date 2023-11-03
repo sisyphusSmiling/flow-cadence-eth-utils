@@ -48812,7 +48812,7 @@ const flowJSON = require('../flow.json');
 const provider = ethers.getDefaultProvider(); // This defaults to 'homestead' (mainnet)
 
 document.addEventListener('DOMContentLoaded', async (event) => {
-    initializeFCL();
+    // initializeFCL();
 
     // Subscribe to user state changes
     fcl.currentUser().subscribe(async (currentUser) => {
@@ -48830,35 +48830,46 @@ document.addEventListener('DOMContentLoaded', async (event) => {
     document.getElementById('logoutButton').addEventListener('click', unauthenticateWithFlow);
 });
 
-function initializeFCL() {
-    fcl.config({
-        "app.detail.title": "Flow Affiliated Accounts", // the name of your DApp
-        "app.detail.icon": "https://assets-global.website-files.com/5f734f4dbd95382f4fdfa0ea/63ce603ae36f46f6bb67e51e_flow-logo.svg", // your DApps icon
-        "flow.network": network,
-        "accessNode.api": fclConfigInfo[network].accessNode,
-        "discovery.wallet": fclConfigInfo[network].discoveryWallet,
-        "discovery.authn.endpoint": fclConfigInfo[network].discoveryAuthnEndpoint,
-        // adds in opt-in wallets like Dapper and Ledger
-        "discovery.authn.include": fclConfigInfo[network].discoveryAuthInclude
-    }).load({ flowJSON });
+// function initializeFCL() {
+//     fcl.config({
+//         "app.detail.title": "Flow Affiliated Accounts", // the name of your DApp
+//         "app.detail.icon": "https://assets-global.website-files.com/5f734f4dbd95382f4fdfa0ea/63ce603ae36f46f6bb67e51e_flow-logo.svg", // your DApps icon
+//         "flow.network": network,
+//         "accessNode.api": fclConfigInfo[network].accessNode,
+//         "discovery.wallet": fclConfigInfo[network].discoveryWallet,
+//         "discovery.authn.endpoint": fclConfigInfo[network].discoveryAuthnEndpoint,
+//         // adds in opt-in wallets like Dapper and Ledger
+//         "discovery.authn.include": fclConfigInfo[network].discoveryAuthInclude
+//     }).load({ flowJSON });
 
-    // Check if the user is already logged in when the page loads
-    fcl.currentUser().snapshot().then(user => {
-        if (user.loggedIn) {
-            // User is logged in, update the UI accordingly
-            updateAuthUI(user);
-            // Fetch attested addresses for the logged-in user
-            getAttestedAddresses(user.addr);
-        }
-    });
-};
+//     // Check if the user is already logged in when the page loads
+//     fcl.currentUser().snapshot().then(user => {
+//         if (user.loggedIn) {
+//             // User is logged in, update the UI accordingly
+//             updateAuthUI(user);
+//             // Fetch attested addresses for the logged-in user
+//             getAttestedAddresses(user.addr);
+//         }
+//     });
+// };
+
+fcl.config({
+    "app.detail.title": "Flow Affiliated Accounts", // the name of your DApp
+    "app.detail.icon": "https://assets-global.website-files.com/5f734f4dbd95382f4fdfa0ea/63ce603ae36f46f6bb67e51e_flow-logo.svg", // your DApps icon
+    "flow.network": network,
+    "accessNode.api": fclConfigInfo[network].accessNode,
+    "discovery.wallet": fclConfigInfo[network].discoveryWallet,
+    "discovery.authn.endpoint": fclConfigInfo[network].discoveryAuthnEndpoint,
+    // adds in opt-in wallets like Dapper and Ledger
+    "discovery.authn.include": fclConfigInfo[network].discoveryAuthInclude
+}).load({ flowJSON });
 
 // Initialize user state
 let user = { loggedIn: false, addr: "" };
 
 async function authenticateWithFlow() {
     const user = await fcl.authenticate();
-    initializeFCL();
+    // initializeFCL();
     await getAttestedAddresses(user.addr);
     return user;
 };
@@ -48866,7 +48877,6 @@ async function authenticateWithFlow() {
 function unauthenticateWithFlow() {
     console.log('Logging out...');
     fcl.unauthenticate();
-    // clearAttestedAddresses();
     window.location.reload();
 };
 
@@ -48906,13 +48916,14 @@ async function renderAttestedAddresses(addressStatuses) {
     }
 
     let tableHTML = '<table>';
-    tableHTML += '<tr><th>Attested Address</th><th>Verified</th></tr>';
+    tableHTML += '<tr><th>Remove</th><th>Attested Address</th><th>Verified</th></tr>';
 
     // Add rows to the table with placeholders
     for (const [address, isVerified] of Object.entries(addressStatuses)) {
         const etherscanUrl = `https://etherscan.io/address/${address}`;
         tableHTML += `
             <tr>
+                <td><input type="checkbox" class="address-checkbox" data-address="${address}"></td>
                 <td><a href="${etherscanUrl}" target="_blank">${address}</a></td>
                 <td>${isVerified ? '✅' : '❌'}</td>
             </tr>
