@@ -14,6 +14,9 @@ access(all) contract ETHAffiliatedAccount {
 
     access(all) let MESSAGE_DELIMETER: String
 
+    /* Events */
+    access(all) event AffiliationAttested(id: UInt64, flowAddress: Address, ethAddress: String)
+
     /* AttestationMessage */
     //
     /// Struct representing the signed attestation of account affiliation
@@ -62,7 +65,7 @@ access(all) contract ETHAffiliatedAccount {
             self.signature = signature
             self.message = message
         }
-        
+
         //--- Public ---\\
 
         access(all) fun getMessage(): AttestationMessage {
@@ -112,6 +115,7 @@ access(all) contract ETHAffiliatedAccount {
     /// Public interface for the AttestationManager resource
     ///
     access(all) resource interface AttestationManagerPublic {
+        access(all) fun getAttestedAddresses(): [String]
         access(all) fun borrowAttestation(ethAddress: String): &Attestation?
         access(all) fun verify(ethAddress: String): Bool
     }
@@ -133,9 +137,8 @@ access(all) contract ETHAffiliatedAccount {
                     "No Flow owner to attest as affiliate"
                 ETHAffiliatedAccount.verifyETHAddressMatchesPublicKey(ethAddress: ethAddress, hexPublicKey: hexPublicKey):
                     "Public key does not correspond to the valid ETH address in the message."
-            }
-            post {
-                self.attestations[ethAddress] != nil: "Problem creating Attestation"
+                self.attestations[ethAddress] == nil:
+                    "Account has already been attested"
             }
 
             let attestation <- create Attestation(
@@ -147,12 +150,19 @@ access(all) contract ETHAffiliatedAccount {
                 )
             )
 
-            assert(attestation.verify(), message: "Invalid signature provided for attested ETH account")
-
             self.attestations[ethAddress] <-! attestation
+            let attestationRef = self.borrowAttestation(ethAddress: ethAddress)
+                ?? panic("Problem adding attestation to account")
+            assert(attestationRef.verify(), message: "Invalid signature provided for attested ETH account")
+
+            emit AffiliationAttested(id: attestationRef.uuid, flowAddress: self.owner!.address, ethAddress: ethAddress)
         }
 
         //--- Public ---\\
+
+        access(all) fun getAttestedAddresses(): [String] {
+            return self.attestations.keys
+        }
 
         access(all) fun borrowAttestation(ethAddress: String): &Attestation? {
             return &self.attestations[ethAddress] as &Attestation?
@@ -181,6 +191,6 @@ access(all) contract ETHAffiliatedAccount {
         self.STORAGE_PATH = /storage/ETHAccountAttestation
         self.PUBLIC_PATH = /public/ETHAccountAttestation
 
-        self.MESSAGE_DELIMETER = "|"
+        self.MESSAGE_DELIMETER = ":"
     }
 }
