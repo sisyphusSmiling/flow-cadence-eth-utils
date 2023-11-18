@@ -48734,7 +48734,12 @@ exports.default = _default;
 const CREATE_ATTESTATION = `
 import "ETHAffiliatedAccount"
 
-transaction(hexPublicKey: String, signature: String, ethAddress: String) {
+transaction(
+    hexPublicKey: String,
+    signature: String,
+    ethAddress: String,
+    timestamp: UFix64
+) {
 
     let manager: &ETHAffiliatedAccount.AttestationManager
 
@@ -48759,7 +48764,8 @@ transaction(hexPublicKey: String, signature: String, ethAddress: String) {
         self.manager.createAttestation(
             hexPublicKey: hexPublicKey,
             signature: signature,
-            ethAddress: ethAddress
+            ethAddress: ethAddress,
+            timestamp: timestamp
         )
     }
 }
@@ -48790,6 +48796,12 @@ transaction(ethAddresses: [String]) {
 `;
 
 /*** Scripts ***/
+
+const GET_CURRENT_BLOCK_TIMESTAMP = `
+    access(all) fun main(): UFix64 {
+        return getCurrentBlock().timestamp
+    }
+`
 
 const GET_ATTESTED_ADDRESSES = `
 import "ETHAffiliatedAccount"
@@ -48825,6 +48837,7 @@ access(all) fun main(address: Address): {String: Bool} {
 module.exports = {  
     CREATE_ATTESTATION,
     REMOVE_ATTESTATIONS,
+    GET_CURRENT_BLOCK_TIMESTAMP,
     GET_ATTESTED_ADDRESSES,
     GET_ATTESTED_ADDRESSES_WITH_STATUS
 };
@@ -48839,6 +48852,7 @@ const {
 const {
     CREATE_ATTESTATION,
     GET_ATTESTED_ADDRESSES_WITH_STATUS,
+    GET_CURRENT_BLOCK_TIMESTAMP,
     REMOVE_ATTESTATIONS
 } = require('./cadence.js')
 const flowJSON = require('../flow.json');
@@ -48886,7 +48900,7 @@ function unauthenticateWithFlow() {
     window.location.reload();
 }
 
-async function createAttestation(hexPublicKey, signature, ethAddress) {
+async function createAttestation(hexPublicKey, signature, ethAddress, timestamp) {
     const txId =
         await fcl.mutate({
             cadence: CREATE_ATTESTATION,
@@ -48896,7 +48910,8 @@ async function createAttestation(hexPublicKey, signature, ethAddress) {
             args: (arg, t) => [
                 arg(hexPublicKey, t.String),
                 arg(signature, t.String),
-                arg(ethAddress, t.String)
+                arg(ethAddress, t.String),
+                arg(timestamp, t.UFix64)
             ],
             limit: 9999
         })
@@ -48910,8 +48925,18 @@ async function getAttestedAddresses(address) {
         cadence: GET_ATTESTED_ADDRESSES_WITH_STATUS,
         args: (arg, t) => [fcl.arg(address, t.Address)]
     });
-    console.log(result);
+    console.log('Attested addresses: ', result);
     renderAttestedAddresses(result);
+}
+
+async function getCurrentBlockTimestamp() {
+    console.log('Getting current block timestamp...')
+    const result = await fcl.query({
+        cadence: GET_CURRENT_BLOCK_TIMESTAMP,
+        args: (arg, t) => []
+    });
+    console.log('Current block timestamp: ', result);
+    return result
 }
 
 function generateTableHTML(addressStatuses) {
@@ -49005,7 +49030,8 @@ async function attestAsAffiliate() {
         const signerAddress = await getSignerAddress(signer);
 
         const user = await authenticateWithFlow();
-        const message = constructMessage(user.addr, signerAddress);
+        const timestamp = await getCurrentBlockTimestamp();
+        const message = constructMessage(user.addr, signerAddress, timestamp);
         const ethSig = await signMessage(signer, message);
         const signature = processSignature(ethSig);
         const publicKey = recoverPublicKey(message, ethSig);
@@ -49015,7 +49041,7 @@ async function attestAsAffiliate() {
         console.log(`Signer address: ${signerAddress}`);
         console.log(`Signer public key: ${publicKey}`);
 
-        await createAttestation(publicKey, signature, signerAddress);
+        await createAttestation(publicKey, signature, signerAddress, timestamp);
     } catch (err) {
         console.error(err);
     }
@@ -49039,8 +49065,8 @@ async function getSignerAddress(signer) {
     return (await signer.getAddress()).toLowerCase();
 }
 
-function constructMessage(userAddress, signerAddress) {
-    return `${userAddress}:${signerAddress}`;
+function constructMessage(userAddress, signerAddress, timestamp) {
+    return `${userAddress}:${signerAddress}:${timestamp}`;
 }
 
 async function signMessage(signer, message) {

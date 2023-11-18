@@ -3,7 +3,12 @@
 const CREATE_ATTESTATION = `
 import "ETHAffiliatedAccount"
 
-transaction(hexPublicKey: String, signature: String, ethAddress: String) {
+transaction(
+    hexPublicKey: String,
+    signature: String,
+    ethAddress: String,
+    timestamp: UFix64
+) {
 
     let manager: &ETHAffiliatedAccount.AttestationManager
 
@@ -28,7 +33,8 @@ transaction(hexPublicKey: String, signature: String, ethAddress: String) {
         self.manager.createAttestation(
             hexPublicKey: hexPublicKey,
             signature: signature,
-            ethAddress: ethAddress
+            ethAddress: ethAddress,
+            timestamp: timestamp
         )
     }
 }
@@ -59,6 +65,12 @@ transaction(ethAddresses: [String]) {
 `;
 
 /*** Scripts ***/
+
+const GET_CURRENT_BLOCK_TIMESTAMP = `
+    access(all) fun main(): UFix64 {
+        return getCurrentBlock().timestamp
+    }
+`
 
 const GET_ATTESTED_ADDRESSES = `
 import "ETHAffiliatedAccount"
@@ -94,6 +106,7 @@ access(all) fun main(address: Address): {String: Bool} {
 module.exports = {  
     CREATE_ATTESTATION,
     REMOVE_ATTESTATIONS,
+    GET_CURRENT_BLOCK_TIMESTAMP,
     GET_ATTESTED_ADDRESSES,
     GET_ATTESTED_ADDRESSES_WITH_STATUS
 };

@@ -1,6 +1,11 @@
 import "ETHAffiliatedAccount"
 
-transaction(hexPublicKey: String, signature: String, ethAddress: String) {
+transaction(
+    hexPublicKey: String,
+    signature: String,
+    ethAddress: String,
+    timestamp: UFix64
+) {
 
     let manager: &ETHAffiliatedAccount.AttestationManager
 
@@ -25,7 +30,8 @@ transaction(hexPublicKey: String, signature: String, ethAddress: String) {
         self.manager.createAttestation(
             hexPublicKey: hexPublicKey,
             signature: signature,
-            ethAddress: ethAddress
+            ethAddress: ethAddress,
+            timestamp: timestamp
         )
     }
 }
