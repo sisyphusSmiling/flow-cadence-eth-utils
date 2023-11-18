@@ -8009,7 +8009,7 @@ function encrypt(account, password, options, progressCallback) {
 }
 exports.encrypt = encrypt;
 
-},{"./_version":51,"./utils":56,"@ethersproject/address":23,"@ethersproject/bytes":32,"@ethersproject/hdnode":50,"@ethersproject/keccak256":57,"@ethersproject/logger":59,"@ethersproject/pbkdf2":63,"@ethersproject/properties":65,"@ethersproject/random":87,"@ethersproject/transactions":106,"aes-js":140,"scrypt-js":189}],56:[function(require,module,exports){
+},{"./_version":51,"./utils":56,"@ethersproject/address":23,"@ethersproject/bytes":32,"@ethersproject/hdnode":50,"@ethersproject/keccak256":57,"@ethersproject/logger":59,"@ethersproject/pbkdf2":63,"@ethersproject/properties":65,"@ethersproject/random":87,"@ethersproject/transactions":106,"aes-js":140,"scrypt-js":188}],56:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.uuidV4 = exports.searchPath = exports.getPassword = exports.zpad = exports.looseArrayify = void 0;
@@ -18758,8 +18758,8 @@ const pipe = function () {
 
 /***
  * Merge multiple functions returning objects into one object.
- * @param {...function(*): object} funcs - Functions to merge
- * @return {object} - Merged object
+ * @param funcs - Functions to merge
+ * @return Merged object
  */
 const mergePipe = function () {
   for (var _len2 = arguments.length, funcs = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
@@ -18777,16 +18777,16 @@ const mergePipe = function () {
 
 /**
  * @description Object check
- * @param {*} value - Value to check
- * @returns {boolean} - Is object status
+ * @param value - Value to check
+ * @returns Is object status
  */
 const isObject = value => value && typeof value === "object" && !Array.isArray(value);
 
 /**
  * @description Deep merge multiple objects.
- * @param {object} target - Target object
- * @param {...object[]} sources - Source objects
- * @returns {object} - Merged object
+ * @param target - Target object
+ * @param sources - Source objects
+ * @returns Merged object
  */
 const mergeDeep = function (target) {
   for (var _len3 = arguments.length, sources = new Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
@@ -18813,22 +18813,22 @@ const mergeDeep = function (target) {
 
 /**
  * @description Deep merge multiple Flow JSON.
- * @param {object|object[]} value - Flow JSON or array of Flow JSONs
- * @returns {object} - Merged Flow JSON
+ * @param value - Flow JSON or array of Flow JSONs
+ * @returns Merged Flow JSON
  */
 const mergeFlowJSONs = value => Array.isArray(value) ? mergeDeep({}, ...value) : value;
 
 /**
  * @description Filter out contracts section of flow.json.
- * @param {object|object[]} obj - Flow JSON or array of Flow JSONs
- * @returns {object} - Contracts section of Flow JSON
+ * @param obj - Flow JSON
+ * @returns Contracts section of Flow JSON
  */
 const filterContracts = obj => obj.contracts ? obj.contracts : {};
 
 /**
  * @description Gathers contract addresses by network
- * @param {string} network - Network to gather addresses for
- * @returns {object} - Contract names by addresses mapping e.g { "HelloWorld": "0x123" }
+ * @param network - Network to gather addresses for
+ * @returns Contract names by addresses mapping e.g { "HelloWorld": "0x123" }
  */
 const mapContractAliasesToNetworkAddress = network => contracts => {
   return Object.entries(contracts).reduce((c, _ref) => {
@@ -18865,9 +18865,9 @@ const mapDeploymentsToNetworkAddress = network => _ref2 => {
 
 /**
  * @description Take in flow.json files and return contract to address mapping by network
- * @param {object|object[]} jsons - Flow JSON or array of Flow JSONs
- * @param {string} network - Network to gather addresses for
- * @returns {object} - Contract names by addresses mapping e.g { "HelloWorld": "0x123" }
+ * @param jsons - Flow JSON or array of Flow JSONs
+ * @param network - Network to gather addresses for
+ * @returns Contract names by addresses mapping e.g { "HelloWorld": "0x123" }
  */
 const getContracts = (jsons, network) => {
   return pipe(mergeFlowJSONs, mergePipe(mapDeploymentsToNetworkAddress(network), pipe(filterContracts, mapContractAliasesToNetworkAddress(network))))(jsons);
@@ -18875,8 +18875,8 @@ const getContracts = (jsons, network) => {
 
 /**
  * @description Checks if string is hexidecimal
- * @param {string} str - String to check
- * @returns {boolean} - Is hexidecimal status
+ * @param str - String to check
+ * @returns Is hexidecimal status
  */
 const isHexidecimal = str => {
   // Check that it is a string
@@ -18886,33 +18886,37 @@ const isHexidecimal = str => {
 
 /**
  * @description Checks flow.json file for private keys
- * @param {object} flowJSON - Flow JSON
- * @returns {boolean} - Has private keys status
+ * @param flowJSON - Flow JSON
+ * @returns Has private keys status
  */
 const hasPrivateKeys = flowJSON => {
-  return Object.entries(flowJSON?.accounts).reduce((hasPrivateKey, _ref4) => {
-    let [key, value] = _ref4;
+  return Object.entries(flowJSON?.accounts ?? []).reduce((hasPrivateKey, _ref4) => {
+    let [, value] = _ref4;
     if (hasPrivateKey) return true;
-    return value?.hasOwnProperty("key") && isHexidecimal(value?.key);
+    return value && Object.prototype.hasOwnProperty.call(value, "key") && isHexidecimal(value?.key);
   }, false);
 };
 
 /**
  * @description Take in flow.json or array of flow.json files and checks for private keys
- * @param {object|object[]} value - Flow JSON or array of Flow JSONs
- * @returns {boolean} - Has private keys status
+ * @param value - Flow JSON or array of Flow JSONs
+ * @returns Has private keys status
  */
 const anyHasPrivateKeys = value => {
-  if (isObject(value)) return hasPrivateKeys(value);
-  return value.some(hasPrivateKeys);
+  if (Array.isArray(value)) return value.some(hasPrivateKeys);
+  return hasPrivateKeys(value);
 };
 
 /**
  * @description Format network to always be 'emulator', 'testnet', or 'mainnet'
- * @param {string} network - Network to format
- * @returns {string} - Formatted network name (either 'emulator', 'testnet', or 'mainnet')
+ * @param network - Network to format
+ * @returns Formatted network name (either 'emulator', 'testnet', or 'mainnet')
  */
-const cleanNetwork = network => network?.toLowerCase() === "local" ? "emulator" : network?.toLowerCase();
+const cleanNetwork = network => {
+  const cleanedNetwork = network?.toLowerCase() === "local" ? "emulator" : network?.toLowerCase();
+  if (cleanedNetwork === "emulator" || cleanedNetwork === "testnet" || cleanedNetwork === "mainnet") return cleanedNetwork;
+  throw new Error(`Invalid network "${network}". Must be one of "emulator", "local", "testnet", or "mainnet"`);
+};
 
 // Inject config into logger to break circular dependency
 logger__namespace.setConfig(config);
@@ -18972,9 +18976,9 @@ const HANDLERS = {
       ...ctx.all()
     });
   },
-  [CLEAR]: (ctx, letter) => {
-    let keys = Object.keys(ctx.all());
-    for (let key of keys) ctx.delete(key);
+  [CLEAR]: ctx => {
+    const keys = Object.keys(ctx.all());
+    for (const key of keys) ctx.delete(key);
     ctx.broadcast(UPDATED, {
       ...ctx.all()
     });
@@ -19000,9 +19004,9 @@ utilActor.spawn(HANDLERS, NAME);
 
 /**
  * @description Adds a key-value pair to the config
- * @param {string} key - The key to add
- * @param {*} value - The value to add
- * @returns {Promise<object>} - The current config
+ * @param key - The key to add
+ * @param value - The value to add
+ * @returns The config object
  */
 function put(key, value) {
   utilActor.send(NAME, PUT, {
@@ -19014,9 +19018,9 @@ function put(key, value) {
 
 /**
  * @description Gets a key-value pair with a fallback from the config
- * @param {string} key - The key to add
- * @param {*} [fallback] - The fallback value to return if key is not found
- * @returns {Promise<*>} - The value found at key or fallback
+ * @param key - The key to add
+ * @param fallback - The fallback value to return if key is not found
+ * @returns The value found at key or fallback
  */
 function get(key, fallback) {
   return utilActor.send(NAME, GET, {
@@ -19030,9 +19034,9 @@ function get(key, fallback) {
 
 /**
  * @description Returns the first non null config value or the fallback
- * @param {string[]} wants - The keys to search for
- * @param {*} fallback - The fallback value to return if key is not found
- * @returns {Promise<*>} - The value found at key or fallback
+ * @param wants - The keys to search for
+ * @param fallback - The fallback value to return if key is not found
+ * @returns The value found at key or fallback
  */
 async function first() {
   let wants = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
@@ -19046,7 +19050,7 @@ async function first() {
 
 /**
  * @description Returns the current config
- * @returns {Promise<object>} - The current config
+ * @returns The config object
  */
 function all() {
   return utilActor.send(NAME, GET_ALL, null, {
@@ -19057,9 +19061,9 @@ function all() {
 
 /**
  * @description Updates a key-value pair in the config
- * @param {string} key - The key to update
- * @param {Function} fn - The function to update the value with
- * @returns {Promise<object>} - The current config
+ * @param key - The key to update
+ * @param fn - The function to update the value with
+ * @returns The config object
  */
 function update(key) {
   let fn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : identity;
@@ -19072,8 +19076,8 @@ function update(key) {
 
 /**
  * @description Deletes a key-value pair from the config
- * @param {string} key - The key to delete
- * @returns {Promise<object>} - The current config
+ * @param key - The key to delete
+ * @returns The config object
  */
 function _delete(key) {
   utilActor.send(NAME, DELETE, {
@@ -19084,8 +19088,8 @@ function _delete(key) {
 
 /**
  * @description Returns a subset of the config based on a pattern
- * @param {string} pattern - The pattern to match keys against
- * @returns {Promise<object>} - The subset of the config
+ * @param pattern - The pattern to match keys against
+ * @returns The subset of the config
  */
 function where(pattern) {
   return utilActor.send(NAME, WHERE, {
@@ -19098,8 +19102,8 @@ function where(pattern) {
 
 /**
  * @description Subscribes to config updates
- * @param {Function} callback - The callback to call when config is updated
- * @returns {Function} - The unsubscribe function
+ * @param callback - The callback to call when config is updated
+ * @returns The unsubscribe function
  */
 function subscribe(callback) {
   return utilActor.subscriber(NAME, () => utilActor.spawn(HANDLERS, NAME), callback);
@@ -19107,25 +19111,24 @@ function subscribe(callback) {
 
 /**
  * @description Clears the config
- * @returns {void}
  */
-function clearConfig() {
-  return utilActor.send(NAME, CLEAR);
+async function clearConfig() {
+  await utilActor.send(NAME, CLEAR);
 }
 
 /**
  * @description Resets the config to a previous state
- * @param {object} oldConfig - The previous config state
- * @returns {Promise<object>} - The current config
+ * @param oldConfig - The previous config state
+ * @returns The config object
  */
-function resetConfig(oldConfig) {
-  return clearConfig().then(config(oldConfig));
+async function resetConfig(oldConfig) {
+  return clearConfig().then(() => config(oldConfig));
 }
 
 /**
  * @description Takes in flow.json or array of flow.json files and creates contract placeholders
- * @param {object|object[]} data - The flow.json or array of flow.json files
- * @returns {void}
+ * @param data - The data to load
+ * @param data.flowJSON - The flow.json or array of flow.json files
  */
 async function load(data) {
   const network = await get("flow.network");
@@ -19134,7 +19137,7 @@ async function load(data) {
     flowJSON
   } = data;
   utilInvariant.invariant(Boolean(flowJSON), "config.load -- 'flowJSON' must be defined");
-  utilInvariant.invariant(cleanedNetwork, `Flow Network Required -- In order for FCL to load your contracts please define "flow.network" to "emulator", "local", "testnet", or "mainnet" in your config. See more here: https://developers.flow.com/tools/fcl-js/reference/configure-fcl`);
+  utilInvariant.invariant(!!cleanedNetwork, `Flow Network Required -- In order for FCL to load your contracts please define "flow.network" to "emulator", "local", "testnet", or "mainnet" in your config. See more here: https://developers.flow.com/tools/fcl-js/reference/configure-fcl`);
   if (anyHasPrivateKeys(flowJSON)) {
     const isEmulator = cleanedNetwork === "emulator";
     logger__namespace.log({
@@ -19170,10 +19173,10 @@ async function load(data) {
   }
 }
 
-// eslint-disable-next-line jsdoc/require-returns
 /**
  * @description Sets the config
- * @param {object} [values] - The values to set
+ * @param values - The values to set
+ * @returns The config object
  */
 function config(values) {
   if (values != null && typeof values === "object") {
@@ -19202,22 +19205,22 @@ config.where = where;
 config.subscribe = subscribe;
 config.overload = overload;
 config.load = load;
-const noop = v => v;
-function overload() {
-  let opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-  let callback = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : noop;
-  return new Promise(async (resolve, reject) => {
-    const oldConfig = await all();
-    try {
-      config(opts);
-      var result = await callback(await all());
-      await resetConfig(oldConfig);
-      resolve(result);
-    } catch (error) {
-      await resetConfig(oldConfig);
-      reject(error);
-    }
-  });
+
+/**
+ * @description Temporarily overloads the config with the given values and calls the callback
+ * @param values - The values to overload the config with
+ * @param callback - The callback to call with the overloaded config
+ * @returns The result of the callback
+ */
+async function overload(values, callback) {
+  const oldConfig = await all();
+  try {
+    config(values);
+    const result = await callback(await all());
+    return result;
+  } finally {
+    await resetConfig(oldConfig);
+  }
 }
 
 exports.clearConfig = clearConfig;
@@ -23669,22 +23672,21 @@ var buffer = require('buffer');
  * ethereumjs/rlp is licensed under the
  * Mozilla Public License 2.0
  * Permissions of this weak copyleft license are conditioned on making available source code of licensed files and modifications of those files under the same license (or in certain cases, one of the GNU licenses). Copyright and license notices must be preserved. Contributors provide an express grant of patent rights. However, a larger work using the licensed work may be distributed under different terms and without source code for files added in the larger work.
- **/
-
+ */
 /**
  * @param input - will be converted to buffer
  * @returns returns buffer of encoded data
- **/
+ */
 function encode(input) {
   if (Array.isArray(input)) {
-    var output = [];
-    for (var i = 0; i < input.length; i++) {
+    const output = [];
+    for (let i = 0; i < input.length; i++) {
       output.push(encode(input[i]));
     }
-    var buf = buffer.Buffer.concat(output);
+    const buf = buffer.Buffer.concat(output);
     return buffer.Buffer.concat([encodeLength(buf.length, 192), buf]);
   } else {
-    var inputBuf = toBuffer(input);
+    const inputBuf = toBuffer(input);
     return inputBuf.length === 1 && inputBuf[0] < 128 ? inputBuf : buffer.Buffer.concat([encodeLength(inputBuf.length, 128), inputBuf]);
   }
 }
@@ -23704,9 +23706,9 @@ function encodeLength(len, offset) {
   if (len < 56) {
     return buffer.Buffer.from([len + offset]);
   } else {
-    var hexLength = intToHex(len);
-    var lLength = hexLength.length / 2;
-    var firstByte = intToHex(offset + 55 + lLength);
+    const hexLength = intToHex(len);
+    const lLength = hexLength.length / 2;
+    const firstByte = intToHex(offset + 55 + lLength);
     return buffer.Buffer.from(firstByte + hexLength, "hex");
   }
 }
@@ -23719,13 +23721,13 @@ function encodeLength(len, offset) {
  * ethereumjs/rlp is licensed under the
  * Mozilla Public License 2.0
  * Permissions of this weak copyleft license are conditioned on making available source code of licensed files and modifications of those files under the same license (or in certain cases, one of the GNU licenses). Copyright and license notices must be preserved. Contributors provide an express grant of patent rights. However, a larger work using the licensed work may be distributed under different terms and without source code for files added in the larger work.
- **/
+ */
 
 /**
  * @param input - will be converted to buffer
  * @param stream Is the input a stream (false by default)
  * @returns returns buffer of encoded data
- **/
+ */
 function decode(input, stream) {
   if (stream === void 0) {
     stream = false;
@@ -23733,8 +23735,8 @@ function decode(input, stream) {
   if (!input || input.length === 0) {
     return buffer.Buffer.from([]);
   }
-  var inputBuffer = toBuffer(input);
-  var decoded = _decode(inputBuffer);
+  const inputBuffer = toBuffer(input);
+  const decoded = _decode(inputBuffer);
   if (stream) {
     return decoded;
   }
@@ -23750,11 +23752,11 @@ function decode(input, stream) {
  * @returns The length of the input or an empty Buffer if no input
  */
 function getLength(input) {
-  if (!input || input.length === 0) {
-    return buffer.Buffer.from([]);
+  const inputBuffer = toBuffer(input);
+  if (inputBuffer.length === 0) {
+    return 0;
   }
-  var inputBuffer = toBuffer(input);
-  var firstByte = inputBuffer[0];
+  const firstByte = inputBuffer[0];
   if (firstByte <= 0x7f) {
     return inputBuffer.length;
   } else if (firstByte <= 0xb7) {
@@ -23766,17 +23768,17 @@ function getLength(input) {
     return firstByte - 0xbf;
   } else {
     // a list  over 55 bytes long
-    var llength = firstByte - 0xf6;
-    var length = safeParseInt(inputBuffer.slice(1, llength).toString("hex"), 16);
+    const llength = firstByte - 0xf6;
+    const length = safeParseInt(inputBuffer.slice(1, llength).toString("hex"), 16);
     return llength + length;
   }
 }
 
 /** Decode an input with RLP */
 function _decode(input) {
-  var length, llength, data, innerRemainder, d;
-  var decoded = [];
-  var firstByte = input[0];
+  let length, llength, data, innerRemainder, d;
+  const decoded = [];
+  const firstByte = input[0];
   if (firstByte <= 0x7f) {
     // a single byte whose value is in the [0x00, 0x7f] range, that byte is its own RLP encoding.
     return {
@@ -23828,7 +23830,7 @@ function _decode(input) {
     // a list  over 55 bytes long
     llength = firstByte - 0xf6;
     length = safeParseInt(input.slice(1, llength).toString("hex"), 16);
-    var totalLength = llength + length;
+    const totalLength = llength + length;
     if (totalLength > input.length) {
       throw new Error("invalid rlp: total length is larger than the data");
     }
@@ -23863,7 +23865,7 @@ function intToHex(integer) {
   if (integer < 0) {
     throw new Error("Invalid integer as argument, must be unsigned!");
   }
-  var hex = integer.toString(16);
+  const hex = integer.toString(16);
   return hex.length % 2 ? "0" + hex : hex;
 }
 /** Pad a string to be even */
@@ -23872,7 +23874,7 @@ function padToEven(a) {
 }
 /** Transform an integer into a Buffer */
 function intToBuffer(integer) {
-  var hex = intToHex(integer);
+  const hex = intToHex(integer);
   return buffer.Buffer.from(hex, "hex");
 }
 
@@ -25799,7 +25801,7 @@ var index = /*#__PURE__*/Object.freeze({
   run: run
 });
 
-const VERSION = "1.2.3" ;
+const VERSION = "1.3.1" ;
 
 // Deprecated
 const params = params => logger__namespace.log.deprecate({
@@ -25902,7 +25904,7 @@ exports.voucherToTxId = voucherToTxId;
 exports.why = why;
 
 
-},{"@onflow/config":126,"@onflow/rlp":128,"@onflow/transport-http":130,"@onflow/util-address":133,"@onflow/util-invariant":134,"@onflow/util-logger":135,"@onflow/util-template":137,"sha3":190,"uuid":202}],130:[function(require,module,exports){
+},{"@onflow/config":126,"@onflow/rlp":128,"@onflow/transport-http":130,"@onflow/util-address":133,"@onflow/util-invariant":134,"@onflow/util-logger":135,"@onflow/util-template":137,"sha3":189,"uuid":201}],130:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -26676,6 +26678,7 @@ const send = async function (ix) {
   }
 };
 
+exports.HTTPRequestError = HTTPRequestError;
 exports.send = send;
 exports.sendExecuteScript = sendExecuteScript;
 exports.sendGetAccount = sendGetAccount;
@@ -26691,837 +26694,31 @@ exports.sendTransaction = sendTransaction;
 
 
 },{"@onflow/rlp":128,"@onflow/util-address":133,"@onflow/util-invariant":134,"@onflow/util-logger":135,"abort-controller":139,"cross-fetch":147}],131:[function(require,module,exports){
-(function (global){(function (){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
-
-/*! queue-microtask. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> */
-let promise;
-var queueMicrotask_1 = typeof queueMicrotask === 'function' ? queueMicrotask.bind(typeof window !== 'undefined' ? window : commonjsGlobal)
-// reuse resolved promise, and allocate it lazily
-: cb => (promise || (promise = Promise.resolve())).then(cb).catch(err => setTimeout(() => {
-  throw err;
-}, 0));
-
-const mailbox = () => {
-  const queue = [];
-  var next;
-  return {
-    async deliver(msg) {
-      queue.push(msg);
-      if (next) {
-        next(queue.shift());
-        next = undefined;
-      }
-    },
-    receive() {
-      return new Promise(function innerReceive(resolve) {
-        const msg = queue.shift();
-        if (msg) return resolve(msg);
-        next = resolve;
-      });
-    }
-  };
-};
-const INIT = "INIT";
-const SUBSCRIBE = "SUBSCRIBE";
-const UNSUBSCRIBE = "UNSUBSCRIBE";
-const UPDATED$1 = "UPDATED";
-const EXIT = "EXIT";
-const TERMINATE = "TERMINATE";
-const root = typeof self === "object" && self.self === self && self || typeof global === "object" && global.global === global && global || typeof window === "object" && window.window === window && window;
-root.FCL_REGISTRY = root.FCL_REGISTRY == null ? {} : root.FCL_REGISTRY;
-var pid = 0b0;
-const DEFAULT_TIMEOUT = 5000;
-const send = function (addr, tag, data) {
-  let opts = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
-  return new Promise((reply, reject) => {
-    const expectReply = opts.expectReply || false;
-    const timeout = opts.timeout != null ? opts.timeout : DEFAULT_TIMEOUT;
-    if (expectReply && timeout) {
-      setTimeout(() => reject(new Error(`Timeout: ${timeout}ms passed without a response.`)), timeout);
-    }
-    const payload = {
-      to: addr,
-      from: opts.from,
-      tag,
-      data,
-      timeout,
-      reply,
-      reject
-    };
-    try {
-      root.FCL_REGISTRY[addr] && root.FCL_REGISTRY[addr].mailbox.deliver(payload);
-      if (!expectReply) reply(true);
-    } catch (error) {
-      console.error("FCL.Actor -- Could Not Deliver Message", payload, root.FCL_REGISTRY[addr], error);
-    }
-  });
-};
-const kill = addr => {
-  delete root.FCL_REGISTRY[addr];
-};
-const fromHandlers = function () {
-  let handlers = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-  return async ctx => {
-    if (typeof handlers[INIT] === "function") await handlers[INIT](ctx);
-    __loop: while (1) {
-      const letter = await ctx.receive();
-      try {
-        if (letter.tag === EXIT) {
-          if (typeof handlers[TERMINATE] === "function") {
-            await handlers[TERMINATE](ctx, letter, letter.data || {});
-          }
-          break __loop;
-        }
-        await handlers[letter.tag](ctx, letter, letter.data || {});
-      } catch (error) {
-        console.error(`${ctx.self()} Error`, letter, error);
-      } finally {
-        continue __loop;
-      }
-    }
-  };
-};
-const spawn = function (fn) {
-  let addr = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
-  if (addr == null) addr = ++pid;
-  if (root.FCL_REGISTRY[addr] != null) return addr;
-  root.FCL_REGISTRY[addr] = {
-    addr,
-    mailbox: mailbox(),
-    subs: new Set(),
-    kvs: {},
-    error: null
-  };
-  const ctx = {
-    self: () => addr,
-    receive: () => root.FCL_REGISTRY[addr].mailbox.receive(),
-    send: function (to, tag, data) {
-      let opts = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
-      opts.from = addr;
-      return send(to, tag, data, opts);
-    },
-    sendSelf: (tag, data, opts) => {
-      if (root.FCL_REGISTRY[addr]) send(addr, tag, data, opts);
-    },
-    broadcast: function (tag, data) {
-      let opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-      opts.from = addr;
-      for (let to of root.FCL_REGISTRY[addr].subs) send(to, tag, data, opts);
-    },
-    subscribe: sub => sub != null && root.FCL_REGISTRY[addr].subs.add(sub),
-    unsubscribe: sub => sub != null && root.FCL_REGISTRY[addr].subs.delete(sub),
-    subscriberCount: () => root.FCL_REGISTRY[addr].subs.size,
-    hasSubs: () => !!root.FCL_REGISTRY[addr].subs.size,
-    put: (key, value) => {
-      if (key != null) root.FCL_REGISTRY[addr].kvs[key] = value;
-    },
-    get: (key, fallback) => {
-      const value = root.FCL_REGISTRY[addr].kvs[key];
-      return value == null ? fallback : value;
-    },
-    delete: key => {
-      delete root.FCL_REGISTRY[addr].kvs[key];
-    },
-    update: (key, fn) => {
-      if (key != null) root.FCL_REGISTRY[addr].kvs[key] = fn(root.FCL_REGISTRY[addr].kvs[key]);
-    },
-    keys: () => {
-      return Object.keys(root.FCL_REGISTRY[addr].kvs);
-    },
-    all: () => {
-      return root.FCL_REGISTRY[addr].kvs;
-    },
-    where: pattern => {
-      return Object.keys(root.FCL_REGISTRY[addr].kvs).reduce((acc, key) => {
-        return pattern.test(key) ? {
-          ...acc,
-          [key]: root.FCL_REGISTRY[addr].kvs[key]
-        } : acc;
-      }, {});
-    },
-    merge: function () {
-      let data = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-      Object.keys(data).forEach(key => root.FCL_REGISTRY[addr].kvs[key] = data[key]);
-    },
-    fatalError: error => {
-      root.FCL_REGISTRY[addr].error = error;
-      for (let to of root.FCL_REGISTRY[addr].subs) send(to, UPDATED$1);
-    }
-  };
-  if (typeof fn === "object") fn = fromHandlers(fn);
-  queueMicrotask_1(async () => {
-    await fn(ctx);
-    kill(addr);
-  });
-  return addr;
-};
-
-// Returns an unsubscribe function
-// A SUBSCRIBE handler will need to be created to handle the subscription event
-//
-//  [SUBSCRIBE]: (ctx, letter) => {
-//    ctx.subscribe(letter.from)
-//    ctx.send(letter.from, UPDATED, ctx.all())
-//  }
-//
-function subscriber(address, spawnFn, callback) {
-  spawnFn(address);
-  const EXIT = "@EXIT";
-  const self = spawn(async ctx => {
-    ctx.send(address, SUBSCRIBE);
-    while (1) {
-      const letter = await ctx.receive();
-      const error = root.FCL_REGISTRY[address].error;
-      if (letter.tag === EXIT) {
-        ctx.send(address, UNSUBSCRIBE);
-        return;
-      }
-      if (error) {
-        callback(null, error);
-        ctx.send(address, UNSUBSCRIBE);
-        return;
-      }
-      callback(letter.data, null);
-    }
-  });
-  return () => send(self, EXIT);
-}
+var utilLogger = require('@onflow/util-logger');
 
 /**
- * Asserts fact is true, otherwise throw an error with invariant message
- * @param {boolean} fact
- * @param {string} msg
- * @param {Array} rest
- * @returns {void}
+ * Creates a type descriptor for a given type
+ * @param label - The label for the type
+ * @param asArgument - A function that converts the type to a JsonCdcType
+ * @param asInjection - A function which returns the argument as is
+ * @returns A type descriptor
+ * @internal
  */
-function invariant(fact, msg) {
-  if (!fact) {
-    const error = new Error(`INVARIANT ${msg}`);
-    error.stack = error.stack.split("\n").filter(d => !/at invariant/.test(d)).join("\n");
-    for (var _len = arguments.length, rest = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
-      rest[_key - 2] = arguments[_key];
-    }
-    console.error("\n\n---\n\n", error, "\n\n", ...rest, "\n\n---\n\n");
-    throw error;
-  }
-}
-const pipe = function () {
-  for (var _len = arguments.length, funcs = new Array(_len), _key = 0; _key < _len; _key++) {
-    funcs[_key] = arguments[_key];
-  }
-  return v => {
-    return funcs.reduce((res, func) => {
-      return func(res);
-    }, v);
-  };
-};
-
-/***
- * Merge multiple functions returning objects into one object.
- * @param {...function(*): object} funcs - Functions to merge
- * @return {object} - Merged object
- */
-const mergePipe = function () {
-  for (var _len2 = arguments.length, funcs = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-    funcs[_key2] = arguments[_key2];
-  }
-  return v => {
-    return funcs.reduce((res, func) => {
-      return {
-        ...res,
-        ...func(v)
-      };
-    }, {});
-  };
-};
-
-/**
- * @description Object check
- * @param {*} value - Value to check
- * @returns {boolean} - Is object status
- */
-const isObject = value => value && typeof value === "object" && !Array.isArray(value);
-
-/**
- * @description Deep merge multiple objects.
- * @param {object} target - Target object
- * @param {...object[]} sources - Source objects
- * @returns {object} - Merged object
- */
-const mergeDeep = function (target) {
-  for (var _len3 = arguments.length, sources = new Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
-    sources[_key3 - 1] = arguments[_key3];
-  }
-  if (!sources.length) return target;
-  const source = sources.shift();
-  if (isObject(target) && isObject(source)) {
-    for (const key in source) {
-      if (isObject(source[key])) {
-        if (!target[key]) Object.assign(target, {
-          [key]: {}
-        });
-        mergeDeep(target[key], source[key]);
-      } else {
-        Object.assign(target, {
-          [key]: source[key]
-        });
-      }
-    }
-  }
-  return mergeDeep(target, ...sources);
-};
-
-/**
- * @description Deep merge multiple Flow JSON.
- * @param {object|object[]} value - Flow JSON or array of Flow JSONs
- * @returns {object} - Merged Flow JSON
- */
-const mergeFlowJSONs = value => Array.isArray(value) ? mergeDeep({}, ...value) : value;
-
-/**
- * @description Filter out contracts section of flow.json.
- * @param {object|object[]} obj - Flow JSON or array of Flow JSONs
- * @returns {object} - Contracts section of Flow JSON
- */
-const filterContracts = obj => obj.contracts ? obj.contracts : {};
-
-/**
- * @description Gathers contract addresses by network
- * @param {string} network - Network to gather addresses for
- * @returns {object} - Contract names by addresses mapping e.g { "HelloWorld": "0x123" }
- */
-const mapContractAliasesToNetworkAddress = network => contracts => {
-  return Object.entries(contracts).reduce((c, _ref) => {
-    let [key, value] = _ref;
-    const networkContractAlias = value?.aliases?.[network];
-    if (networkContractAlias) {
-      c[key] = networkContractAlias;
-    }
-    return c;
-  }, {});
-};
-const mapDeploymentsToNetworkAddress = network => _ref2 => {
-  let {
-    deployments = {},
-    accounts = {}
-  } = _ref2;
-  const networkDeployment = deployments?.[network];
-  if (!networkDeployment) return {};
-  return Object.entries(networkDeployment).reduce((c, _ref3) => {
-    let [key, value] = _ref3;
-    // Resolve account address
-    const accountAddress = accounts[key]?.address;
-    if (!accountAddress) return c;
-
-    // Create an object assigning the address to the contract name.
-    return value.reduce((c, contract) => {
-      return {
-        ...c,
-        [contract]: accountAddress
-      };
-    }, {});
-  }, {});
-};
-
-/**
- * @description Take in flow.json files and return contract to address mapping by network
- * @param {object|object[]} jsons - Flow JSON or array of Flow JSONs
- * @param {string} network - Network to gather addresses for
- * @returns {object} - Contract names by addresses mapping e.g { "HelloWorld": "0x123" }
- */
-const getContracts = (jsons, network) => {
-  return pipe(mergeFlowJSONs, mergePipe(mapDeploymentsToNetworkAddress(network), pipe(filterContracts, mapContractAliasesToNetworkAddress(network))))(jsons);
-};
-
-/**
- * @description Checks if string is hexidecimal
- * @param {string} str - String to check
- * @returns {boolean} - Is hexidecimal status
- */
-const isHexidecimal = str => {
-  // Check that it is a string
-  if (typeof str !== "string") return false;
-  return /^[0-9A-Fa-f]+$/.test(str);
-};
-
-/**
- * @description Checks flow.json file for private keys
- * @param {object} flowJSON - Flow JSON
- * @returns {boolean} - Has private keys status
- */
-const hasPrivateKeys = flowJSON => {
-  return Object.entries(flowJSON?.accounts).reduce((hasPrivateKey, _ref4) => {
-    let [key, value] = _ref4;
-    if (hasPrivateKey) return true;
-    return value?.hasOwnProperty("key") && isHexidecimal(value?.key);
-  }, false);
-};
-
-/**
- * @description Take in flow.json or array of flow.json files and checks for private keys
- * @param {object|object[]} value - Flow JSON or array of Flow JSONs
- * @returns {boolean} - Has private keys status
- */
-const anyHasPrivateKeys = value => {
-  if (isObject(value)) return hasPrivateKeys(value);
-  return value.some(hasPrivateKeys);
-};
-
-/**
- * @description Format network to always be 'emulator', 'testnet', or 'mainnet'
- * @param {string} network - Network to format
- * @returns {string} - Formatted network name (either 'emulator', 'testnet', or 'mainnet')
- */
-const cleanNetwork = network => network?.toLowerCase() === "local" ? "emulator" : network?.toLowerCase();
-const NAME = "config";
-const PUT = "PUT_CONFIG";
-const GET = "GET_CONFIG";
-const GET_ALL = "GET_ALL_CONFIG";
-const UPDATE = "UPDATE_CONFIG";
-const DELETE = "DELETE_CONFIG";
-const CLEAR = "CLEAR_CONFIG";
-const WHERE = "WHERE_CONFIG";
-const UPDATED = "CONFIG/UPDATED";
-const identity = v => v;
-const HANDLERS = {
-  [PUT]: (ctx, _letter, _ref) => {
-    let {
-      key,
-      value
-    } = _ref;
-    if (key == null) throw new Error("Missing 'key' for config/put.");
-    ctx.put(key, value);
-    ctx.broadcast(UPDATED, {
-      ...ctx.all()
-    });
-  },
-  [GET]: (ctx, letter, _ref2) => {
-    let {
-      key,
-      fallback
-    } = _ref2;
-    if (key == null) throw new Error("Missing 'key' for config/get");
-    letter.reply(ctx.get(key, fallback));
-  },
-  [GET_ALL]: (ctx, letter) => {
-    letter.reply({
-      ...ctx.all()
-    });
-  },
-  [UPDATE]: (ctx, letter, _ref3) => {
-    let {
-      key,
-      fn
-    } = _ref3;
-    if (key == null) throw new Error("Missing 'key' for config/update");
-    ctx.update(key, fn || identity);
-    ctx.broadcast(UPDATED, {
-      ...ctx.all()
-    });
-  },
-  [DELETE]: (ctx, letter, _ref4) => {
-    let {
-      key
-    } = _ref4;
-    if (key == null) throw new Error("Missing 'key' for config/delete");
-    ctx.delete(key);
-    ctx.broadcast(UPDATED, {
-      ...ctx.all()
-    });
-  },
-  [CLEAR]: (ctx, letter) => {
-    let keys = Object.keys(ctx.all());
-    for (let key of keys) ctx.delete(key);
-    ctx.broadcast(UPDATED, {
-      ...ctx.all()
-    });
-  },
-  [WHERE]: (ctx, letter, _ref5) => {
-    let {
-      pattern
-    } = _ref5;
-    if (pattern == null) throw new Error("Missing 'pattern' for config/where");
-    letter.reply(ctx.where(pattern));
-  },
-  [SUBSCRIBE]: (ctx, letter) => {
-    ctx.subscribe(letter.from);
-    ctx.send(letter.from, UPDATED, {
-      ...ctx.all()
-    });
-  },
-  [UNSUBSCRIBE]: (ctx, letter) => {
-    ctx.unsubscribe(letter.from);
-  }
-};
-spawn(HANDLERS, NAME);
-
-/**
- * @description Adds a key-value pair to the config
- * @param {string} key - The key to add
- * @param {*} value - The value to add
- * @returns {Promise<object>} - The current config
- */
-function put(key, value) {
-  send(NAME, PUT, {
-    key,
-    value
-  });
-  return config();
-}
-
-/**
- * @description Gets a key-value pair with a fallback from the config
- * @param {string} key - The key to add
- * @param {*} [fallback] - The fallback value to return if key is not found
- * @returns {Promise<*>} - The value found at key or fallback
- */
-function get(key, fallback) {
-  return send(NAME, GET, {
-    key,
-    fallback
-  }, {
-    expectReply: true,
-    timeout: 10
-  });
-}
-
-/**
- * @description Returns the first non null config value or the fallback
- * @param {string[]} wants - The keys to search for
- * @param {*} fallback - The fallback value to return if key is not found
- * @returns {Promise<*>} - The value found at key or fallback
- */
-async function first() {
-  let wants = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
-  let fallback = arguments.length > 1 ? arguments[1] : undefined;
-  if (!wants.length) return fallback;
-  const [head, ...rest] = wants;
-  const ret = await get(head);
-  if (ret == null) return first(rest, fallback);
-  return ret;
-}
-
-/**
- * @description Returns the current config
- * @returns {Promise<object>} - The current config
- */
-function all() {
-  return send(NAME, GET_ALL, null, {
-    expectReply: true,
-    timeout: 10
-  });
-}
-
-/**
- * @description Updates a key-value pair in the config
- * @param {string} key - The key to update
- * @param {Function} fn - The function to update the value with
- * @returns {Promise<object>} - The current config
- */
-function update(key) {
-  let fn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : identity;
-  send(NAME, UPDATE, {
-    key,
-    fn
-  });
-  return config();
-}
-
-/**
- * @description Deletes a key-value pair from the config
- * @param {string} key - The key to delete
- * @returns {Promise<object>} - The current config
- */
-function _delete(key) {
-  send(NAME, DELETE, {
-    key
-  });
-  return config();
-}
-
-/**
- * @description Returns a subset of the config based on a pattern
- * @param {string} pattern - The pattern to match keys against
- * @returns {Promise<object>} - The subset of the config
- */
-function where(pattern) {
-  return send(NAME, WHERE, {
-    pattern
-  }, {
-    expectReply: true,
-    timeout: 10
-  });
-}
-
-/**
- * @description Subscribes to config updates
- * @param {Function} callback - The callback to call when config is updated
- * @returns {Function} - The unsubscribe function
- */
-function subscribe(callback) {
-  return subscriber(NAME, () => spawn(HANDLERS, NAME), callback);
-}
-
-/**
- * @description Clears the config
- * @returns {void}
- */
-function clearConfig() {
-  return send(NAME, CLEAR);
-}
-
-/**
- * @description Resets the config to a previous state
- * @param {object} oldConfig - The previous config state
- * @returns {Promise<object>} - The current config
- */
-function resetConfig(oldConfig) {
-  return clearConfig().then(config(oldConfig));
-}
-
-/**
- * @description Takes in flow.json or array of flow.json files and creates contract placeholders
- * @param {object|object[]} data - The flow.json or array of flow.json files
- * @returns {void}
- */
-async function load(data) {
-  const network = await get("flow.network");
-  const cleanedNetwork = cleanNetwork(network);
-  const {
-    flowJSON
-  } = data;
-  invariant(Boolean(flowJSON), "config.load -- 'flowJSON' must be defined");
-  invariant(cleanedNetwork, `Flow Network Required -- In order for FCL to load your contracts please define "flow.network" to "emulator", "local", "testnet", or "mainnet" in your config. See more here: https://developers.flow.com/tools/fcl-js/reference/configure-fcl`);
-  if (anyHasPrivateKeys(flowJSON)) {
-    const isEmulator = cleanedNetwork === "emulator";
-    log({
-      title: "Private Keys Detected",
-      message: `Private keys should be stored in a separate flow.json file for security. See more here: https://developers.flow.com/tools/flow-cli/security`,
-      level: isEmulator ? LEVELS.warn : LEVELS.error
-    });
-    if (!isEmulator) return;
-  }
-  for (const [key, value] of Object.entries(getContracts(flowJSON, cleanedNetwork))) {
-    const contractConfigKey = `0x${key}`;
-    const existingContractConfigKey = await get(contractConfigKey);
-    if (existingContractConfigKey && existingContractConfigKey !== value) {
-      log({
-        title: "Contract Placeholder Conflict Detected",
-        message: `A generated contract placeholder from config.load conflicts with a placeholder you've set manually in config have the same name.`,
-        level: LEVELS.warn
-      });
-    } else {
-      put(contractConfigKey, value);
-    }
-    const systemContractConfigKey = `system.contracts.${key}`;
-    const systemExistingContractConfigKeyValue = await get(systemContractConfigKey);
-    if (systemExistingContractConfigKeyValue && systemExistingContractConfigKeyValue !== value) {
-      log({
-        title: "Contract Placeholder Conflict Detected",
-        message: `A generated contract placeholder from config.load conflicts with a placeholder you've set manually in config have the same name.`,
-        level: LEVELS.warn
-      });
-    } else {
-      put(systemContractConfigKey, value);
-    }
-  }
-}
-
-// eslint-disable-next-line jsdoc/require-returns
-/**
- * @description Sets the config
- * @param {object} [values] - The values to set
- */
-function config(values) {
-  if (values != null && typeof values === "object") {
-    Object.keys(values).map(d => put(d, values[d]));
-  }
-  return {
-    put,
-    get,
-    all,
-    first,
-    update,
-    delete: _delete,
-    where,
-    subscribe,
-    overload,
-    load
-  };
-}
-config.put = put;
-config.get = get;
-config.all = all;
-config.first = first;
-config.update = update;
-config.delete = _delete;
-config.where = where;
-config.subscribe = subscribe;
-config.overload = overload;
-config.load = load;
-const noop = v => v;
-function overload() {
-  let opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-  let callback = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : noop;
-  return new Promise(async (resolve, reject) => {
-    const oldConfig = await all();
-    try {
-      config(opts);
-      var result = await callback(await all());
-      await resetConfig(oldConfig);
-      resolve(result);
-    } catch (error) {
-      await resetConfig(oldConfig);
-      reject(error);
-    }
-  });
-}
-
-/**
- * The levels of the logger
- * 
- * @typedef {Object} LEVELS
- * @property {number} debug - The debug level
- * @property {number} info - The info level
- * @property {number} log - The log level
- * @property {number} warn - The warn level
- * @property {number} error - The error level
- * 
- */
-const LEVELS = Object.freeze({
-  debug: 5,
-  info: 4,
-  log: 3,
-  warn: 2,
-  error: 1
-});
-
-/**
- * Builds a message formatted for the logger
- * 
- * @param {Object} options - The options for the log
- * @param {string} options.title - The title of the log
- * @param {string} options.message - The message of the log
- * @returns {Array<string>} - The message formatted for the logger
- * 
- * @example
- * buildLoggerMessageArgs({ title: "My Title", message: "My Message" })
- */
-const buildLoggerMessageArgs = _ref => {
-  let {
-    title,
-    message
-  } = _ref;
-  return [`
-    %c${title}
-    ============================
-
-    ${message}
-
-    ============================
-    `.replace(/\n[^\S\r\n]+/g, "\n").trim(),, "font-weight:bold;font-family:monospace;"];
-};
-
-/**
- * Logs messages based on the level of the message and the level set in the config
- * 
- * @param {Object} options - The options for the log
- * @param {string} options.title - The title of the log
- * @param {string} options.message - The message of the log
- * @param {number} options.level - The level of the log
- * @param {boolean} options.always - Whether to always show the log
- * @returns {Promise<void>}
- * 
- * @example
- * log({ title: "My Title", message: "My Message", level: LEVELS.warn, always: false })
- * 
- */
-const log = async _ref2 => {
-  let {
-    title,
-    message,
-    level,
-    always = false
-  } = _ref2;
-  const configLoggerLevel = await config.get("logger.level", LEVELS.warn);
-
-  // If config level is below message level then don't show it
-  if (!always && configLoggerLevel < level) return;
-  const loggerMessageArgs = buildLoggerMessageArgs({
-    title,
-    message
-  });
-  switch (level) {
-    case LEVELS.debug:
-      console.debug(...loggerMessageArgs);
-      break;
-    case LEVELS.info:
-      console.info(...loggerMessageArgs);
-      break;
-    case LEVELS.warn:
-      console.warn(...loggerMessageArgs);
-      break;
-    case LEVELS.error:
-      console.error(...loggerMessageArgs);
-      break;
-    default:
-      console.log(...loggerMessageArgs);
-  }
-};
-
-/**
- * Logs a deprecation notice
- * 
- * @param {Object} options - The options for the log
- * @param {string} options.pkg - The package that is being deprecated
- * @param {string} options.subject - The subject of the deprecation
- * @param {string} options.transition - The transition path for the deprecation
- * @param {number} options.level - The level of the log
- * @param {string} options.message - The message of the log
- * @param {Function} options.callback - A callback to run after the log
- * @returns {Promise<void>}
- * 
- * @example
- * log.deprecate({ pkg: "@onflow/fcl", subject: "Some item", transition: "https://github.com/onflow/flow-js-sdk", message: "Descriptive message", level: LEVELS.warn, callback: () => {} })
- * 
- */
-log.deprecate = _ref3 => {
-  let {
-    pkg,
-    subject,
-    transition,
-    level = LEVELS.warn,
-    message = "",
-    callback = null
-  } = _ref3;
-  const capitalizeFirstLetter = string => {
-    return string.charAt(0).toUpperCase() + string.slice(1);
-  };
-  const logMessage = () => log({
-    title: `${pkg ? pkg + " " : ""}Deprecation Notice`,
-    message: `
-      ${subject ? `${capitalizeFirstLetter(subject)} is deprecated and will cease to work in future releases${pkg ? " of " + pkg : ""}.` : ""}${message ? "\n" + message : ""}${transition ? `\nYou can learn more (including a guide on common transition paths) here: ${transition}` : ""}
-    `.trim(),
-    level
-  });
-  if (typeof callback === "function") {
-    return async function () {
-      await logMessage();
-      return await callback(...arguments);
-    };
-  }
-  return logMessage();
-};
-
-const type = (label, asArgument, asInjection) => ({
+const typedef = (label, asArgument, asInjection) => ({
   label,
   asArgument,
-  asInjection
+  asInjection: x => {
+    utilLogger.log.deprecate({
+      pkg: "@onflow/types",
+      subject: `Passing in ${label} as value for ${label}`,
+      message: `Going forward, use ${label} as value for ${label}.`
+    });
+    return asInjection(x);
+  }
 });
 const isArray = d => Array.isArray(d);
 const isObj = d => typeof d === "object";
@@ -27534,15 +26731,33 @@ const throwTypeError = msg => {
   throw new Error("Type Error: " + msg);
 };
 const numberValuesDeprecationNotice = type => {
-  log.deprecate({
+  utilLogger.log.deprecate({
     pkg: "@onflow/types",
     subject: `Passing in Number as value for ${type}`,
     message: `Going forward, use String as value for ${type}.`,
     transition: "https://github.com/onflow/flow-js-sdk/blob/master/packages/types/WARNINGS.md#0002-[U]Int*-and-Word*-as-Number"
   });
 };
-const Identity = type("Identity", v => v, v => v);
-const UInt = type("UInt", v => {
+let identityDeprecationShown = false;
+/**
+ * @deprecated will be removed in v2.0.0
+ */
+const Identity = {
+  label: "Identity",
+  asArgument: v => {
+    if (!identityDeprecationShown) {
+      utilLogger.log.deprecate({
+        pkg: "@onflow/types",
+        subject: "Identity",
+        message: "Identity type is deprecated and will be removed in v2.0.0.  Please remove it from your code."
+      });
+      identityDeprecationShown = true;
+    }
+    return v;
+  },
+  asInjection: v => v
+};
+const UInt = typedef("UInt", v => {
   if (isNumber(v) && isInteger(v)) {
     numberValuesDeprecationNotice("UInt");
     return {
@@ -27556,9 +26771,9 @@ const UInt = type("UInt", v => {
       value: v
     };
   }
-  throwTypeError("Expected Positive Integer for type Unsigned Int");
+  return throwTypeError("Expected Positive Integer for type Unsigned Int");
 }, v => v);
-const Int = type("Int", v => {
+const Int = typedef("Int", v => {
   if (isNumber(v) && isInteger(v)) {
     numberValuesDeprecationNotice("Int");
     return {
@@ -27572,9 +26787,9 @@ const Int = type("Int", v => {
       value: v
     };
   }
-  throwTypeError("Expected Integer for type Int");
+  return throwTypeError("Expected Integer for type Int");
 }, v => v);
-const UInt8 = type("UInt8", v => {
+const UInt8 = typedef("UInt8", v => {
   if (isNumber(v) && isInteger(v)) {
     numberValuesDeprecationNotice("UInt8");
     return {
@@ -27588,9 +26803,9 @@ const UInt8 = type("UInt8", v => {
       value: v
     };
   }
-  throwTypeError("Expected integer for UInt8");
+  return throwTypeError("Expected integer for UInt8");
 }, v => v);
-const Int8 = type("Int8", v => {
+const Int8 = typedef("Int8", v => {
   if (isNumber(v) && isInteger(v)) {
     numberValuesDeprecationNotice("Int8");
     return {
@@ -27604,9 +26819,9 @@ const Int8 = type("Int8", v => {
       value: v
     };
   }
-  throwTypeError("Expected positive integer for Int8");
+  return throwTypeError("Expected positive integer for Int8");
 }, v => v);
-const UInt16 = type("UInt16", v => {
+const UInt16 = typedef("UInt16", v => {
   if (isNumber(v) && isInteger(v)) {
     numberValuesDeprecationNotice("UInt16");
     return {
@@ -27620,9 +26835,9 @@ const UInt16 = type("UInt16", v => {
       value: v
     };
   }
-  throwTypeError("Expected integer for UInt16");
+  return throwTypeError("Expected integer for UInt16");
 }, v => v);
-const Int16 = type("Int16", v => {
+const Int16 = typedef("Int16", v => {
   if (isNumber(v) && isInteger(v)) {
     numberValuesDeprecationNotice("Int16");
     return {
@@ -27636,9 +26851,9 @@ const Int16 = type("Int16", v => {
       value: v
     };
   }
-  throwTypeError("Expected positive integer for Int16");
+  return throwTypeError("Expected positive integer for Int16");
 }, v => v);
-const UInt32 = type("UInt32", v => {
+const UInt32 = typedef("UInt32", v => {
   if (isNumber(v) && isInteger(v)) {
     numberValuesDeprecationNotice("UInt32");
     return {
@@ -27652,9 +26867,9 @@ const UInt32 = type("UInt32", v => {
       value: v
     };
   }
-  throwTypeError("Expected integer for UInt32");
+  return throwTypeError("Expected integer for UInt32");
 }, v => v);
-const Int32 = type("Int32", v => {
+const Int32 = typedef("Int32", v => {
   if (isNumber(v) && isInteger(v)) {
     numberValuesDeprecationNotice("Int32");
     return {
@@ -27668,9 +26883,9 @@ const Int32 = type("Int32", v => {
       value: v
     };
   }
-  throwTypeError("Expected positive integer for Int32");
+  return throwTypeError("Expected positive integer for Int32");
 }, v => v);
-const UInt64 = type("UInt64", v => {
+const UInt64 = typedef("UInt64", v => {
   if (isNumber(v) && isInteger(v)) {
     numberValuesDeprecationNotice("UInt64");
     return {
@@ -27684,9 +26899,9 @@ const UInt64 = type("UInt64", v => {
       value: v
     };
   }
-  throwTypeError("Expected integer for UInt64");
+  return throwTypeError("Expected integer for UInt64");
 }, v => v);
-const Int64 = type("Int64", v => {
+const Int64 = typedef("Int64", v => {
   if (isNumber(v) && isInteger(v)) {
     numberValuesDeprecationNotice("Int64");
     return {
@@ -27700,9 +26915,9 @@ const Int64 = type("Int64", v => {
       value: v
     };
   }
-  throwTypeError("Expected positive integer for Int64");
+  return throwTypeError("Expected positive integer for Int64");
 }, v => v);
-const UInt128 = type("UInt128", v => {
+const UInt128 = typedef("UInt128", v => {
   if (isNumber(v) && isInteger(v)) {
     numberValuesDeprecationNotice("UInt128");
     return {
@@ -27716,9 +26931,9 @@ const UInt128 = type("UInt128", v => {
       value: v
     };
   }
-  throwTypeError("Expected integer for UInt128");
+  return throwTypeError("Expected integer for UInt128");
 }, v => v);
-const Int128 = type("Int128", v => {
+const Int128 = typedef("Int128", v => {
   if (isNumber(v) && isInteger(v)) {
     numberValuesDeprecationNotice("Int128");
     return {
@@ -27732,9 +26947,9 @@ const Int128 = type("Int128", v => {
       value: v
     };
   }
-  throwTypeError("Expected positive integer for Int128");
+  return throwTypeError("Expected positive integer for Int128");
 }, v => v);
-const UInt256 = type("UInt256", v => {
+const UInt256 = typedef("UInt256", v => {
   if (isNumber(v) && isInteger(v)) {
     numberValuesDeprecationNotice("UInt256");
     return {
@@ -27748,9 +26963,9 @@ const UInt256 = type("UInt256", v => {
       value: v
     };
   }
-  throwTypeError("Expected integer for UInt256");
+  return throwTypeError("Expected integer for UInt256");
 }, v => v);
-const Int256 = type("Int256", v => {
+const Int256 = typedef("Int256", v => {
   if (isNumber(v) && isInteger(v)) {
     numberValuesDeprecationNotice("Int256");
     return {
@@ -27764,9 +26979,9 @@ const Int256 = type("Int256", v => {
       value: v
     };
   }
-  throwTypeError("Expected integer for Int256");
+  return throwTypeError("Expected integer for Int256");
 }, v => v);
-const Word8 = type("Word8", v => {
+const Word8 = typedef("Word8", v => {
   if (isNumber(v) && isInteger(v)) {
     numberValuesDeprecationNotice("Word8");
     return {
@@ -27780,9 +26995,9 @@ const Word8 = type("Word8", v => {
       value: v
     };
   }
-  throwTypeError("Expected positive number for Word8");
+  return throwTypeError("Expected positive number for Word8");
 }, v => v);
-const Word16 = type("Word16", v => {
+const Word16 = typedef("Word16", v => {
   if (isNumber(v) && isInteger(v)) {
     numberValuesDeprecationNotice("Word16");
     return {
@@ -27796,9 +27011,9 @@ const Word16 = type("Word16", v => {
       value: v
     };
   }
-  throwTypeError("Expected positive number for Word16");
+  return throwTypeError("Expected positive number for Word16");
 }, v => v);
-const Word32 = type("Word32", v => {
+const Word32 = typedef("Word32", v => {
   if (isNumber(v) && isInteger(v)) {
     numberValuesDeprecationNotice("Word32");
     return {
@@ -27812,9 +27027,9 @@ const Word32 = type("Word32", v => {
       value: v
     };
   }
-  throwTypeError("Expected positive number for Word32");
+  return throwTypeError("Expected positive number for Word32");
 }, v => v);
-const Word64 = type("Word64", v => {
+const Word64 = typedef("Word64", v => {
   if (isNumber(v) && isInteger(v)) {
     numberValuesDeprecationNotice("Word64");
     return {
@@ -27828,23 +27043,23 @@ const Word64 = type("Word64", v => {
       value: v
     };
   }
-  throwTypeError("Expected positive number for Word64");
+  return throwTypeError("Expected positive number for Word64");
 }, v => v);
 const UFix64AndFix64NumberDeprecationNotice = () => {
-  log.deprecate({
+  utilLogger.log.deprecate({
     subject: "Passing in Numbers as values for Fix64 and UFix64 types",
     pkg: "@onflow/types",
     transition: "https://github.com/onflow/flow-js-sdk/blob/master/packages/types/WARNINGS.md#0001-[U]Fix64-as-Number"
   });
 };
-const UFix64 = type("UFix64", v => {
+const UFix64 = typedef("UFix64", v => {
   if (isString(v)) {
     const vParts = v.split(".");
     if (vParts.length !== 2) {
-      throwTypeError(`Expected one decimal but found ${vParts.length} in the [U]Fix64 value. Find out more about [U]Fix64 types here: https://docs.onflow.org/cadence/json-cadence-spec/#fixed-point-numbers`);
+      return throwTypeError(`Expected one decimal but found ${vParts.length} in the [U]Fix64 value. Find out more about [U]Fix64 types here: https://docs.onflow.org/cadence/json-cadence-spec/#fixed-point-numbers`);
     }
     if (vParts[1].length == 0 || vParts[1].length > 8) {
-      throwTypeError(`Expected at least one digit, and at most 8 digits following the decimal of the [U]Fix64 value but found ${vParts[1].length} digits. Find out more about [U]Fix64 types here: https://docs.onflow.org/cadence/json-cadence-spec/#fixed-point-numbers`);
+      return throwTypeError(`Expected at least one digit, and at most 8 digits following the decimal of the [U]Fix64 value but found ${vParts[1].length} digits. Find out more about [U]Fix64 types here: https://docs.onflow.org/cadence/json-cadence-spec/#fixed-point-numbers`);
     }
 
     // make sure the number is extended to 8 decimal places so it matches cadence encoding of UFix values
@@ -27861,16 +27076,16 @@ const UFix64 = type("UFix64", v => {
       value: v.toString()
     };
   }
-  throwTypeError("Expected String for UFix64");
+  return throwTypeError("Expected String for UFix64");
 }, v => v);
-const Fix64 = type("Fix64", v => {
+const Fix64 = typedef("Fix64", v => {
   if (isString(v)) {
     const vParts = v.split(".");
     if (vParts.length !== 2) {
-      throwTypeError(`Expected one decimal but found ${vParts.length} in the [U]Fix64 value. Find out more about [U]Fix64 types here: https://docs.onflow.org/cadence/json-cadence-spec/#fixed-point-numbers`);
+      return throwTypeError(`Expected one decimal but found ${vParts.length} in the [U]Fix64 value. Find out more about [U]Fix64 types here: https://docs.onflow.org/cadence/json-cadence-spec/#fixed-point-numbers`);
     }
     if (vParts[1].length == 0 || vParts[1].length > 8) {
-      throwTypeError(`Expected at least one digit, and at most 8 digits following the decimal of the [U]Fix64 value but found ${vParts[1].length} digits. Find out more about [U]Fix64 types here: https://docs.onflow.org/cadence/json-cadence-spec/#fixed-point-numbers`);
+      return throwTypeError(`Expected at least one digit, and at most 8 digits following the decimal of the [U]Fix64 value but found ${vParts[1].length} digits. Find out more about [U]Fix64 types here: https://docs.onflow.org/cadence/json-cadence-spec/#fixed-point-numbers`);
     }
 
     // make sure the number is extended to 8 decimal places so it matches cadence encoding of Fix64 values
@@ -27887,56 +27102,57 @@ const Fix64 = type("Fix64", v => {
       value: v.toString()
     };
   }
-  throwTypeError("Expected String for Fix64");
+  return throwTypeError("Expected String for Fix64");
 }, v => v);
-const String = type("String", v => {
+const String = typedef("String", v => {
   if (isString(v)) return {
     type: "String",
     value: v
   };
-  throwTypeError("Expected String for type String");
+  return throwTypeError("Expected String for type String");
 }, v => v);
-const Character = type("Character", v => {
+const Character = typedef("Character", v => {
   if (isString(v)) return {
     type: "Character",
     value: v
   };
-  throwTypeError("Expected Character for type Character");
+  return throwTypeError("Expected Character for type Character");
 }, v => v);
-const Bool = type("Bool", v => {
+const Bool = typedef("Bool", v => {
   if (isBoolean(v)) return {
     type: "Bool",
     value: v
   };
-  throwTypeError("Expected Boolean for type Bool");
+  return throwTypeError("Expected Boolean for type Bool");
 }, v => v);
-const Address = type("Address", v => {
+const Address = typedef("Address", v => {
   if (isString(v)) return {
     type: "Address",
     value: v
   };
-  throwTypeError("Expected Address for type Address");
+  return throwTypeError("Expected Address for type Address");
 }, v => v);
-const Void = type("Void", v => {
+const Void = typedef("Void", v => {
   if (!v || isNull(v)) return {
-    type: "Void"
+    type: "Void",
+    value: null
   };
-  throwTypeError("Expected Void for type Void");
+  return throwTypeError("Expected Void for type Void");
 }, v => v);
-const Optional = children => type("Optional", v => ({
+const Optional = children => typedef("Optional", v => ({
   type: "Optional",
   value: isNull(v) ? null : children.asArgument(v)
 }), v => v);
-const Reference = type("Reference", v => {
+const Reference = typedef("Reference", v => {
   if (isObj(v)) return {
     type: "Reference",
     value: v
   };
-  throwTypeError("Expected Object for type Reference");
+  return throwTypeError("Expected Object for type Reference");
 }, v => v);
 const _Array = function () {
   let children = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
-  return type("Array", v => {
+  return typedef("Array", v => {
     return {
       type: "Array",
       value: isArray(children) ? children.map((c, i) => c.asArgument(v[i])) : v.map(x => children.asArgument(x))
@@ -27945,26 +27161,28 @@ const _Array = function () {
 };
 const Dictionary = function () {
   let children = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
-  return type("Dictionary", v => {
+  return typedef("Dictionary", v => {
+    const vIsArray = isArray(v);
+    const childrenIsArray = isArray(children);
     if (isObj(v)) return {
       type: "Dictionary",
-      value: isArray(children) ? children.map((c, i) => ({
+      value: childrenIsArray && vIsArray ? children.map((c, i) => ({
         key: c.key.asArgument(v[i].key),
         value: c.value.asArgument(v[i].value)
-      })) : isArray(v) ? v.map(x => ({
+      })) : vIsArray && !childrenIsArray ? v.map(x => ({
         key: children.key.asArgument(x.key),
         value: children.value.asArgument(x.value)
-      })) : [{
+      })) : !vIsArray && !childrenIsArray ? [{
         key: children.key.asArgument(v.key),
         value: children.value.asArgument(v.value)
-      }]
+      }] : throwTypeError("Invalid arguments for Dictionary.")
     };
-    throwTypeError("Expected Object for type Dictionary");
+    return throwTypeError("Expected Object for type Dictionary");
   }, v => v);
 };
 const Event = function (id) {
   let fields = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
-  return type("Event", v => {
+  return typedef("Event", v => {
     if (isObj(v)) return {
       type: "Event",
       value: {
@@ -27978,12 +27196,12 @@ const Event = function (id) {
         }))
       }
     };
-    throwTypeError("Expected Object for type Event");
+    return throwTypeError("Expected Object for type Event");
   }, v => v);
 };
 const Resource = function (id) {
   let fields = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
-  return type("Resource", v => {
+  return typedef("Resource", v => {
     if (isObj(v)) return {
       type: "Resource",
       value: {
@@ -27997,12 +27215,12 @@ const Resource = function (id) {
         }))
       }
     };
-    throwTypeError("Expected Object for type Resource");
+    return throwTypeError("Expected Object for type Resource");
   }, v => v);
 };
 const Struct = function (id) {
   let fields = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
-  return type("Struct", v => {
+  return typedef("Struct", v => {
     if (isObj(v)) return {
       type: "Struct",
       value: {
@@ -28016,12 +27234,12 @@ const Struct = function (id) {
         }))
       }
     };
-    throwTypeError("Expected Object for type Struct");
+    return throwTypeError("Expected Object for type Struct");
   }, v => v);
 };
 const Enum = function (id) {
   let fields = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
-  return type("Enum", v => {
+  return typedef("Enum", v => {
     if (isObj(v)) return {
       type: "Enum",
       value: {
@@ -28035,19 +27253,19 @@ const Enum = function (id) {
         }))
       }
     };
-    throwTypeError("Expected Object for type Enum");
+    return throwTypeError("Expected Object for type Enum");
   }, v => v);
 };
-const Path = type("Path", v => {
+const Path = typedef("Path", v => {
   if (isObj(v)) {
     if (!isString(v.domain)) {
-      throwTypeError(`Expected a string for the Path domain but found ${v.domain}. Find out more about the Path type here: https://docs.onflow.org/cadence/json-cadence-spec/#path`);
+      return throwTypeError(`Expected a string for the Path domain but found ${v.domain}. Find out more about the Path type here: https://docs.onflow.org/cadence/json-cadence-spec/#path`);
     }
     if (!(v.domain === "storage" || v.domain === "private" || v.domain === "public")) {
-      throwTypeError(`Expected either "storage", "private" or "public" as the Path domain but found ${v.domain}. Find out more about the Path type here: https://docs.onflow.org/cadence/json-cadence-spec/#path`);
+      return throwTypeError(`Expected either "storage", "private" or "public" as the Path domain but found ${v.domain}. Find out more about the Path type here: https://docs.onflow.org/cadence/json-cadence-spec/#path`);
     }
     if (!isString(v.identifier)) {
-      throwTypeError(`Expected a string for the Path identifier but found ${v.identifier}. Find out more about the Path type here: https://docs.onflow.org/cadence/json-cadence-spec/#path`);
+      return throwTypeError(`Expected a string for the Path identifier but found ${v.identifier}. Find out more about the Path type here: https://docs.onflow.org/cadence/json-cadence-spec/#path`);
     }
     return {
       type: "Path",
@@ -28057,7 +27275,7 @@ const Path = type("Path", v => {
       }
     };
   }
-  throwTypeError("Expected Object for type Path");
+  return throwTypeError("Expected Object for type Path");
 }, v => v);
 
 exports.Address = Address;
@@ -28098,22 +27316,15 @@ exports.Word8 = Word8;
 exports._Array = _Array;
 
 
-}).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],132:[function(require,module,exports){
+},{"@onflow/util-logger":135}],132:[function(require,module,exports){
 (function (global){(function (){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var queueMicrotask = require('queue-microtask');
-
-function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
-
-var queueMicrotask__default = /*#__PURE__*/_interopDefaultLegacy(queueMicrotask);
-
 const mailbox = () => {
   const queue = [];
-  var next;
+  let next;
   return {
     async deliver(msg) {
       queue.push(msg);
@@ -28132,6 +27343,10 @@ const mailbox = () => {
   };
 };
 
+let promise;
+const _queueMicrotask = cb => (promise || (promise = Promise.resolve())).then(cb).catch(err => setTimeout(() => {
+  throw err;
+}, 0));
 const INIT = "INIT";
 const SUBSCRIBE = "SUBSCRIBE";
 const UNSUBSCRIBE = "UNSUBSCRIBE";
@@ -28139,13 +27354,18 @@ const UPDATED = "UPDATED";
 const SNAPSHOT = "SNAPSHOT";
 const EXIT = "EXIT";
 const TERMINATE = "TERMINATE";
-const root = typeof self === "object" && self.self === self && self || typeof global === "object" && global.global === global && global || typeof window === "object" && window.window === window && window;
+const root = typeof self === "object" && self.self === self && self || typeof global === "object" && global.global === global && global || typeof window === "object" && window.window === window && window || {
+  FCL_REGISTRY: null
+};
 root.FCL_REGISTRY = root.FCL_REGISTRY == null ? {} : root.FCL_REGISTRY;
-var pid = 0b0;
+const FCL_REGISTRY = root.FCL_REGISTRY;
+let pid = 0b0;
 const DEFAULT_TIMEOUT = 5000;
-const send = function (addr, tag, data) {
-  let opts = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
-  return new Promise((reply, reject) => {
+function send(addr, tag, data) {
+  let opts = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {
+    expectReply: false
+  };
+  return new Promise((resolve, reject) => {
     const expectReply = opts.expectReply || false;
     const timeout = opts.timeout != null ? opts.timeout : DEFAULT_TIMEOUT;
     if (expectReply && timeout) {
@@ -28157,116 +27377,129 @@ const send = function (addr, tag, data) {
       tag,
       data,
       timeout,
-      reply,
+      reply: resolve,
       reject
     };
     try {
-      root.FCL_REGISTRY[addr] && root.FCL_REGISTRY[addr].mailbox.deliver(payload);
-      if (!expectReply) reply(true);
+      if (FCL_REGISTRY[addr]) {
+        FCL_REGISTRY[addr].mailbox.deliver(payload);
+      }
+      if (!expectReply) {
+        resolve(true);
+      }
     } catch (error) {
-      console.error("FCL.Actor -- Could Not Deliver Message", payload, root.FCL_REGISTRY[addr], error);
+      console.error("FCL.Actor -- Could Not Deliver Message", payload, FCL_REGISTRY[addr], error);
+      reject(error);
     }
   });
-};
+}
 const kill = addr => {
-  delete root.FCL_REGISTRY[addr];
+  delete FCL_REGISTRY[addr];
 };
-const fromHandlers = function () {
-  let handlers = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-  return async ctx => {
-    if (typeof handlers[INIT] === "function") await handlers[INIT](ctx);
-    __loop: while (1) {
-      const letter = await ctx.receive();
-      try {
-        if (letter.tag === EXIT) {
-          if (typeof handlers[TERMINATE] === "function") {
-            await handlers[TERMINATE](ctx, letter, letter.data || {});
-          }
-          break __loop;
+const fromHandlers = handlers => async ctx => {
+  if (typeof handlers[INIT] === "function") await handlers[INIT](ctx);
+  __loop: while (1) {
+    const letter = await ctx.receive();
+    try {
+      if (letter.tag === EXIT) {
+        if (typeof handlers[TERMINATE] === "function") {
+          await handlers[TERMINATE](ctx, letter, letter.data || {});
         }
-        await handlers[letter.tag](ctx, letter, letter.data || {});
-      } catch (error) {
-        console.error(`${ctx.self()} Error`, letter, error);
-      } finally {
-        continue __loop;
+        break __loop;
       }
+      await handlers[letter.tag]?.(ctx, letter, letter.data || {});
+    } catch (error) {
+      console.error(`${ctx.self()} Error`, letter, error);
+    } finally {
+      continue __loop;
     }
-  };
+  }
 };
-const spawn = function (fn) {
-  let addr = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
-  if (addr == null) addr = ++pid;
-  if (root.FCL_REGISTRY[addr] != null) return addr;
-  root.FCL_REGISTRY[addr] = {
+const parseAddr = addr => {
+  if (addr == null) {
+    return String(++pid);
+  }
+  return String(addr);
+};
+const spawn = function (fnOrHandlers) {
+  let rawAddr = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+  const addr = parseAddr(rawAddr);
+  if (FCL_REGISTRY[addr] != null) return addr;
+  FCL_REGISTRY[addr] = {
     addr,
     mailbox: mailbox(),
     subs: new Set(),
     kvs: {},
     error: null
   };
-  const ctx = {
-    self: () => addr,
-    receive: () => root.FCL_REGISTRY[addr].mailbox.receive(),
-    send: function (to, tag, data) {
-      let opts = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
-      opts.from = addr;
-      return send(to, tag, data, opts);
-    },
-    sendSelf: (tag, data, opts) => {
-      if (root.FCL_REGISTRY[addr]) send(addr, tag, data, opts);
-    },
-    broadcast: function (tag, data) {
-      let opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-      opts.from = addr;
-      for (let to of root.FCL_REGISTRY[addr].subs) send(to, tag, data, opts);
-    },
-    subscribe: sub => sub != null && root.FCL_REGISTRY[addr].subs.add(sub),
-    unsubscribe: sub => sub != null && root.FCL_REGISTRY[addr].subs.delete(sub),
-    subscriberCount: () => root.FCL_REGISTRY[addr].subs.size,
-    hasSubs: () => !!root.FCL_REGISTRY[addr].subs.size,
-    put: (key, value) => {
-      if (key != null) root.FCL_REGISTRY[addr].kvs[key] = value;
-    },
-    get: (key, fallback) => {
-      const value = root.FCL_REGISTRY[addr].kvs[key];
-      return value == null ? fallback : value;
-    },
-    delete: key => {
-      delete root.FCL_REGISTRY[addr].kvs[key];
-    },
-    update: (key, fn) => {
-      if (key != null) root.FCL_REGISTRY[addr].kvs[key] = fn(root.FCL_REGISTRY[addr].kvs[key]);
-    },
-    keys: () => {
-      return Object.keys(root.FCL_REGISTRY[addr].kvs);
-    },
-    all: () => {
-      return root.FCL_REGISTRY[addr].kvs;
-    },
-    where: pattern => {
-      return Object.keys(root.FCL_REGISTRY[addr].kvs).reduce((acc, key) => {
-        return pattern.test(key) ? {
-          ...acc,
-          [key]: root.FCL_REGISTRY[addr].kvs[key]
-        } : acc;
-      }, {});
-    },
-    merge: function () {
-      let data = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-      Object.keys(data).forEach(key => root.FCL_REGISTRY[addr].kvs[key] = data[key]);
-    },
-    fatalError: error => {
-      root.FCL_REGISTRY[addr].error = error;
-      for (let to of root.FCL_REGISTRY[addr].subs) send(to, UPDATED);
-    }
-  };
-  if (typeof fn === "object") fn = fromHandlers(fn);
-  queueMicrotask__default["default"](async () => {
+  const ctx = createCtx(addr);
+  let fn;
+  if (typeof fnOrHandlers === "object") fn = fromHandlers(fnOrHandlers);else fn = fnOrHandlers;
+  _queueMicrotask(async () => {
     await fn(ctx);
     kill(addr);
   });
   return addr;
 };
+const createCtx = addr => ({
+  self: () => addr,
+  receive: () => FCL_REGISTRY[addr].mailbox.receive(),
+  send: function (to, tag, data) {
+    let opts = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
+    if (to == null) return;
+    opts.from = addr;
+    return send(to, tag, data, opts);
+  },
+  sendSelf: function (tag, data) {
+    let opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+    if (FCL_REGISTRY[addr]) send(addr, tag, data, opts);
+  },
+  broadcast: function (tag, data) {
+    let opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+    opts.from = addr;
+    for (const to of FCL_REGISTRY[addr].subs) send(to, tag, data, opts);
+  },
+  subscribe: sub => sub != null && FCL_REGISTRY[addr].subs.add(sub),
+  unsubscribe: sub => sub != null && FCL_REGISTRY[addr].subs.delete(sub),
+  subscriberCount: () => FCL_REGISTRY[addr].subs.size,
+  hasSubs: () => !!FCL_REGISTRY[addr].subs.size,
+  put: (key, value) => {
+    if (key != null) FCL_REGISTRY[addr].kvs[key] = value;
+  },
+  get: function (key) {
+    let fallback = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : undefined;
+    const value = FCL_REGISTRY[addr].kvs[key];
+    return value == null ? fallback : value;
+  },
+  delete: key => {
+    delete FCL_REGISTRY[addr].kvs[key];
+  },
+  update: (key, fn) => {
+    if (key != null) FCL_REGISTRY[addr].kvs[key] = fn(FCL_REGISTRY[addr].kvs[key]);
+  },
+  keys: () => {
+    return Object.keys(FCL_REGISTRY[addr].kvs);
+  },
+  all: () => {
+    return FCL_REGISTRY[addr].kvs;
+  },
+  where: pattern => {
+    return Object.keys(FCL_REGISTRY[addr].kvs).reduce((acc, key) => {
+      return pattern.test(key) ? {
+        ...acc,
+        [key]: FCL_REGISTRY[addr].kvs[key]
+      } : acc;
+    }, {});
+  },
+  merge: function () {
+    let data = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    Object.keys(data).forEach(key => FCL_REGISTRY[addr].kvs[key] = data[key]);
+  },
+  fatalError: error => {
+    FCL_REGISTRY[addr].error = error;
+    for (const to of FCL_REGISTRY[addr].subs) send(to, UPDATED);
+  }
+});
 
 // Returns an unsubscribe function
 // A SUBSCRIBE handler will need to be created to handle the subscription event
@@ -28278,12 +27511,11 @@ const spawn = function (fn) {
 //
 function subscriber(address, spawnFn, callback) {
   spawnFn(address);
-  const EXIT = "@EXIT";
   const self = spawn(async ctx => {
     ctx.send(address, SUBSCRIBE);
     while (1) {
       const letter = await ctx.receive();
-      const error = root.FCL_REGISTRY[address].error;
+      const error = FCL_REGISTRY[address].error;
       if (letter.tag === EXIT) {
         ctx.send(address, UNSUBSCRIBE);
         return;
@@ -28329,15 +27561,15 @@ exports.subscriber = subscriber;
 
 
 }).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"queue-microtask":188}],133:[function(require,module,exports){
+},{}],133:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
 /**
  * @description Removes 0x from address if present
- * @param {string} address - Flow address
- * @returns {string} - Flow address without 0x prefix
+ * @param address - Flow address
+ * @returns Flow address without 0x prefix
  */
 function sansPrefix(address) {
   if (address == null) return null;
@@ -28346,8 +27578,8 @@ function sansPrefix(address) {
 
 /**
  * @description Adds 0x to address if not already present
- * @param {string} address - Flow address
- * @returns {string} - Flow address with 0x prefix
+ * @param address - Flow address
+ * @returns Flow address with 0x prefix
  */
 function withPrefix(address) {
   if (address == null) return null;
@@ -28356,8 +27588,8 @@ function withPrefix(address) {
 
 /**
  * @description Adds 0x to address if not already present
- * @param {string} address - Flow address
- * @returns {string} - Flow address with 0x prefix
+ * @param address - Flow address
+ * @returns Flow address with 0x prefix
  */
 function display(address) {
   return withPrefix(address);
@@ -28375,15 +27607,14 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 /**
  * Asserts fact is true, otherwise throw an error with invariant message
- * @param {boolean} fact
- * @param {string} msg
- * @param {Array} rest
- * @returns {void}
+ * @param fact
+ * @param msg
+ * @param rest
  */
 function invariant(fact, msg) {
   if (!fact) {
     const error = new Error(`INVARIANT ${msg}`);
-    error.stack = error.stack.split("\n").filter(d => !/at invariant/.test(d)).join("\n");
+    error.stack = error.stack?.split("\n")?.filter(d => !/at invariant/.test(d))?.join("\n");
     for (var _len = arguments.length, rest = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
       rest[_key - 2] = arguments[_key];
     }
@@ -28408,39 +27639,30 @@ const setConfig = _config => {
 
 /**
  * The levels of the logger
- *
- * @typedef {Object} LEVELS
- * @property {number} debug - The debug level
- * @property {number} info - The info level
- * @property {number} log - The log level
- * @property {number} warn - The warn level
- * @property {number} error - The error level
- *
  */
-const LEVELS = Object.freeze({
-  debug: 5,
-  info: 4,
-  log: 3,
-  warn: 2,
-  error: 1
-});
+let LEVELS = /*#__PURE__*/function (LEVELS) {
+  LEVELS[LEVELS["debug"] = 5] = "debug";
+  LEVELS[LEVELS["info"] = 4] = "info";
+  LEVELS[LEVELS["log"] = 3] = "log";
+  LEVELS[LEVELS["warn"] = 2] = "warn";
+  LEVELS[LEVELS["error"] = 1] = "error";
+  return LEVELS;
+}({});
 
 /**
  * Builds a message formatted for the logger
- *
- * @param {Object} options - The options for the log
- * @param {string} options.title - The title of the log
- * @param {string} options.message - The message of the log
- * @returns {Array<string>} - The message formatted for the logger
- *
+ * @param options - The options for the log
+ * @param options.title - The title of the log
+ * @param options.message - The message of the log
+ * @returns The message formatted for the logger
  * @example
  * buildLoggerMessageArgs({ title: "My Title", message: "My Message" })
  */
-const buildLoggerMessageArgs = _ref => {
-  let {
+const buildLoggerMessageArgs = options => {
+  const {
     title,
     message
-  } = _ref;
+  } = options;
   return [`
     %c${title}
     ============================
@@ -28448,30 +27670,26 @@ const buildLoggerMessageArgs = _ref => {
     ${message}
 
     ============================
-    `.replace(/\n[^\S\r\n]+/g, "\n").trim(),, "font-weight:bold;font-family:monospace;"];
+    `.replace(/\n[^\S\r\n]+/g, "\n").trim(), "font-weight:bold;font-family:monospace;"];
 };
 
 /**
  * Logs messages based on the level of the message and the level set in the config
- *
- * @param {Object} options - The options for the log
- * @param {string} options.title - The title of the log
- * @param {string} options.message - The message of the log
- * @param {number} options.level - The level of the log
- * @param {boolean} options.always - Whether to always show the log
- * @returns {Promise<void>}
- *
+ * @param options - The options for the log
+ * @param options.title - The title of the log
+ * @param options.message - The message of the log
+ * @param options.level - The level of the log
+ * @param options.always - Whether to always show the log
  * @example
  * log({ title: "My Title", message: "My Message", level: LEVELS.warn, always: false })
- *
  */
-const log = async _ref2 => {
-  let {
+const log = async options => {
+  const {
     title,
     message,
     level,
-    always = false
-  } = _ref2;
+    always
+  } = options;
   const configLoggerLevel = (await config?.()?.get("logger.level")) ?? LEVELS.warn;
 
   // If config level is below message level then don't show it
@@ -28499,32 +27717,34 @@ const log = async _ref2 => {
 };
 
 /**
- * Logs a deprecation notice
- *
- * @param {Object} options - The options for the log
- * @param {string} options.pkg - The package that is being deprecated
- * @param {string} options.subject - The subject of the deprecation
- * @param {string} options.transition - The transition path for the deprecation
- * @param {number} options.level - The level of the log
- * @param {string} options.message - The message of the log
- * @param {Function} options.callback - A callback to run after the log
- * @returns {Promise<void>}
- *
+ * Logs a deprecation notice.  If a callback is provided this function returns a function that will call the callback and log the deprecation notice, otherwise it just logs the deprecation notice.
+ * @param options - The options for the log
+ * @param options.pkg - The package that is being deprecated
+ * @param options.subject - The subject of the deprecation
+ * @param options.transition - The transition path for the deprecation
+ * @param options.level - The level of the log
+ * @param options.message - The message of the log
+ * @param options.callback - A callback to run after the log
+ * @returns A function that will call the callback and log the deprecation notice if the callback is provided
  * @example
+ * // Logs a deprecation notice
  * log.deprecate({ pkg: "@onflow/fcl", subject: "Some item", transition: "https://github.com/onflow/flow-js-sdk", message: "Descriptive message", level: LEVELS.warn, callback: () => {} })
- *
+ * @example
+ * function someFunction() { ... }
+ * const deprecatedFunction = log.deprecate({ pkg: "@onflow/fcl", subject: "Some item", transition: "https://github.com/foo/bar/TRANSITIONS.md", message: "Descriptive message", level: LEVELS.warn, callback: someFunction })
+ * deprecatedFunction() // Calls someFunction and logs the deprecation notice
  */
-log.deprecate = _ref3 => {
-  let {
+log.deprecate = options => {
+  const {
     pkg,
     subject,
     transition,
     level = LEVELS.warn,
     message = "",
     callback = null
-  } = _ref3;
-  const capitalizeFirstLetter = string => {
-    return string.charAt(0).toUpperCase() + string.slice(1);
+  } = options;
+  const capitalizeFirstLetter = str => {
+    return str.charAt(0).toUpperCase() + str.slice(1);
   };
   const logMessage = () => log({
     title: `${pkg ? pkg + " " : ""}Deprecation Notice`,
@@ -28628,1476 +27848,45 @@ exports.compare = compare;
 
 
 },{}],137:[function(require,module,exports){
-(function (global){(function (){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
-
-/*! queue-microtask. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> */
-let promise;
-var queueMicrotask_1 = typeof queueMicrotask === 'function' ? queueMicrotask.bind(typeof window !== 'undefined' ? window : commonjsGlobal)
-// reuse resolved promise, and allocate it lazily
-: cb => (promise || (promise = Promise.resolve())).then(cb).catch(err => setTimeout(() => {
-  throw err;
-}, 0));
-
-const mailbox = () => {
-  const queue = [];
-  var next;
-  return {
-    async deliver(msg) {
-      queue.push(msg);
-      if (next) {
-        next(queue.shift());
-        next = undefined;
-      }
-    },
-    receive() {
-      return new Promise(function innerReceive(resolve) {
-        const msg = queue.shift();
-        if (msg) return resolve(msg);
-        next = resolve;
-      });
-    }
-  };
-};
-const INIT = "INIT";
-const SUBSCRIBE = "SUBSCRIBE";
-const UNSUBSCRIBE = "UNSUBSCRIBE";
-const UPDATED$2 = "UPDATED";
-const EXIT = "EXIT";
-const TERMINATE = "TERMINATE";
-const root = typeof self === "object" && self.self === self && self || typeof global === "object" && global.global === global && global || typeof window === "object" && window.window === window && window;
-root.FCL_REGISTRY = root.FCL_REGISTRY == null ? {} : root.FCL_REGISTRY;
-var pid = 0b0;
-const DEFAULT_TIMEOUT = 5000;
-const send = function (addr, tag, data) {
-  let opts = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
-  return new Promise((reply, reject) => {
-    const expectReply = opts.expectReply || false;
-    const timeout = opts.timeout != null ? opts.timeout : DEFAULT_TIMEOUT;
-    if (expectReply && timeout) {
-      setTimeout(() => reject(new Error(`Timeout: ${timeout}ms passed without a response.`)), timeout);
-    }
-    const payload = {
-      to: addr,
-      from: opts.from,
-      tag,
-      data,
-      timeout,
-      reply,
-      reject
-    };
-    try {
-      root.FCL_REGISTRY[addr] && root.FCL_REGISTRY[addr].mailbox.deliver(payload);
-      if (!expectReply) reply(true);
-    } catch (error) {
-      console.error("FCL.Actor -- Could Not Deliver Message", payload, root.FCL_REGISTRY[addr], error);
-    }
-  });
-};
-const kill = addr => {
-  delete root.FCL_REGISTRY[addr];
-};
-const fromHandlers = function () {
-  let handlers = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-  return async ctx => {
-    if (typeof handlers[INIT] === "function") await handlers[INIT](ctx);
-    __loop: while (1) {
-      const letter = await ctx.receive();
-      try {
-        if (letter.tag === EXIT) {
-          if (typeof handlers[TERMINATE] === "function") {
-            await handlers[TERMINATE](ctx, letter, letter.data || {});
-          }
-          break __loop;
-        }
-        await handlers[letter.tag](ctx, letter, letter.data || {});
-      } catch (error) {
-        console.error(`${ctx.self()} Error`, letter, error);
-      } finally {
-        continue __loop;
-      }
-    }
-  };
-};
-const spawn = function (fn) {
-  let addr = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
-  if (addr == null) addr = ++pid;
-  if (root.FCL_REGISTRY[addr] != null) return addr;
-  root.FCL_REGISTRY[addr] = {
-    addr,
-    mailbox: mailbox(),
-    subs: new Set(),
-    kvs: {},
-    error: null
-  };
-  const ctx = {
-    self: () => addr,
-    receive: () => root.FCL_REGISTRY[addr].mailbox.receive(),
-    send: function (to, tag, data) {
-      let opts = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
-      opts.from = addr;
-      return send(to, tag, data, opts);
-    },
-    sendSelf: (tag, data, opts) => {
-      if (root.FCL_REGISTRY[addr]) send(addr, tag, data, opts);
-    },
-    broadcast: function (tag, data) {
-      let opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-      opts.from = addr;
-      for (let to of root.FCL_REGISTRY[addr].subs) send(to, tag, data, opts);
-    },
-    subscribe: sub => sub != null && root.FCL_REGISTRY[addr].subs.add(sub),
-    unsubscribe: sub => sub != null && root.FCL_REGISTRY[addr].subs.delete(sub),
-    subscriberCount: () => root.FCL_REGISTRY[addr].subs.size,
-    hasSubs: () => !!root.FCL_REGISTRY[addr].subs.size,
-    put: (key, value) => {
-      if (key != null) root.FCL_REGISTRY[addr].kvs[key] = value;
-    },
-    get: (key, fallback) => {
-      const value = root.FCL_REGISTRY[addr].kvs[key];
-      return value == null ? fallback : value;
-    },
-    delete: key => {
-      delete root.FCL_REGISTRY[addr].kvs[key];
-    },
-    update: (key, fn) => {
-      if (key != null) root.FCL_REGISTRY[addr].kvs[key] = fn(root.FCL_REGISTRY[addr].kvs[key]);
-    },
-    keys: () => {
-      return Object.keys(root.FCL_REGISTRY[addr].kvs);
-    },
-    all: () => {
-      return root.FCL_REGISTRY[addr].kvs;
-    },
-    where: pattern => {
-      return Object.keys(root.FCL_REGISTRY[addr].kvs).reduce((acc, key) => {
-        return pattern.test(key) ? {
-          ...acc,
-          [key]: root.FCL_REGISTRY[addr].kvs[key]
-        } : acc;
-      }, {});
-    },
-    merge: function () {
-      let data = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-      Object.keys(data).forEach(key => root.FCL_REGISTRY[addr].kvs[key] = data[key]);
-    },
-    fatalError: error => {
-      root.FCL_REGISTRY[addr].error = error;
-      for (let to of root.FCL_REGISTRY[addr].subs) send(to, UPDATED$2);
-    }
-  };
-  if (typeof fn === "object") fn = fromHandlers(fn);
-  queueMicrotask_1(async () => {
-    await fn(ctx);
-    kill(addr);
-  });
-  return addr;
-};
-
-// Returns an unsubscribe function
-// A SUBSCRIBE handler will need to be created to handle the subscription event
-//
-//  [SUBSCRIBE]: (ctx, letter) => {
-//    ctx.subscribe(letter.from)
-//    ctx.send(letter.from, UPDATED, ctx.all())
-//  }
-//
-function subscriber(address, spawnFn, callback) {
-  spawnFn(address);
-  const EXIT = "@EXIT";
-  const self = spawn(async ctx => {
-    ctx.send(address, SUBSCRIBE);
-    while (1) {
-      const letter = await ctx.receive();
-      const error = root.FCL_REGISTRY[address].error;
-      if (letter.tag === EXIT) {
-        ctx.send(address, UNSUBSCRIBE);
-        return;
-      }
-      if (error) {
-        callback(null, error);
-        ctx.send(address, UNSUBSCRIBE);
-        return;
-      }
-      callback(letter.data, null);
-    }
-  });
-  return () => send(self, EXIT);
-}
+var utilLogger = require('@onflow/util-logger');
 
 /**
- * Asserts fact is true, otherwise throw an error with invariant message
- * @param {boolean} fact
- * @param {string} msg
- * @param {Array} rest
- * @returns {void}
+ * Interleaves two arrays
+ * @param a - The first array
+ * @param b - The second array
+ * @param c - The target array
+ * @returns The interleaved array
  */
-function invariant$1(fact, msg) {
-  if (!fact) {
-    const error = new Error(`INVARIANT ${msg}`);
-    error.stack = error.stack.split("\n").filter(d => !/at invariant/.test(d)).join("\n");
-    for (var _len = arguments.length, rest = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
-      rest[_key - 2] = arguments[_key];
-    }
-    console.error("\n\n---\n\n", error, "\n\n", ...rest, "\n\n---\n\n");
-    throw error;
-  }
-}
-const pipe$1 = function () {
-  for (var _len = arguments.length, funcs = new Array(_len), _key = 0; _key < _len; _key++) {
-    funcs[_key] = arguments[_key];
-  }
-  return v => {
-    return funcs.reduce((res, func) => {
-      return func(res);
-    }, v);
-  };
-};
-
-/***
- * Merge multiple functions returning objects into one object.
- * @param {...function(*): object} funcs - Functions to merge
- * @return {object} - Merged object
- */
-const mergePipe$1 = function () {
-  for (var _len2 = arguments.length, funcs = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-    funcs[_key2] = arguments[_key2];
-  }
-  return v => {
-    return funcs.reduce((res, func) => {
-      return {
-        ...res,
-        ...func(v)
-      };
-    }, {});
-  };
-};
-
-/**
- * @description Object check
- * @param {*} value - Value to check
- * @returns {boolean} - Is object status
- */
-const isObject$1 = value => value && typeof value === "object" && !Array.isArray(value);
-
-/**
- * @description Deep merge multiple objects.
- * @param {object} target - Target object
- * @param {...object[]} sources - Source objects
- * @returns {object} - Merged object
- */
-const mergeDeep$1 = function (target) {
-  for (var _len3 = arguments.length, sources = new Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
-    sources[_key3 - 1] = arguments[_key3];
-  }
-  if (!sources.length) return target;
-  const source = sources.shift();
-  if (isObject$1(target) && isObject$1(source)) {
-    for (const key in source) {
-      if (isObject$1(source[key])) {
-        if (!target[key]) Object.assign(target, {
-          [key]: {}
-        });
-        mergeDeep$1(target[key], source[key]);
-      } else {
-        Object.assign(target, {
-          [key]: source[key]
-        });
-      }
-    }
-  }
-  return mergeDeep$1(target, ...sources);
-};
-
-/**
- * @description Deep merge multiple Flow JSON.
- * @param {object|object[]} value - Flow JSON or array of Flow JSONs
- * @returns {object} - Merged Flow JSON
- */
-const mergeFlowJSONs$1 = value => Array.isArray(value) ? mergeDeep$1({}, ...value) : value;
-
-/**
- * @description Filter out contracts section of flow.json.
- * @param {object|object[]} obj - Flow JSON or array of Flow JSONs
- * @returns {object} - Contracts section of Flow JSON
- */
-const filterContracts$1 = obj => obj.contracts ? obj.contracts : {};
-
-/**
- * @description Gathers contract addresses by network
- * @param {string} network - Network to gather addresses for
- * @returns {object} - Contract names by addresses mapping e.g { "HelloWorld": "0x123" }
- */
-const mapContractAliasesToNetworkAddress$1 = network => contracts => {
-  return Object.entries(contracts).reduce((c, _ref) => {
-    let [key, value] = _ref;
-    const networkContractAlias = value?.aliases?.[network];
-    if (networkContractAlias) {
-      c[key] = networkContractAlias;
-    }
-    return c;
-  }, {});
-};
-const mapDeploymentsToNetworkAddress$1 = network => _ref2 => {
-  let {
-    deployments = {},
-    accounts = {}
-  } = _ref2;
-  const networkDeployment = deployments?.[network];
-  if (!networkDeployment) return {};
-  return Object.entries(networkDeployment).reduce((c, _ref3) => {
-    let [key, value] = _ref3;
-    // Resolve account address
-    const accountAddress = accounts[key]?.address;
-    if (!accountAddress) return c;
-
-    // Create an object assigning the address to the contract name.
-    return value.reduce((c, contract) => {
-      return {
-        ...c,
-        [contract]: accountAddress
-      };
-    }, {});
-  }, {});
-};
-
-/**
- * @description Take in flow.json files and return contract to address mapping by network
- * @param {object|object[]} jsons - Flow JSON or array of Flow JSONs
- * @param {string} network - Network to gather addresses for
- * @returns {object} - Contract names by addresses mapping e.g { "HelloWorld": "0x123" }
- */
-const getContracts$1 = (jsons, network) => {
-  return pipe$1(mergeFlowJSONs$1, mergePipe$1(mapDeploymentsToNetworkAddress$1(network), pipe$1(filterContracts$1, mapContractAliasesToNetworkAddress$1(network))))(jsons);
-};
-
-/**
- * @description Checks if string is hexidecimal
- * @param {string} str - String to check
- * @returns {boolean} - Is hexidecimal status
- */
-const isHexidecimal$1 = str => {
-  // Check that it is a string
-  if (typeof str !== "string") return false;
-  return /^[0-9A-Fa-f]+$/.test(str);
-};
-
-/**
- * @description Checks flow.json file for private keys
- * @param {object} flowJSON - Flow JSON
- * @returns {boolean} - Has private keys status
- */
-const hasPrivateKeys$1 = flowJSON => {
-  return Object.entries(flowJSON?.accounts).reduce((hasPrivateKey, _ref4) => {
-    let [key, value] = _ref4;
-    if (hasPrivateKey) return true;
-    return value?.hasOwnProperty("key") && isHexidecimal$1(value?.key);
-  }, false);
-};
-
-/**
- * @description Take in flow.json or array of flow.json files and checks for private keys
- * @param {object|object[]} value - Flow JSON or array of Flow JSONs
- * @returns {boolean} - Has private keys status
- */
-const anyHasPrivateKeys$1 = value => {
-  if (isObject$1(value)) return hasPrivateKeys$1(value);
-  return value.some(hasPrivateKeys$1);
-};
-
-/**
- * @description Format network to always be 'emulator', 'testnet', or 'mainnet'
- * @param {string} network - Network to format
- * @returns {string} - Formatted network name (either 'emulator', 'testnet', or 'mainnet')
- */
-const cleanNetwork$1 = network => network?.toLowerCase() === "local" ? "emulator" : network?.toLowerCase();
-const NAME$1 = "config";
-const PUT$1 = "PUT_CONFIG";
-const GET$1 = "GET_CONFIG";
-const GET_ALL$1 = "GET_ALL_CONFIG";
-const UPDATE$1 = "UPDATE_CONFIG";
-const DELETE$1 = "DELETE_CONFIG";
-const CLEAR$1 = "CLEAR_CONFIG";
-const WHERE$1 = "WHERE_CONFIG";
-const UPDATED$1 = "CONFIG/UPDATED";
-const identity$1 = v => v;
-const HANDLERS$1 = {
-  [PUT$1]: (ctx, _letter, _ref) => {
-    let {
-      key,
-      value
-    } = _ref;
-    if (key == null) throw new Error("Missing 'key' for config/put.");
-    ctx.put(key, value);
-    ctx.broadcast(UPDATED$1, {
-      ...ctx.all()
-    });
-  },
-  [GET$1]: (ctx, letter, _ref2) => {
-    let {
-      key,
-      fallback
-    } = _ref2;
-    if (key == null) throw new Error("Missing 'key' for config/get");
-    letter.reply(ctx.get(key, fallback));
-  },
-  [GET_ALL$1]: (ctx, letter) => {
-    letter.reply({
-      ...ctx.all()
-    });
-  },
-  [UPDATE$1]: (ctx, letter, _ref3) => {
-    let {
-      key,
-      fn
-    } = _ref3;
-    if (key == null) throw new Error("Missing 'key' for config/update");
-    ctx.update(key, fn || identity$1);
-    ctx.broadcast(UPDATED$1, {
-      ...ctx.all()
-    });
-  },
-  [DELETE$1]: (ctx, letter, _ref4) => {
-    let {
-      key
-    } = _ref4;
-    if (key == null) throw new Error("Missing 'key' for config/delete");
-    ctx.delete(key);
-    ctx.broadcast(UPDATED$1, {
-      ...ctx.all()
-    });
-  },
-  [CLEAR$1]: (ctx, letter) => {
-    let keys = Object.keys(ctx.all());
-    for (let key of keys) ctx.delete(key);
-    ctx.broadcast(UPDATED$1, {
-      ...ctx.all()
-    });
-  },
-  [WHERE$1]: (ctx, letter, _ref5) => {
-    let {
-      pattern
-    } = _ref5;
-    if (pattern == null) throw new Error("Missing 'pattern' for config/where");
-    letter.reply(ctx.where(pattern));
-  },
-  [SUBSCRIBE]: (ctx, letter) => {
-    ctx.subscribe(letter.from);
-    ctx.send(letter.from, UPDATED$1, {
-      ...ctx.all()
-    });
-  },
-  [UNSUBSCRIBE]: (ctx, letter) => {
-    ctx.unsubscribe(letter.from);
-  }
-};
-spawn(HANDLERS$1, NAME$1);
-
-/**
- * @description Adds a key-value pair to the config
- * @param {string} key - The key to add
- * @param {*} value - The value to add
- * @returns {Promise<object>} - The current config
- */
-function put$1(key, value) {
-  send(NAME$1, PUT$1, {
-    key,
-    value
-  });
-  return config$1();
-}
-
-/**
- * @description Gets a key-value pair with a fallback from the config
- * @param {string} key - The key to add
- * @param {*} [fallback] - The fallback value to return if key is not found
- * @returns {Promise<*>} - The value found at key or fallback
- */
-function get$1(key, fallback) {
-  return send(NAME$1, GET$1, {
-    key,
-    fallback
-  }, {
-    expectReply: true,
-    timeout: 10
-  });
-}
-
-/**
- * @description Returns the first non null config value or the fallback
- * @param {string[]} wants - The keys to search for
- * @param {*} fallback - The fallback value to return if key is not found
- * @returns {Promise<*>} - The value found at key or fallback
- */
-async function first$1() {
-  let wants = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
-  let fallback = arguments.length > 1 ? arguments[1] : undefined;
-  if (!wants.length) return fallback;
-  const [head, ...rest] = wants;
-  const ret = await get$1(head);
-  if (ret == null) return first$1(rest, fallback);
-  return ret;
-}
-
-/**
- * @description Returns the current config
- * @returns {Promise<object>} - The current config
- */
-function all$1() {
-  return send(NAME$1, GET_ALL$1, null, {
-    expectReply: true,
-    timeout: 10
-  });
-}
-
-/**
- * @description Updates a key-value pair in the config
- * @param {string} key - The key to update
- * @param {Function} fn - The function to update the value with
- * @returns {Promise<object>} - The current config
- */
-function update$1(key) {
-  let fn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : identity$1;
-  send(NAME$1, UPDATE$1, {
-    key,
-    fn
-  });
-  return config$1();
-}
-
-/**
- * @description Deletes a key-value pair from the config
- * @param {string} key - The key to delete
- * @returns {Promise<object>} - The current config
- */
-function _delete$1(key) {
-  send(NAME$1, DELETE$1, {
-    key
-  });
-  return config$1();
-}
-
-/**
- * @description Returns a subset of the config based on a pattern
- * @param {string} pattern - The pattern to match keys against
- * @returns {Promise<object>} - The subset of the config
- */
-function where$1(pattern) {
-  return send(NAME$1, WHERE$1, {
-    pattern
-  }, {
-    expectReply: true,
-    timeout: 10
-  });
-}
-
-/**
- * @description Subscribes to config updates
- * @param {Function} callback - The callback to call when config is updated
- * @returns {Function} - The unsubscribe function
- */
-function subscribe$1(callback) {
-  return subscriber(NAME$1, () => spawn(HANDLERS$1, NAME$1), callback);
-}
-
-/**
- * @description Clears the config
- * @returns {void}
- */
-function clearConfig$1() {
-  return send(NAME$1, CLEAR$1);
-}
-
-/**
- * @description Resets the config to a previous state
- * @param {object} oldConfig - The previous config state
- * @returns {Promise<object>} - The current config
- */
-function resetConfig$1(oldConfig) {
-  return clearConfig$1().then(config$1(oldConfig));
-}
-
-/**
- * @description Takes in flow.json or array of flow.json files and creates contract placeholders
- * @param {object|object[]} data - The flow.json or array of flow.json files
- * @returns {void}
- */
-async function load$1(data) {
-  const network = await get$1("flow.network");
-  const cleanedNetwork = cleanNetwork$1(network);
-  const {
-    flowJSON
-  } = data;
-  invariant$1(Boolean(flowJSON), "config.load -- 'flowJSON' must be defined");
-  invariant$1(cleanedNetwork, `Flow Network Required -- In order for FCL to load your contracts please define "flow.network" to "emulator", "local", "testnet", or "mainnet" in your config. See more here: https://developers.flow.com/tools/fcl-js/reference/configure-fcl`);
-  if (anyHasPrivateKeys$1(flowJSON)) {
-    const isEmulator = cleanedNetwork === "emulator";
-    log$1({
-      title: "Private Keys Detected",
-      message: `Private keys should be stored in a separate flow.json file for security. See more here: https://developers.flow.com/tools/flow-cli/security`,
-      level: isEmulator ? LEVELS$1.warn : LEVELS$1.error
-    });
-    if (!isEmulator) return;
-  }
-  for (const [key, value] of Object.entries(getContracts$1(flowJSON, cleanedNetwork))) {
-    const contractConfigKey = `0x${key}`;
-    const existingContractConfigKey = await get$1(contractConfigKey);
-    if (existingContractConfigKey && existingContractConfigKey !== value) {
-      log$1({
-        title: "Contract Placeholder Conflict Detected",
-        message: `A generated contract placeholder from config.load conflicts with a placeholder you've set manually in config have the same name.`,
-        level: LEVELS$1.warn
-      });
-    } else {
-      put$1(contractConfigKey, value);
-    }
-    const systemContractConfigKey = `system.contracts.${key}`;
-    const systemExistingContractConfigKeyValue = await get$1(systemContractConfigKey);
-    if (systemExistingContractConfigKeyValue && systemExistingContractConfigKeyValue !== value) {
-      log$1({
-        title: "Contract Placeholder Conflict Detected",
-        message: `A generated contract placeholder from config.load conflicts with a placeholder you've set manually in config have the same name.`,
-        level: LEVELS$1.warn
-      });
-    } else {
-      put$1(systemContractConfigKey, value);
-    }
-  }
-}
-
-// eslint-disable-next-line jsdoc/require-returns
-/**
- * @description Sets the config
- * @param {object} [values] - The values to set
- */
-function config$1(values) {
-  if (values != null && typeof values === "object") {
-    Object.keys(values).map(d => put$1(d, values[d]));
-  }
-  return {
-    put: put$1,
-    get: get$1,
-    all: all$1,
-    first: first$1,
-    update: update$1,
-    delete: _delete$1,
-    where: where$1,
-    subscribe: subscribe$1,
-    overload: overload$1,
-    load: load$1
-  };
-}
-config$1.put = put$1;
-config$1.get = get$1;
-config$1.all = all$1;
-config$1.first = first$1;
-config$1.update = update$1;
-config$1.delete = _delete$1;
-config$1.where = where$1;
-config$1.subscribe = subscribe$1;
-config$1.overload = overload$1;
-config$1.load = load$1;
-const noop$1 = v => v;
-function overload$1() {
-  let opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-  let callback = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : noop$1;
-  return new Promise(async (resolve, reject) => {
-    const oldConfig = await all$1();
-    try {
-      config$1(opts);
-      var result = await callback(await all$1());
-      await resetConfig$1(oldConfig);
-      resolve(result);
-    } catch (error) {
-      await resetConfig$1(oldConfig);
-      reject(error);
-    }
-  });
-}
-
-/**
- * The levels of the logger
- * 
- * @typedef {Object} LEVELS
- * @property {number} debug - The debug level
- * @property {number} info - The info level
- * @property {number} log - The log level
- * @property {number} warn - The warn level
- * @property {number} error - The error level
- * 
- */
-const LEVELS$1 = Object.freeze({
-  debug: 5,
-  info: 4,
-  log: 3,
-  warn: 2,
-  error: 1
-});
-
-/**
- * Builds a message formatted for the logger
- * 
- * @param {Object} options - The options for the log
- * @param {string} options.title - The title of the log
- * @param {string} options.message - The message of the log
- * @returns {Array<string>} - The message formatted for the logger
- * 
- * @example
- * buildLoggerMessageArgs({ title: "My Title", message: "My Message" })
- */
-const buildLoggerMessageArgs$1 = _ref => {
-  let {
-    title,
-    message
-  } = _ref;
-  return [`
-    %c${title}
-    ============================
-
-    ${message}
-
-    ============================
-    `.replace(/\n[^\S\r\n]+/g, "\n").trim(),, "font-weight:bold;font-family:monospace;"];
-};
-
-/**
- * Logs messages based on the level of the message and the level set in the config
- * 
- * @param {Object} options - The options for the log
- * @param {string} options.title - The title of the log
- * @param {string} options.message - The message of the log
- * @param {number} options.level - The level of the log
- * @param {boolean} options.always - Whether to always show the log
- * @returns {Promise<void>}
- * 
- * @example
- * log({ title: "My Title", message: "My Message", level: LEVELS.warn, always: false })
- * 
- */
-const log$1 = async _ref2 => {
-  let {
-    title,
-    message,
-    level,
-    always = false
-  } = _ref2;
-  const configLoggerLevel = await config$1.get("logger.level", LEVELS$1.warn);
-
-  // If config level is below message level then don't show it
-  if (!always && configLoggerLevel < level) return;
-  const loggerMessageArgs = buildLoggerMessageArgs$1({
-    title,
-    message
-  });
-  switch (level) {
-    case LEVELS$1.debug:
-      console.debug(...loggerMessageArgs);
-      break;
-    case LEVELS$1.info:
-      console.info(...loggerMessageArgs);
-      break;
-    case LEVELS$1.warn:
-      console.warn(...loggerMessageArgs);
-      break;
-    case LEVELS$1.error:
-      console.error(...loggerMessageArgs);
-      break;
-    default:
-      console.log(...loggerMessageArgs);
-  }
-};
-
-/**
- * Logs a deprecation notice
- * 
- * @param {Object} options - The options for the log
- * @param {string} options.pkg - The package that is being deprecated
- * @param {string} options.subject - The subject of the deprecation
- * @param {string} options.transition - The transition path for the deprecation
- * @param {number} options.level - The level of the log
- * @param {string} options.message - The message of the log
- * @param {Function} options.callback - A callback to run after the log
- * @returns {Promise<void>}
- * 
- * @example
- * log.deprecate({ pkg: "@onflow/fcl", subject: "Some item", transition: "https://github.com/onflow/flow-js-sdk", message: "Descriptive message", level: LEVELS.warn, callback: () => {} })
- * 
- */
-log$1.deprecate = _ref3 => {
-  let {
-    pkg,
-    subject,
-    transition,
-    level = LEVELS$1.warn,
-    message = "",
-    callback = null
-  } = _ref3;
-  const capitalizeFirstLetter = string => {
-    return string.charAt(0).toUpperCase() + string.slice(1);
-  };
-  const logMessage = () => log$1({
-    title: `${pkg ? pkg + " " : ""}Deprecation Notice`,
-    message: `
-      ${subject ? `${capitalizeFirstLetter(subject)} is deprecated and will cease to work in future releases${pkg ? " of " + pkg : ""}.` : ""}${message ? "\n" + message : ""}${transition ? `\nYou can learn more (including a guide on common transition paths) here: ${transition}` : ""}
-    `.trim(),
-    level
-  });
-  if (typeof callback === "function") {
-    return async function () {
-      await logMessage();
-      return await callback(...arguments);
-    };
-  }
-  return logMessage();
-};
-
-/**
- * Asserts fact is true, otherwise throw an error with invariant message
- * @param {boolean} fact
- * @param {string} msg
- * @param {Array} rest
- * @returns {void}
- */
-function invariant(fact, msg) {
-  if (!fact) {
-    const error = new Error(`INVARIANT ${msg}`);
-    error.stack = error.stack.split("\n").filter(d => !/at invariant/.test(d)).join("\n");
-    for (var _len = arguments.length, rest = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
-      rest[_key - 2] = arguments[_key];
-    }
-    console.error("\n\n---\n\n", error, "\n\n", ...rest, "\n\n---\n\n");
-    throw error;
-  }
-}
-const pipe = function () {
-  for (var _len = arguments.length, funcs = new Array(_len), _key = 0; _key < _len; _key++) {
-    funcs[_key] = arguments[_key];
-  }
-  return v => {
-    return funcs.reduce((res, func) => {
-      return func(res);
-    }, v);
-  };
-};
-
-/***
- * Merge multiple functions returning objects into one object.
- * @param {...function(*): object} funcs - Functions to merge
- * @return {object} - Merged object
- */
-const mergePipe = function () {
-  for (var _len2 = arguments.length, funcs = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-    funcs[_key2] = arguments[_key2];
-  }
-  return v => {
-    return funcs.reduce((res, func) => {
-      return {
-        ...res,
-        ...func(v)
-      };
-    }, {});
-  };
-};
-
-/**
- * @description Object check
- * @param {*} value - Value to check
- * @returns {boolean} - Is object status
- */
-const isObject = value => value && typeof value === "object" && !Array.isArray(value);
-
-/**
- * @description Deep merge multiple objects.
- * @param {object} target - Target object
- * @param {...object[]} sources - Source objects
- * @returns {object} - Merged object
- */
-const mergeDeep = function (target) {
-  for (var _len3 = arguments.length, sources = new Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
-    sources[_key3 - 1] = arguments[_key3];
-  }
-  if (!sources.length) return target;
-  const source = sources.shift();
-  if (isObject(target) && isObject(source)) {
-    for (const key in source) {
-      if (isObject(source[key])) {
-        if (!target[key]) Object.assign(target, {
-          [key]: {}
-        });
-        mergeDeep(target[key], source[key]);
-      } else {
-        Object.assign(target, {
-          [key]: source[key]
-        });
-      }
-    }
-  }
-  return mergeDeep(target, ...sources);
-};
-
-/**
- * @description Deep merge multiple Flow JSON.
- * @param {object|object[]} value - Flow JSON or array of Flow JSONs
- * @returns {object} - Merged Flow JSON
- */
-const mergeFlowJSONs = value => Array.isArray(value) ? mergeDeep({}, ...value) : value;
-
-/**
- * @description Filter out contracts section of flow.json.
- * @param {object|object[]} obj - Flow JSON or array of Flow JSONs
- * @returns {object} - Contracts section of Flow JSON
- */
-const filterContracts = obj => obj.contracts ? obj.contracts : {};
-
-/**
- * @description Gathers contract addresses by network
- * @param {string} network - Network to gather addresses for
- * @returns {object} - Contract names by addresses mapping e.g { "HelloWorld": "0x123" }
- */
-const mapContractAliasesToNetworkAddress = network => contracts => {
-  return Object.entries(contracts).reduce((c, _ref) => {
-    let [key, value] = _ref;
-    const networkContractAlias = value?.aliases?.[network];
-    if (networkContractAlias) {
-      c[key] = networkContractAlias;
-    }
-    return c;
-  }, {});
-};
-const mapDeploymentsToNetworkAddress = network => _ref2 => {
-  let {
-    deployments = {},
-    accounts = {}
-  } = _ref2;
-  const networkDeployment = deployments?.[network];
-  if (!networkDeployment) return {};
-  return Object.entries(networkDeployment).reduce((c, _ref3) => {
-    let [key, value] = _ref3;
-    // Resolve account address
-    const accountAddress = accounts[key]?.address;
-    if (!accountAddress) return c;
-
-    // Create an object assigning the address to the contract name.
-    return value.reduce((c, contract) => {
-      return {
-        ...c,
-        [contract]: accountAddress
-      };
-    }, {});
-  }, {});
-};
-
-/**
- * @description Take in flow.json files and return contract to address mapping by network
- * @param {object|object[]} jsons - Flow JSON or array of Flow JSONs
- * @param {string} network - Network to gather addresses for
- * @returns {object} - Contract names by addresses mapping e.g { "HelloWorld": "0x123" }
- */
-const getContracts = (jsons, network) => {
-  return pipe(mergeFlowJSONs, mergePipe(mapDeploymentsToNetworkAddress(network), pipe(filterContracts, mapContractAliasesToNetworkAddress(network))))(jsons);
-};
-
-/**
- * @description Checks if string is hexidecimal
- * @param {string} str - String to check
- * @returns {boolean} - Is hexidecimal status
- */
-const isHexidecimal = str => {
-  // Check that it is a string
-  if (typeof str !== "string") return false;
-  return /^[0-9A-Fa-f]+$/.test(str);
-};
-
-/**
- * @description Checks flow.json file for private keys
- * @param {object} flowJSON - Flow JSON
- * @returns {boolean} - Has private keys status
- */
-const hasPrivateKeys = flowJSON => {
-  return Object.entries(flowJSON?.accounts).reduce((hasPrivateKey, _ref4) => {
-    let [key, value] = _ref4;
-    if (hasPrivateKey) return true;
-    return value?.hasOwnProperty("key") && isHexidecimal(value?.key);
-  }, false);
-};
-
-/**
- * @description Take in flow.json or array of flow.json files and checks for private keys
- * @param {object|object[]} value - Flow JSON or array of Flow JSONs
- * @returns {boolean} - Has private keys status
- */
-const anyHasPrivateKeys = value => {
-  if (isObject(value)) return hasPrivateKeys(value);
-  return value.some(hasPrivateKeys);
-};
-
-/**
- * @description Format network to always be 'emulator', 'testnet', or 'mainnet'
- * @param {string} network - Network to format
- * @returns {string} - Formatted network name (either 'emulator', 'testnet', or 'mainnet')
- */
-const cleanNetwork = network => network?.toLowerCase() === "local" ? "emulator" : network?.toLowerCase();
-const NAME = "config";
-const PUT = "PUT_CONFIG";
-const GET = "GET_CONFIG";
-const GET_ALL = "GET_ALL_CONFIG";
-const UPDATE = "UPDATE_CONFIG";
-const DELETE = "DELETE_CONFIG";
-const CLEAR = "CLEAR_CONFIG";
-const WHERE = "WHERE_CONFIG";
-const UPDATED = "CONFIG/UPDATED";
-const identity = v => v;
-const HANDLERS = {
-  [PUT]: (ctx, _letter, _ref) => {
-    let {
-      key,
-      value
-    } = _ref;
-    if (key == null) throw new Error("Missing 'key' for config/put.");
-    ctx.put(key, value);
-    ctx.broadcast(UPDATED, {
-      ...ctx.all()
-    });
-  },
-  [GET]: (ctx, letter, _ref2) => {
-    let {
-      key,
-      fallback
-    } = _ref2;
-    if (key == null) throw new Error("Missing 'key' for config/get");
-    letter.reply(ctx.get(key, fallback));
-  },
-  [GET_ALL]: (ctx, letter) => {
-    letter.reply({
-      ...ctx.all()
-    });
-  },
-  [UPDATE]: (ctx, letter, _ref3) => {
-    let {
-      key,
-      fn
-    } = _ref3;
-    if (key == null) throw new Error("Missing 'key' for config/update");
-    ctx.update(key, fn || identity);
-    ctx.broadcast(UPDATED, {
-      ...ctx.all()
-    });
-  },
-  [DELETE]: (ctx, letter, _ref4) => {
-    let {
-      key
-    } = _ref4;
-    if (key == null) throw new Error("Missing 'key' for config/delete");
-    ctx.delete(key);
-    ctx.broadcast(UPDATED, {
-      ...ctx.all()
-    });
-  },
-  [CLEAR]: (ctx, letter) => {
-    let keys = Object.keys(ctx.all());
-    for (let key of keys) ctx.delete(key);
-    ctx.broadcast(UPDATED, {
-      ...ctx.all()
-    });
-  },
-  [WHERE]: (ctx, letter, _ref5) => {
-    let {
-      pattern
-    } = _ref5;
-    if (pattern == null) throw new Error("Missing 'pattern' for config/where");
-    letter.reply(ctx.where(pattern));
-  },
-  [SUBSCRIBE]: (ctx, letter) => {
-    ctx.subscribe(letter.from);
-    ctx.send(letter.from, UPDATED, {
-      ...ctx.all()
-    });
-  },
-  [UNSUBSCRIBE]: (ctx, letter) => {
-    ctx.unsubscribe(letter.from);
-  }
-};
-spawn(HANDLERS, NAME);
-
-/**
- * @description Adds a key-value pair to the config
- * @param {string} key - The key to add
- * @param {*} value - The value to add
- * @returns {Promise<object>} - The current config
- */
-function put(key, value) {
-  send(NAME, PUT, {
-    key,
-    value
-  });
-  return config();
-}
-
-/**
- * @description Gets a key-value pair with a fallback from the config
- * @param {string} key - The key to add
- * @param {*} [fallback] - The fallback value to return if key is not found
- * @returns {Promise<*>} - The value found at key or fallback
- */
-function get(key, fallback) {
-  return send(NAME, GET, {
-    key,
-    fallback
-  }, {
-    expectReply: true,
-    timeout: 10
-  });
-}
-
-/**
- * @description Returns the first non null config value or the fallback
- * @param {string[]} wants - The keys to search for
- * @param {*} fallback - The fallback value to return if key is not found
- * @returns {Promise<*>} - The value found at key or fallback
- */
-async function first() {
-  let wants = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
-  let fallback = arguments.length > 1 ? arguments[1] : undefined;
-  if (!wants.length) return fallback;
-  const [head, ...rest] = wants;
-  const ret = await get(head);
-  if (ret == null) return first(rest, fallback);
-  return ret;
-}
-
-/**
- * @description Returns the current config
- * @returns {Promise<object>} - The current config
- */
-function all() {
-  return send(NAME, GET_ALL, null, {
-    expectReply: true,
-    timeout: 10
-  });
-}
-
-/**
- * @description Updates a key-value pair in the config
- * @param {string} key - The key to update
- * @param {Function} fn - The function to update the value with
- * @returns {Promise<object>} - The current config
- */
-function update(key) {
-  let fn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : identity;
-  send(NAME, UPDATE, {
-    key,
-    fn
-  });
-  return config();
-}
-
-/**
- * @description Deletes a key-value pair from the config
- * @param {string} key - The key to delete
- * @returns {Promise<object>} - The current config
- */
-function _delete(key) {
-  send(NAME, DELETE, {
-    key
-  });
-  return config();
-}
-
-/**
- * @description Returns a subset of the config based on a pattern
- * @param {string} pattern - The pattern to match keys against
- * @returns {Promise<object>} - The subset of the config
- */
-function where(pattern) {
-  return send(NAME, WHERE, {
-    pattern
-  }, {
-    expectReply: true,
-    timeout: 10
-  });
-}
-
-/**
- * @description Subscribes to config updates
- * @param {Function} callback - The callback to call when config is updated
- * @returns {Function} - The unsubscribe function
- */
-function subscribe(callback) {
-  return subscriber(NAME, () => spawn(HANDLERS, NAME), callback);
-}
-
-/**
- * @description Clears the config
- * @returns {void}
- */
-function clearConfig() {
-  return send(NAME, CLEAR);
-}
-
-/**
- * @description Resets the config to a previous state
- * @param {object} oldConfig - The previous config state
- * @returns {Promise<object>} - The current config
- */
-function resetConfig(oldConfig) {
-  return clearConfig().then(config(oldConfig));
-}
-
-/**
- * @description Takes in flow.json or array of flow.json files and creates contract placeholders
- * @param {object|object[]} data - The flow.json or array of flow.json files
- * @returns {void}
- */
-async function load(data) {
-  const network = await get("flow.network");
-  const cleanedNetwork = cleanNetwork(network);
-  const {
-    flowJSON
-  } = data;
-  invariant(Boolean(flowJSON), "config.load -- 'flowJSON' must be defined");
-  invariant(cleanedNetwork, `Flow Network Required -- In order for FCL to load your contracts please define "flow.network" to "emulator", "local", "testnet", or "mainnet" in your config. See more here: https://developers.flow.com/tools/fcl-js/reference/configure-fcl`);
-  if (anyHasPrivateKeys(flowJSON)) {
-    const isEmulator = cleanedNetwork === "emulator";
-    log$1({
-      title: "Private Keys Detected",
-      message: `Private keys should be stored in a separate flow.json file for security. See more here: https://developers.flow.com/tools/flow-cli/security`,
-      level: isEmulator ? LEVELS$1.warn : LEVELS$1.error
-    });
-    if (!isEmulator) return;
-  }
-  for (const [key, value] of Object.entries(getContracts(flowJSON, cleanedNetwork))) {
-    const contractConfigKey = `0x${key}`;
-    const existingContractConfigKey = await get(contractConfigKey);
-    if (existingContractConfigKey && existingContractConfigKey !== value) {
-      log$1({
-        title: "Contract Placeholder Conflict Detected",
-        message: `A generated contract placeholder from config.load conflicts with a placeholder you've set manually in config have the same name.`,
-        level: LEVELS$1.warn
-      });
-    } else {
-      put(contractConfigKey, value);
-    }
-    const systemContractConfigKey = `system.contracts.${key}`;
-    const systemExistingContractConfigKeyValue = await get(systemContractConfigKey);
-    if (systemExistingContractConfigKeyValue && systemExistingContractConfigKeyValue !== value) {
-      log$1({
-        title: "Contract Placeholder Conflict Detected",
-        message: `A generated contract placeholder from config.load conflicts with a placeholder you've set manually in config have the same name.`,
-        level: LEVELS$1.warn
-      });
-    } else {
-      put(systemContractConfigKey, value);
-    }
-  }
-}
-
-// eslint-disable-next-line jsdoc/require-returns
-/**
- * @description Sets the config
- * @param {object} [values] - The values to set
- */
-function config(values) {
-  if (values != null && typeof values === "object") {
-    Object.keys(values).map(d => put(d, values[d]));
-  }
-  return {
-    put,
-    get,
-    all,
-    first,
-    update,
-    delete: _delete,
-    where,
-    subscribe,
-    overload,
-    load
-  };
-}
-config.put = put;
-config.get = get;
-config.all = all;
-config.first = first;
-config.update = update;
-config.delete = _delete;
-config.where = where;
-config.subscribe = subscribe;
-config.overload = overload;
-config.load = load;
-const noop = v => v;
-function overload() {
-  let opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-  let callback = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : noop;
-  return new Promise(async (resolve, reject) => {
-    const oldConfig = await all();
-    try {
-      config(opts);
-      var result = await callback(await all());
-      await resetConfig(oldConfig);
-      resolve(result);
-    } catch (error) {
-      await resetConfig(oldConfig);
-      reject(error);
-    }
-  });
-}
-
-/**
- * The levels of the logger
- * 
- * @typedef {Object} LEVELS
- * @property {number} debug - The debug level
- * @property {number} info - The info level
- * @property {number} log - The log level
- * @property {number} warn - The warn level
- * @property {number} error - The error level
- * 
- */
-const LEVELS = Object.freeze({
-  debug: 5,
-  info: 4,
-  log: 3,
-  warn: 2,
-  error: 1
-});
-
-/**
- * Builds a message formatted for the logger
- * 
- * @param {Object} options - The options for the log
- * @param {string} options.title - The title of the log
- * @param {string} options.message - The message of the log
- * @returns {Array<string>} - The message formatted for the logger
- * 
- * @example
- * buildLoggerMessageArgs({ title: "My Title", message: "My Message" })
- */
-const buildLoggerMessageArgs = _ref => {
-  let {
-    title,
-    message
-  } = _ref;
-  return [`
-    %c${title}
-    ============================
-
-    ${message}
-
-    ============================
-    `.replace(/\n[^\S\r\n]+/g, "\n").trim(),, "font-weight:bold;font-family:monospace;"];
-};
-
-/**
- * Logs messages based on the level of the message and the level set in the config
- * 
- * @param {Object} options - The options for the log
- * @param {string} options.title - The title of the log
- * @param {string} options.message - The message of the log
- * @param {number} options.level - The level of the log
- * @param {boolean} options.always - Whether to always show the log
- * @returns {Promise<void>}
- * 
- * @example
- * log({ title: "My Title", message: "My Message", level: LEVELS.warn, always: false })
- * 
- */
-const log = async _ref2 => {
-  let {
-    title,
-    message,
-    level,
-    always = false
-  } = _ref2;
-  const configLoggerLevel = await config.get("logger.level", LEVELS.warn);
-
-  // If config level is below message level then don't show it
-  if (!always && configLoggerLevel < level) return;
-  const loggerMessageArgs = buildLoggerMessageArgs({
-    title,
-    message
-  });
-  switch (level) {
-    case LEVELS.debug:
-      console.debug(...loggerMessageArgs);
-      break;
-    case LEVELS.info:
-      console.info(...loggerMessageArgs);
-      break;
-    case LEVELS.warn:
-      console.warn(...loggerMessageArgs);
-      break;
-    case LEVELS.error:
-      console.error(...loggerMessageArgs);
-      break;
-    default:
-      console.log(...loggerMessageArgs);
-  }
-};
-
-/**
- * Logs a deprecation notice
- * 
- * @param {Object} options - The options for the log
- * @param {string} options.pkg - The package that is being deprecated
- * @param {string} options.subject - The subject of the deprecation
- * @param {string} options.transition - The transition path for the deprecation
- * @param {number} options.level - The level of the log
- * @param {string} options.message - The message of the log
- * @param {Function} options.callback - A callback to run after the log
- * @returns {Promise<void>}
- * 
- * @example
- * log.deprecate({ pkg: "@onflow/fcl", subject: "Some item", transition: "https://github.com/onflow/flow-js-sdk", message: "Descriptive message", level: LEVELS.warn, callback: () => {} })
- * 
- */
-log.deprecate = _ref3 => {
-  let {
-    pkg,
-    subject,
-    transition,
-    level = LEVELS.warn,
-    message = "",
-    callback = null
-  } = _ref3;
-  const capitalizeFirstLetter = string => {
-    return string.charAt(0).toUpperCase() + string.slice(1);
-  };
-  const logMessage = () => log({
-    title: `${pkg ? pkg + " " : ""}Deprecation Notice`,
-    message: `
-      ${subject ? `${capitalizeFirstLetter(subject)} is deprecated and will cease to work in future releases${pkg ? " of " + pkg : ""}.` : ""}${message ? "\n" + message : ""}${transition ? `\nYou can learn more (including a guide on common transition paths) here: ${transition}` : ""}
-    `.trim(),
-    level
-  });
-  if (typeof callback === "function") {
-    return async function () {
-      await logMessage();
-      return await callback(...arguments);
-    };
-  }
-  return logMessage();
-};
-
 function interleave() {
   let a = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
   let b = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
   let c = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
   if (!a.length && !b.length) return c;
   if (!a.length) return c;
-  if (!b.length) return [...c, a[0]];
+  if (!b.length) {
+    c.push(...a);
+    return c;
+  }
   const [aHead, ...aRest] = a;
   const [bHead, ...bRest] = b;
   if (aHead !== undefined) c.push(aHead);
   if (bHead !== undefined) c.push(bHead);
   return interleave(aRest, bRest, c);
 }
+
+/**
+ * Recursively apply a value to a function
+ * @param d - The value to apply
+ * @returns A function that takes a function and applies the value to it
+ */
 function recApply(d) {
   return function (arg1) {
     if (typeof arg1 === "function") {
-      log.deprecate({
+      utilLogger.log.deprecate({
         pkg: "FCL/SDK",
         subject: "Interopolation of functions into template literals",
         transition: "https://github.com/onflow/flow-js-sdk/blob/master/packages/sdk/TRANSITIONS.md#0001-deprecate-params"
@@ -30109,39 +27898,38 @@ function recApply(d) {
 }
 
 /**
- * @param {(string|Array.<*>)} head
- * @param {Array.<*>} rest
- * @returns {{function(): string}}
+ * Creates a template function
+ * @param head - A string, template string array, or template function
+ * @param rest - The rest of the arguments
+ * @returns A template function
  */
 function template(head) {
   for (var _len = arguments.length, rest = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
     rest[_key - 1] = arguments[_key];
   }
   if (typeof head === "string") return () => head;
-  if (Array.isArray(head)) {
-    return d => interleave(head, rest.map(recApply(d))).join("").trim();
-  }
-  return head;
+  if (typeof head === "function") return head;
+  return x => interleave([...head], rest.map(recApply(x))).join("").trim();
 }
 
 exports.interleave = interleave;
 exports.template = template;
 
 
-}).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],138:[function(require,module,exports){
+},{"@onflow/util-logger":135}],138:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+const HEX = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+const T = HEX.length;
+
 /**
- * Generates a unique identifier
- * @returns {string}
+ * Generates a random unique identifier
+ * @returns 32 character alphanumeric string
  */
-var HEX = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-var T = HEX.length;
 function uid() {
-  var str = "",
+  let str = "",
     num = 32;
   while (num--) str += HEX[Math.random() * T | 0];
   return str;
@@ -47306,19 +45094,6 @@ process.chdir = function (dir) {
 process.umask = function() { return 0; };
 
 },{}],188:[function(require,module,exports){
-(function (global){(function (){
-/*! queue-microtask. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> */
-let promise
-
-module.exports = typeof queueMicrotask === 'function'
-  ? queueMicrotask.bind(typeof window !== 'undefined' ? window : global)
-  // reuse resolved promise, and allocate it lazily
-  : cb => (promise || (promise = Promise.resolve()))
-    .then(cb)
-    .catch(err => setTimeout(() => { throw err }, 0))
-
-}).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],189:[function(require,module,exports){
 (function (setImmediate){(function (){
 "use strict";
 
@@ -47810,29 +45585,29 @@ module.exports = typeof queueMicrotask === 'function'
 })(this);
 
 }).call(this)}).call(this,require("timers").setImmediate)
-},{"timers":201}],190:[function(require,module,exports){
+},{"timers":200}],189:[function(require,module,exports){
 "use strict";Object.defineProperty(exports,"__esModule",{value:true});exports["default"]=exports.SHAKE=exports.SHA3Hash=exports.SHA3=exports.Keccak=void 0;var _buffer=require("buffer");var _sponge=_interopRequireDefault(require("./sponge"));function _interopRequireDefault(obj){return obj&&obj.__esModule?obj:{"default":obj}}var createHash=function createHash(_ref){var allowedSizes=_ref.allowedSizes,defaultSize=_ref.defaultSize,padding=_ref.padding;return function Hash(){var _this=this;var size=arguments.length>0&&arguments[0]!==undefined?arguments[0]:defaultSize;if(!this||this.constructor!==Hash){return new Hash(size)}if(allowedSizes&&!allowedSizes.includes(size)){throw new Error("Unsupported hash length")}var sponge=new _sponge["default"]({capacity:size});this.update=function(input){var encoding=arguments.length>1&&arguments[1]!==undefined?arguments[1]:"utf8";if(_buffer.Buffer.isBuffer(input)){sponge.absorb(input);return _this}if(typeof input==="string"){return _this.update(_buffer.Buffer.from(input,encoding))}throw new TypeError("Not a string or buffer")};this.digest=function(){var formatOrOptions=arguments.length>0&&arguments[0]!==undefined?arguments[0]:"binary";var options=typeof formatOrOptions==="string"?{format:formatOrOptions}:formatOrOptions;var buffer=sponge.squeeze({buffer:options.buffer,padding:options.padding||padding});if(options.format&&options.format!=="binary"){return buffer.toString(options.format)}return buffer};this.reset=function(){sponge.reset();return _this};return this}};var Keccak=createHash({allowedSizes:[224,256,384,512],defaultSize:512,padding:1});exports.Keccak=Keccak;var SHA3=createHash({allowedSizes:[224,256,384,512],defaultSize:512,padding:6});exports.SHA3=SHA3;var SHAKE=createHash({allowedSizes:[128,256],defaultSize:256,padding:31});exports.SHAKE=SHAKE;var SHA3Hash=Keccak;exports.SHA3Hash=SHA3Hash;SHA3.SHA3Hash=SHA3Hash;var _default=SHA3;exports["default"]=_default;
-},{"./sponge":191,"buffer":146}],191:[function(require,module,exports){
+},{"./sponge":190,"buffer":146}],190:[function(require,module,exports){
 "use strict";Object.defineProperty(exports,"__esModule",{value:true});exports["default"]=void 0;var _buffer=require("buffer");var _permute=_interopRequireDefault(require("./permute"));function _interopRequireDefault(obj){return obj&&obj.__esModule?obj:{"default":obj}}var xorWords=function xorWords(I,O){for(var i=0;i<I.length;i+=8){var o=i/4;O[o]^=I[i+7]<<24|I[i+6]<<16|I[i+5]<<8|I[i+4];O[o+1]^=I[i+3]<<24|I[i+2]<<16|I[i+1]<<8|I[i]}return O};var readWords=function readWords(I,O){for(var o=0;o<O.length;o+=8){var i=o/4;O[o]=I[i+1];O[o+1]=I[i+1]>>>8;O[o+2]=I[i+1]>>>16;O[o+3]=I[i+1]>>>24;O[o+4]=I[i];O[o+5]=I[i]>>>8;O[o+6]=I[i]>>>16;O[o+7]=I[i]>>>24}return O};var Sponge=function Sponge(_ref){var _this=this;var capacity=_ref.capacity,padding=_ref.padding;var keccak=(0,_permute["default"])();var stateSize=200;var blockSize=capacity/8;var queueSize=stateSize-capacity/4;var queueOffset=0;var state=new Uint32Array(stateSize/4);var queue=_buffer.Buffer.allocUnsafe(queueSize);this.absorb=function(buffer){for(var i=0;i<buffer.length;i++){queue[queueOffset]=buffer[i];queueOffset+=1;if(queueOffset>=queueSize){xorWords(queue,state);keccak(state);queueOffset=0}}return _this};this.squeeze=function(){var options=arguments.length>0&&arguments[0]!==undefined?arguments[0]:{};var output={buffer:options.buffer||_buffer.Buffer.allocUnsafe(blockSize),padding:options.padding||padding,queue:_buffer.Buffer.allocUnsafe(queue.length),state:new Uint32Array(state.length)};queue.copy(output.queue);for(var i=0;i<state.length;i++){output.state[i]=state[i]}output.queue.fill(0,queueOffset);output.queue[queueOffset]|=output.padding;output.queue[queueSize-1]|=128;xorWords(output.queue,output.state);for(var offset=0;offset<output.buffer.length;offset+=queueSize){keccak(output.state);readWords(output.state,output.buffer.slice(offset,offset+queueSize))}return output.buffer};this.reset=function(){queue.fill(0);state.fill(0);queueOffset=0;return _this};return this};var _default=Sponge;exports["default"]=_default;
-},{"./permute":194,"buffer":146}],192:[function(require,module,exports){
+},{"./permute":193,"buffer":146}],191:[function(require,module,exports){
 "use strict";Object.defineProperty(exports,"__esModule",{value:true});exports["default"]=void 0;var _copy=_interopRequireDefault(require("../copy"));function _interopRequireDefault(obj){return obj&&obj.__esModule?obj:{"default":obj}}var chi=function chi(_ref){var A=_ref.A,C=_ref.C;for(var y=0;y<25;y+=5){for(var x=0;x<5;x++){(0,_copy["default"])(A,y+x)(C,x)}for(var _x=0;_x<5;_x++){var xy=(y+_x)*2;var x1=(_x+1)%5*2;var x2=(_x+2)%5*2;A[xy]^=~C[x1]&C[x2];A[xy+1]^=~C[x1+1]&C[x2+1]}}};var _default=chi;exports["default"]=_default;
-},{"../copy":193}],193:[function(require,module,exports){
+},{"../copy":192}],192:[function(require,module,exports){
 "use strict";var copy=function copy(I,i){return function(O,o){var oi=o*2;var ii=i*2;O[oi]=I[ii];O[oi+1]=I[ii+1]}};module.exports=copy;
-},{}],194:[function(require,module,exports){
+},{}],193:[function(require,module,exports){
 "use strict";Object.defineProperty(exports,"__esModule",{value:true});exports["default"]=void 0;var _chi=_interopRequireDefault(require("./chi"));var _iota=_interopRequireDefault(require("./iota"));var _rhoPi=_interopRequireDefault(require("./rho-pi"));var _theta=_interopRequireDefault(require("./theta"));function _interopRequireDefault(obj){return obj&&obj.__esModule?obj:{"default":obj}}var permute=function permute(){var C=new Uint32Array(10);var D=new Uint32Array(10);var W=new Uint32Array(2);return function(A){for(var roundIndex=0;roundIndex<24;roundIndex++){(0,_theta["default"])({A:A,C:C,D:D,W:W});(0,_rhoPi["default"])({A:A,C:C,W:W});(0,_chi["default"])({A:A,C:C});(0,_iota["default"])({A:A,roundIndex:roundIndex})}C.fill(0);D.fill(0);W.fill(0)}};var _default=permute;exports["default"]=_default;
-},{"./chi":192,"./iota":195,"./rho-pi":197,"./theta":200}],195:[function(require,module,exports){
+},{"./chi":191,"./iota":194,"./rho-pi":196,"./theta":199}],194:[function(require,module,exports){
 "use strict";Object.defineProperty(exports,"__esModule",{value:true});exports["default"]=void 0;var _roundConstants=_interopRequireDefault(require("./round-constants"));function _interopRequireDefault(obj){return obj&&obj.__esModule?obj:{"default":obj}}var iota=function iota(_ref){var A=_ref.A,roundIndex=_ref.roundIndex;var i=roundIndex*2;A[0]^=_roundConstants["default"][i];A[1]^=_roundConstants["default"][i+1]};var _default=iota;exports["default"]=_default;
-},{"./round-constants":196}],196:[function(require,module,exports){
+},{"./round-constants":195}],195:[function(require,module,exports){
 "use strict";Object.defineProperty(exports,"__esModule",{value:true});exports["default"]=void 0;var ROUND_CONSTANTS=new Uint32Array([0,1,0,32898,2147483648,32906,2147483648,2147516416,0,32907,0,2147483649,2147483648,2147516545,2147483648,32777,0,138,0,136,0,2147516425,0,2147483658,0,2147516555,2147483648,139,2147483648,32905,2147483648,32771,2147483648,32770,2147483648,128,0,32778,2147483648,2147483658,2147483648,2147516545,2147483648,32896,0,2147483649,2147483648,2147516424]);var _default=ROUND_CONSTANTS;exports["default"]=_default;
-},{}],197:[function(require,module,exports){
+},{}],196:[function(require,module,exports){
 "use strict";Object.defineProperty(exports,"__esModule",{value:true});exports["default"]=void 0;var _piShuffles=_interopRequireDefault(require("./pi-shuffles"));var _rhoOffsets=_interopRequireDefault(require("./rho-offsets"));var _copy=_interopRequireDefault(require("../copy"));function _interopRequireDefault(obj){return obj&&obj.__esModule?obj:{"default":obj}}var rhoPi=function rhoPi(_ref){var A=_ref.A,C=_ref.C,W=_ref.W;(0,_copy["default"])(A,1)(W,0);var H=0;var L=0;var Wi=0;var ri=32;for(var i=0;i<24;i++){var j=_piShuffles["default"][i];var r=_rhoOffsets["default"][i];(0,_copy["default"])(A,j)(C,0);H=W[0];L=W[1];ri=32-r;Wi=r<32?0:1;W[Wi]=H<<r|L>>>ri;W[(Wi+1)%2]=L<<r|H>>>ri;(0,_copy["default"])(W,0)(A,j);(0,_copy["default"])(C,0)(W,0)}};var _default=rhoPi;exports["default"]=_default;
-},{"../copy":193,"./pi-shuffles":198,"./rho-offsets":199}],198:[function(require,module,exports){
+},{"../copy":192,"./pi-shuffles":197,"./rho-offsets":198}],197:[function(require,module,exports){
 "use strict";Object.defineProperty(exports,"__esModule",{value:true});exports["default"]=void 0;var PI_SHUFFLES=[10,7,11,17,18,3,5,16,8,21,24,4,15,23,19,13,12,2,20,14,22,9,6,1];var _default=PI_SHUFFLES;exports["default"]=_default;
-},{}],199:[function(require,module,exports){
+},{}],198:[function(require,module,exports){
 "use strict";Object.defineProperty(exports,"__esModule",{value:true});exports["default"]=void 0;var RHO_OFFSETS=[1,3,6,10,15,21,28,36,45,55,2,14,27,41,56,8,25,43,62,18,39,61,20,44];var _default=RHO_OFFSETS;exports["default"]=_default;
-},{}],200:[function(require,module,exports){
+},{}],199:[function(require,module,exports){
 "use strict";Object.defineProperty(exports,"__esModule",{value:true});exports["default"]=void 0;var _copy=_interopRequireDefault(require("../copy"));function _interopRequireDefault(obj){return obj&&obj.__esModule?obj:{"default":obj}}var theta=function theta(_ref){var A=_ref.A,C=_ref.C,D=_ref.D,W=_ref.W;var H=0;var L=0;for(var x=0;x<5;x++){var x20=x*2;var x21=(x+5)*2;var x22=(x+10)*2;var x23=(x+15)*2;var x24=(x+20)*2;C[x20]=A[x20]^A[x21]^A[x22]^A[x23]^A[x24];C[x20+1]=A[x20+1]^A[x21+1]^A[x22+1]^A[x23+1]^A[x24+1]}for(var _x=0;_x<5;_x++){(0,_copy["default"])(C,(_x+1)%5)(W,0);H=W[0];L=W[1];W[0]=H<<1|L>>>31;W[1]=L<<1|H>>>31;D[_x*2]=C[(_x+4)%5*2]^W[0];D[_x*2+1]=C[(_x+4)%5*2+1]^W[1];for(var y=0;y<25;y+=5){A[(y+_x)*2]^=D[_x*2];A[(y+_x)*2+1]^=D[_x*2+1]}}};var _default=theta;exports["default"]=_default;
-},{"../copy":193}],201:[function(require,module,exports){
+},{"../copy":192}],200:[function(require,module,exports){
 (function (setImmediate,clearImmediate){(function (){
 var nextTick = require('process/browser.js').nextTick;
 var apply = Function.prototype.apply;
@@ -47911,7 +45686,7 @@ exports.clearImmediate = typeof clearImmediate === "function" ? clearImmediate :
   delete immediateIds[id];
 };
 }).call(this)}).call(this,require("timers").setImmediate,require("timers").clearImmediate)
-},{"process/browser.js":187,"timers":201}],202:[function(require,module,exports){
+},{"process/browser.js":187,"timers":200}],201:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -47991,7 +45766,7 @@ var _stringify = _interopRequireDefault(require("./stringify.js"));
 var _parse = _interopRequireDefault(require("./parse.js"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-},{"./nil.js":205,"./parse.js":206,"./stringify.js":210,"./v1.js":211,"./v3.js":212,"./v4.js":214,"./v5.js":215,"./validate.js":216,"./version.js":217}],203:[function(require,module,exports){
+},{"./nil.js":204,"./parse.js":205,"./stringify.js":209,"./v1.js":210,"./v3.js":211,"./v4.js":213,"./v5.js":214,"./validate.js":215,"./version.js":216}],202:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -48215,7 +45990,7 @@ function md5ii(a, b, c, d, x, s, t) {
 
 var _default = md5;
 exports.default = _default;
-},{}],204:[function(require,module,exports){
+},{}],203:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -48227,7 +46002,7 @@ var _default = {
   randomUUID
 };
 exports.default = _default;
-},{}],205:[function(require,module,exports){
+},{}],204:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -48236,7 +46011,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.default = void 0;
 var _default = '00000000-0000-0000-0000-000000000000';
 exports.default = _default;
-},{}],206:[function(require,module,exports){
+},{}],205:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -48282,7 +46057,7 @@ function parse(uuid) {
 
 var _default = parse;
 exports.default = _default;
-},{"./validate.js":216}],207:[function(require,module,exports){
+},{"./validate.js":215}],206:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -48291,7 +46066,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.default = void 0;
 var _default = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|00000000-0000-0000-0000-000000000000)$/i;
 exports.default = _default;
-},{}],208:[function(require,module,exports){
+},{}],207:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -48317,7 +46092,7 @@ function rng() {
 
   return getRandomValues(rnds8);
 }
-},{}],209:[function(require,module,exports){
+},{}],208:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -48422,7 +46197,7 @@ function sha1(bytes) {
 
 var _default = sha1;
 exports.default = _default;
-},{}],210:[function(require,module,exports){
+},{}],209:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -48467,7 +46242,7 @@ function stringify(arr, offset = 0) {
 
 var _default = stringify;
 exports.default = _default;
-},{"./validate.js":216}],211:[function(require,module,exports){
+},{"./validate.js":215}],210:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -48575,7 +46350,7 @@ function v1(options, buf, offset) {
 
 var _default = v1;
 exports.default = _default;
-},{"./rng.js":208,"./stringify.js":210}],212:[function(require,module,exports){
+},{"./rng.js":207,"./stringify.js":209}],211:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -48592,7 +46367,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 const v3 = (0, _v.default)('v3', 0x30, _md.default);
 var _default = v3;
 exports.default = _default;
-},{"./md5.js":203,"./v35.js":213}],213:[function(require,module,exports){
+},{"./md5.js":202,"./v35.js":212}],212:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -48673,7 +46448,7 @@ function v35(name, version, hashfunc) {
   generateUUID.URL = URL;
   return generateUUID;
 }
-},{"./parse.js":206,"./stringify.js":210}],214:[function(require,module,exports){
+},{"./parse.js":205,"./stringify.js":209}],213:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -48717,7 +46492,7 @@ function v4(options, buf, offset) {
 
 var _default = v4;
 exports.default = _default;
-},{"./native.js":204,"./rng.js":208,"./stringify.js":210}],215:[function(require,module,exports){
+},{"./native.js":203,"./rng.js":207,"./stringify.js":209}],214:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -48734,7 +46509,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 const v5 = (0, _v.default)('v5', 0x50, _sha.default);
 var _default = v5;
 exports.default = _default;
-},{"./sha1.js":209,"./v35.js":213}],216:[function(require,module,exports){
+},{"./sha1.js":208,"./v35.js":212}],215:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -48752,7 +46527,7 @@ function validate(uuid) {
 
 var _default = validate;
 exports.default = _default;
-},{"./regex.js":207}],217:[function(require,module,exports){
+},{"./regex.js":206}],216:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -48774,7 +46549,7 @@ function version(uuid) {
 
 var _default = version;
 exports.default = _default;
-},{"./validate.js":216}],218:[function(require,module,exports){
+},{"./validate.js":215}],217:[function(require,module,exports){
 /*** Transactions ***/
 
 const CREATE_ATTESTATION = `
@@ -48887,7 +46662,7 @@ module.exports = {
     GET_ATTESTED_ADDRESSES,
     GET_ATTESTED_ADDRESSES_WITH_STATUS
 };
-},{}],219:[function(require,module,exports){
+},{}],218:[function(require,module,exports){
 const ethers = require('ethers');
 const fcl = require('@onflow/fcl');
 const {
@@ -49136,7 +46911,7 @@ function recoverPublicKey(message, ethSig) {
     return pubKeyWithPrefix.slice(4); // Remove the prefix
 }
 
-},{"../flow.json":1,"./cadence.js":218,"./utils.js":220,"@onflow/fcl":127,"ethers":167}],220:[function(require,module,exports){
+},{"../flow.json":1,"./cadence.js":217,"./utils.js":219,"@onflow/fcl":127,"ethers":167}],219:[function(require,module,exports){
 const network = 'testnet';
 
 const fclConfigInfo = {
@@ -49191,4 +46966,4 @@ module.exports = {
     fclConfigInfo,
     updateAuthUI
 };
-},{}]},{},[219]);
+},{}]},{},[218]);
