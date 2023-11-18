@@ -1,7 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@400;700&display=swap');
 
 .logo {
-    width: 150px;
+    width: 125px;
+    margin-top: 60px;
+    margin-left: 20px;
     height: auto;
 }
 
@@ -10,6 +12,20 @@
     color: #4CAF50;
     margin-bottom: 10px;
     font-weight: 600;
+}
+
+.beta-notice {
+    background-color: rgba(56, 221, 70, 0.7);
+    color: #f3f3f3;
+    text-align: center;
+    padding: 0px;
+    font-size: 1em;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    width: 100%;
+    top: 0;
+    left: 0;
+    z-index: 1000;
 }
 
 body {
@@ -21,7 +37,7 @@ body {
     align-items: center;
     justify-content: center;
     height: 100vh;
-    margin: 0;
+    margin-top: 60px;
     padding-top: 50px;
 }
 
@@ -73,22 +89,29 @@ button:hover {
     background-color: #45a049;
 }
 
-#loginButton {
+#loginButton,
+#logoutButton {
     background-color: #4CAF50;
     font-weight: 800;
+    font-size: small;
     color: white;
     font-family: 'Montserrat', sans-serif;
     font-weight: 400;
+    padding: 15px;
+    margin-top: 60px;
+    margin-right: 30px;
     transition: background-color 0.3s;
 }
 
-#loginButton:hover {
+#loginButton:hover,
+#logoutButton:hover {
     background-color: #45a049;
 }
 
 #attestButton {
     font-family: 'Montserrat', sans-serif;
     font-weight: 500;
+    font-size: medium;
 }
 
 p {
@@ -100,28 +123,27 @@ p {
     padding: 10px;
     border-radius: 5px;
     margin-top: 10px;
+    text-align: center;
     display: inline-block;
 }
 
 .valid {
     background-color: #4CAF50;
+    text-align: center;
 }
 
 .invalid {
     background-color: #F44336;
+    text-align: center;
 }
 
-/* Table Styles */
 table {
     width: 100%;
     border-collapse: collapse;
     background-color: rgba(255, 255, 255, 0.05);
-    /* Slight transparency */
     backdrop-filter: blur(10px);
-    /* Frosted glass effect */
     border-radius: 2px;
     overflow: hidden;
-    /* Ensures the border-radius clips the content */
     margin-top: 20px;
 }
 
@@ -133,7 +155,7 @@ td {
 }
 
 th {
-    background-color: rgba(76, 175, 80, 0.85);
+    background-color: hsla(122, 39%, 49%, 0.851);
     color: #fff;
     font-weight: 500;
     text-transform: uppercase;
@@ -142,7 +164,6 @@ th {
 
 td {
     color: #ddd;
-    /* Lighter text color for contrast */
 }
 
 /* Link Styles */
@@ -157,24 +178,17 @@ table a:hover {
     text-decoration: underline;
 }
 
-/* Checkbox and Button Styles */
-.remove-checkbox {
-    /* Custom checkbox styles can go here */
-}
-
 .title,
 .subheading,
 th {
     font-family: 'Montserrat', sans-serif;
 }
 
-/* Add this to your CSS file */
 th,
 .verification-result {
     text-align: center;
 }
 
-/* Existing table styles */
 table,
 th,
 td {
@@ -183,7 +197,6 @@ td {
 
 #removeButton {
     background-color: #555;
-    /* Darker background for the button */
     color: white;
     padding: 8px 16px;
     border: none;
@@ -192,19 +205,15 @@ td {
     transition: background-color 0.3s ease;
 }
 
-/* Normal state */
 .remove-header {
     cursor: default;
     background-color: #555;
-    /* Normal background color */
     color: white;
 }
 
-/* Active state */
 .remove-header.active {
     cursor: pointer;
     background-color: red;
-    /* Active background color */
     color: white;
 }
 
@@ -234,7 +243,6 @@ td {
     }
 
     td:before {
-        /* Now like a table header */
         position: absolute;
         top: 0;
         left: 0;
@@ -256,4 +264,32 @@ td {
     color: #66ff66;
     text-decoration: underline;
     transition: color 0.3s ease;
+}
+
+footer {
+    border-top: 1px solid #747474;
+    width: 400px;
+    margin-top: 100px;
+    padding: 20px 0;
+    text-align: center;
+    background-color: transparent;
+}
+
+.footer-content {
+    display: inline-block;
+}
+
+.footer-link {
+    margin: 0 15px;
+    display: inline-block;
+}
+
+.footer-link img {
+    height: 25px;
+    width: auto;
+    vertical-align: middle;
+}
+
+.footer-link:hover {
+    opacity: 0.8;
 }

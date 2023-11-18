@@ -3,16 +3,19 @@
 
 <head>
     <link rel="stylesheet" type="text/css" href="styles/styles.css">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@400;700&display=swap"
-        rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%2210 0 100 100%22><text y=%22.90em%22 font-size=%2290%22>✅</text></svg>">
     <meta charset="UTF-8">
     <title>Flow Affiliated Accounts</title>
 </head>
 
 <body>
-    <img src="./images/flow_affiliated_accounts.png" alt="Logo" class="logo" style="position: absolute; top: 10px; left: 10px;">
+
+    <div class="beta-notice">
+        <p>🚧 Application is in Beta and currently running against Flow Testnet 🚧</p>
+    </div>
+
+
+    <img src="./images/verified_account_logo.png" alt="Logo" class="logo" style="position: absolute; top: 10px; left: 10px;">
 
     <div style="position: absolute; top: 10px; right: 10px;">
         <button id="loginButton">Authenticate with Flow</button>
@@ -31,5 +34,19 @@
     <script src="bundle.js"></script>
 
 </body>
+
+<footer>
+    <div class="footer-content">
+        <a href="https://twitter.com/gio_incognito" target="_blank" class="footer-link">
+            <img src="images/twitter-logo.png" alt="Twitter">
+        </a>
+        <a href="https://github.com/sisyphusSmiling/flow-cadence-eth-utils" target="_blank" class="footer-link">
+            <img src="images/github-logo.png" alt="GitHub">
+        </a>
+        <a href="https://contractbrowser.com" target="_blank" class="footer-link">
+            <img src="images/contract-browser-logo.png" alt="Contract Browser">
+        </a>
+    </div>
+</footer>
 
 </html>
