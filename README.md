@@ -8,7 +8,7 @@ This function depends on the following libraries:
 - `ethers.js`: Ethereum's JavaScript library used for interacting with Ethereum's network and its smart contracts.
 - `@onflow/fcl`: Flow's JavaScript library used for interacting with Flow's network and its smart contracts.
 
-## Fork Commands
+## Affiliate Accounts Frontend
 
 Install packages
 
@@ -27,6 +27,10 @@ You'll want to run both emulator and dev-wallet. This is most easily done with F
 ![Frontend Screenshot](./images/screenshot.png)
 
 > :information_source: If you make any changes to [`main.js`](./main.js), you'll want to run `npm run build` then `npm run dev` to start the server with your changes.
+
+Check out the frontend here: https://wispy-cherry-0666.on.fleek.co/
+
+[And check out this demo for how to use the frontend](https://www.loom.com/share/d0581bbf0d2a4b539ae77c2e27990736?sid=2c79ea7b-9b80-49e9-b1b4-58f9f0e05ea1)
 
 ## Example
 
