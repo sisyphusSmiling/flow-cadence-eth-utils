@@ -26,7 +26,7 @@ You'll want to run both emulator and dev-wallet. This is most easily done with F
 
 ![Frontend Screenshot](./images/screenshot.png)
 
-> :information_source: If you make any changes to [`main.js`](./main.js), you'll want to run `browserify main.js -o bundle.js` and restart the server.
+> :information_source: If you make any changes to [`main.js`](./main.js), you'll want to run `npm run build` then `npm run dev` to start the server with your changes.
 
 ## Example
 
