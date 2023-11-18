@@ -1,19 +1,19 @@
-import "ETHAffiliatedAccount"
+import "ETHAffiliatedAccounts"
 
 transaction(ethAddresses: [String]) {
 
-    let manager: &ETHAffiliatedAccount.AttestationManager
+    let manager: &ETHAffiliatedAccounts.AttestationManager
 
     prepare(signer: AuthAccount) {
 
-        self.manager = signer.borrow<&ETHAffiliatedAccount.AttestationManager>(from: ETHAffiliatedAccount.STORAGE_PATH)
+        self.manager = signer.borrow<&ETHAffiliatedAccounts.AttestationManager>(from: ETHAffiliatedAccounts.STORAGE_PATH)
             ?? panic("Could not borrow a reference to the AttestationManager")
 
     }
 
     execute {
         for ethAddress in ethAddresses {
-            if let attestation: @ETHAffiliatedAccount.Attestation <- self.manager.removeAttestation(ethAddress: ethAddress) {
+            if let attestation: @ETHAffiliatedAccounts.Attestation <- self.manager.removeAttestation(ethAddress: ethAddress) {
                 destroy attestation
             }
         }

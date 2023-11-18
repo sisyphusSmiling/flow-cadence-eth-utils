@@ -1,10 +1,43 @@
 {
 	"contracts": {
-		"AddressUtils": "./cadence/contracts/flow-utils/AddressUtils.cdc",
-		"ArrayUtils": "cadence/contracts/flow-utils/ArrayUtils.cdc",
-		"ETHAffiliatedAccount": "cadence/contracts/ETHAffiliatedAccount.cdc",
-		"ETHUtils": "cadence/contracts/ETHUtils.cdc",
-		"StringUtils": "cadence/contracts/flow-utils/StringUtils.cdc"
+		"AddressUtils": {
+			"source": "./cadence/contracts/flow-utils/AddressUtils.cdc",
+			"aliases": {
+				"emulator": "f8d6e0586b0a20c7",
+				"mainnet": "a340dc0a4ec828ab",
+				"testnet": "31ad40c07a2a9788"
+			}
+		},
+		"ArrayUtils": {
+			"source": "cadence/contracts/flow-utils/ArrayUtils.cdc",
+			"aliases": {
+				"emulator": "f8d6e0586b0a20c7",
+				"mainnet": "a340dc0a4ec828ab",
+				"testnet": "31ad40c07a2a9788"
+			}
+		},
+		"ETHAffiliatedAccounts": {
+			"source": "cadence/contracts/ETHAffiliatedAccounts.cdc",
+			"aliases": {
+				"emulator": "f8d6e0586b0a20c7",
+				"testnet": "f3c8bba150be9074"
+			}
+		},
+		"ETHUtils": {
+			"source": "cadence/contracts/ETHUtils.cdc",
+			"aliases": {
+				"emulator": "f8d6e0586b0a20c7",
+				"testnet": "00c9bb1788540976"
+			}
+		},
+		"StringUtils": {
+			"source": "cadence/contracts/flow-utils/StringUtils.cdc",
+			"aliases": {
+				"emulator": "f8d6e0586b0a20c7",
+				"mainnet": "a340dc0a4ec828ab",
+				"testnet": "31ad40c07a2a9788"
+			}
+		}
 	},
 	"networks": {
 		"emulator": "127.0.0.1:3569",
@@ -15,13 +48,23 @@
 	"accounts": {
 		"emulator-account": {
 			"address": "f8d6e0586b0a20c7",
-			"key": "aca7bcca2c7925e5aae15cc5d05eafe6f9cee203568b1dbec8bb3352b0445743"
+			"key": {
+				"type": "file",
+				"location": "emulator-account.pkey"
+			}
 		},
 		"testnet-account": {
 			"address": "00c9bb1788540976",
 			"key": {
 				"type": "file",
 				"location": "testnet-account.pkey"
+			}
+		},
+		"testnet-eth-affiliated-accounts": {
+			"address": "f3c8bba150be9074",
+			"key": {
+				"type": "file",
+				"location": "testnet-eth-affiliated-accounts.pkey"
 			}
 		}
 	},
@@ -30,14 +73,17 @@
 			"emulator-account": [
 				"ArrayUtils",
 				"StringUtils",
+				"AddressUtils",
 				"ETHUtils",
-				"ETHAffiliatedAccount",
-				"AddressUtils"
+				"ETHAffiliatedAccounts"
 			]
 		},
 		"testnet": {
 			"testnet-account": [
 				"ETHUtils"
+			],
+			"testnet-eth-affiliated-accounts": [
+				"ETHAffiliatedAccounts"
 			]
 		}
 	}

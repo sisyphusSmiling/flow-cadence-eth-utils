@@ -1,4 +1,4 @@
-import "ETHAffiliatedAccount"
+import "ETHAffiliatedAccounts"
 
 transaction(
     hexPublicKey: String,
@@ -7,21 +7,21 @@ transaction(
     timestamp: UFix64
 ) {
 
-    let manager: &ETHAffiliatedAccount.AttestationManager
+    let manager: &ETHAffiliatedAccounts.AttestationManager
 
     prepare(signer: AuthAccount) {
 
-        if signer.type(at: ETHAffiliatedAccount.STORAGE_PATH) == nil {
-            signer.save(<-ETHAffiliatedAccount.createManager(), to: ETHAffiliatedAccount.STORAGE_PATH)
+        if signer.type(at: ETHAffiliatedAccounts.STORAGE_PATH) == nil {
+            signer.save(<-ETHAffiliatedAccounts.createManager(), to: ETHAffiliatedAccounts.STORAGE_PATH)
 
-            signer.unlink(ETHAffiliatedAccount.PUBLIC_PATH)
-            signer.link<&{ETHAffiliatedAccount.AttestationManagerPublic}>(
-                ETHAffiliatedAccount.PUBLIC_PATH,
-                target: ETHAffiliatedAccount.STORAGE_PATH
+            signer.unlink(ETHAffiliatedAccounts.PUBLIC_PATH)
+            signer.link<&{ETHAffiliatedAccounts.AttestationManagerPublic}>(
+                ETHAffiliatedAccounts.PUBLIC_PATH,
+                target: ETHAffiliatedAccounts.STORAGE_PATH
             )
         }
 
-        self.manager = signer.borrow<&ETHAffiliatedAccount.AttestationManager>(from: ETHAffiliatedAccount.STORAGE_PATH)
+        self.manager = signer.borrow<&ETHAffiliatedAccounts.AttestationManager>(from: ETHAffiliatedAccounts.STORAGE_PATH)
             ?? panic("Could not borrow a reference to the AttestationManager")
 
     }

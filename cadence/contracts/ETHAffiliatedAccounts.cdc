@@ -7,7 +7,7 @@ import "AddressUtils"
 /// address (where the attestation resides) and their Ethereum address along with the public key paired to the private
 /// key that signed the message.
 ///
-access(all) contract ETHAffiliatedAccount {
+access(all) contract ETHAffiliatedAccounts {
 
     access(all) let STORAGE_PATH: StoragePath
     access(all) let PUBLIC_PATH: PublicPath
@@ -36,9 +36,9 @@ access(all) contract ETHAffiliatedAccount {
 
         access(all) fun toString(): String {
             return self.flowAddress.toString()
-                .concat(ETHAffiliatedAccount.MESSAGE_DELIMETER)
+                .concat(ETHAffiliatedAccounts.MESSAGE_DELIMETER)
                 .concat(self.ethAddress)
-                .concat(ETHAffiliatedAccount.MESSAGE_DELIMETER)
+                .concat(ETHAffiliatedAccounts.MESSAGE_DELIMETER)
                 .concat(self.timestamp.toString())
         }
 
@@ -138,7 +138,7 @@ access(all) contract ETHAffiliatedAccount {
             pre {
                 self.owner != nil:
                     "No Flow owner to attest as affiliate"
-                ETHAffiliatedAccount.verifyETHAddressMatchesPublicKey(ethAddress: ethAddress, hexPublicKey: hexPublicKey):
+                ETHAffiliatedAccounts.verifyETHAddressMatchesPublicKey(ethAddress: ethAddress, hexPublicKey: hexPublicKey):
                     "Public key does not correspond to the valid ETH address in the message."
                 self.attestations[ethAddress] == nil:
                     "Account has already been attested"
@@ -146,7 +146,7 @@ access(all) contract ETHAffiliatedAccount {
                     "Timestamp is not within the valid range"
             }
 
-            let attestation: @ETHAffiliatedAccount.Attestation <- create Attestation(
+            let attestation: @ETHAffiliatedAccounts.Attestation <- create Attestation(
                 hexPublicKey: hexPublicKey,
                 signature: signature,
                 message: AttestationMessage(
@@ -157,7 +157,7 @@ access(all) contract ETHAffiliatedAccount {
             )
 
             self.attestations[ethAddress] <-! attestation
-            let attestationRef: &ETHAffiliatedAccount.Attestation = self.borrowAttestation(ethAddress: ethAddress)
+            let attestationRef: &ETHAffiliatedAccounts.Attestation = self.borrowAttestation(ethAddress: ethAddress)
                 ?? panic("Problem adding attestation to account")
             assert(attestationRef.verify(), message: "Invalid signature provided for attested ETH account")
 
@@ -173,7 +173,7 @@ access(all) contract ETHAffiliatedAccount {
             if self.attestations[ethAddress] == nil {
                 return nil
             }
-            let attesation: @ETHAffiliatedAccount.Attestation <- self.attestations.remove(key: ethAddress)!
+            let attesation: @ETHAffiliatedAccounts.Attestation <- self.attestations.remove(key: ethAddress)!
             emit AccountAffiliationUpdated(
                 id: attesation.uuid,
                 flowAddress: attesation.getMessage().flowAddress,
@@ -201,7 +201,7 @@ access(all) contract ETHAffiliatedAccount {
 
         access(self) fun _validTimestampRange(_ timestamp: UFix64): Bool {
             let now = getCurrentBlock().timestamp
-            return now - ETHAffiliatedAccount.MESSAGE_TIMESTAMP_BUFFER <= timestamp && timestamp <= now
+            return now - ETHAffiliatedAccounts.MESSAGE_TIMESTAMP_BUFFER <= timestamp && timestamp <= now
         }
 
         destroy() {
