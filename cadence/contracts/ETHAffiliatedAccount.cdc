@@ -17,7 +17,7 @@ access(all) contract ETHAffiliatedAccount {
     /// Allowed time buffer from when message was signed to attesation construction
     access(all) let MESSAGE_TIMESTAMP_BUFFER: UFix64
 
-    access(all) event AccountAffiliationUpdated(id: UInt64, flowAddress: Address?, ethAddress: String, active: Bool)
+    access(all) event AccountAffiliationUpdated(id: UInt64, flowAddress: Address, ethAddress: String, active: Bool)
 
     /* AttestationMessage */
     //
@@ -176,7 +176,7 @@ access(all) contract ETHAffiliatedAccount {
             let attesation: @ETHAffiliatedAccount.Attestation <- self.attestations.remove(key: ethAddress)!
             emit AccountAffiliationUpdated(
                 id: attesation.uuid,
-                flowAddress: self.owner?.address,
+                flowAddress: attesation.getMessage().flowAddress,
                 ethAddress: ethAddress,
                 active: false
             )
