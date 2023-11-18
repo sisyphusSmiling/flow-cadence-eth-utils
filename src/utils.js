@@ -1,4 +1,4 @@
-const network = 'emulator';
+const network = 'testnet';
 
 const fclConfigInfo = {
     emulator: {

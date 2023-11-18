@@ -1,11 +1,44 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 module.exports={
 	"contracts": {
-		"AddressUtils": "./cadence/contracts/flow-utils/AddressUtils.cdc",
-		"ArrayUtils": "cadence/contracts/flow-utils/ArrayUtils.cdc",
-		"ETHAffiliatedAccount": "cadence/contracts/ETHAffiliatedAccount.cdc",
-		"ETHUtils": "cadence/contracts/ETHUtils.cdc",
-		"StringUtils": "cadence/contracts/flow-utils/StringUtils.cdc"
+		"AddressUtils": {
+			"source": "./cadence/contracts/flow-utils/AddressUtils.cdc",
+			"aliases": {
+				"emulator": "f8d6e0586b0a20c7",
+				"mainnet": "a340dc0a4ec828ab",
+				"testnet": "31ad40c07a2a9788"
+			}
+		},
+		"ArrayUtils": {
+			"source": "cadence/contracts/flow-utils/ArrayUtils.cdc",
+			"aliases": {
+				"emulator": "f8d6e0586b0a20c7",
+				"mainnet": "a340dc0a4ec828ab",
+				"testnet": "31ad40c07a2a9788"
+			}
+		},
+		"ETHAffiliatedAccounts": {
+			"source": "cadence/contracts/ETHAffiliatedAccounts.cdc",
+			"aliases": {
+				"emulator": "f8d6e0586b0a20c7",
+				"testnet": "f3c8bba150be9074"
+			}
+		},
+		"ETHUtils": {
+			"source": "cadence/contracts/ETHUtils.cdc",
+			"aliases": {
+				"emulator": "f8d6e0586b0a20c7",
+				"testnet": "00c9bb1788540976"
+			}
+		},
+		"StringUtils": {
+			"source": "cadence/contracts/flow-utils/StringUtils.cdc",
+			"aliases": {
+				"emulator": "f8d6e0586b0a20c7",
+				"mainnet": "a340dc0a4ec828ab",
+				"testnet": "31ad40c07a2a9788"
+			}
+		}
 	},
 	"networks": {
 		"emulator": "127.0.0.1:3569",
@@ -16,13 +49,23 @@ module.exports={
 	"accounts": {
 		"emulator-account": {
 			"address": "f8d6e0586b0a20c7",
-			"key": "aca7bcca2c7925e5aae15cc5d05eafe6f9cee203568b1dbec8bb3352b0445743"
+			"key": {
+				"type": "file",
+				"location": "emulator-account.pkey"
+			}
 		},
 		"testnet-account": {
 			"address": "00c9bb1788540976",
 			"key": {
 				"type": "file",
 				"location": "testnet-account.pkey"
+			}
+		},
+		"testnet-eth-affiliated-accounts": {
+			"address": "f3c8bba150be9074",
+			"key": {
+				"type": "file",
+				"location": "testnet-eth-affiliated-accounts.pkey"
 			}
 		}
 	},
@@ -31,14 +74,17 @@ module.exports={
 			"emulator-account": [
 				"ArrayUtils",
 				"StringUtils",
+				"AddressUtils",
 				"ETHUtils",
-				"ETHAffiliatedAccount",
-				"AddressUtils"
+				"ETHAffiliatedAccounts"
 			]
 		},
 		"testnet": {
 			"testnet-account": [
 				"ETHUtils"
+			],
+			"testnet-eth-affiliated-accounts": [
+				"ETHAffiliatedAccounts"
 			]
 		}
 	}
@@ -48732,7 +48778,7 @@ exports.default = _default;
 /*** Transactions ***/
 
 const CREATE_ATTESTATION = `
-import "ETHAffiliatedAccount"
+import "ETHAffiliatedAccounts"
 
 transaction(
     hexPublicKey: String,
@@ -48741,21 +48787,21 @@ transaction(
     timestamp: UFix64
 ) {
 
-    let manager: &ETHAffiliatedAccount.AttestationManager
+    let manager: &ETHAffiliatedAccounts.AttestationManager
 
     prepare(signer: AuthAccount) {
 
-        if signer.type(at: ETHAffiliatedAccount.STORAGE_PATH) == nil {
-            signer.save(<-ETHAffiliatedAccount.createManager(), to: ETHAffiliatedAccount.STORAGE_PATH)
+        if signer.type(at: ETHAffiliatedAccounts.STORAGE_PATH) == nil {
+            signer.save(<-ETHAffiliatedAccounts.createManager(), to: ETHAffiliatedAccounts.STORAGE_PATH)
 
-            signer.unlink(ETHAffiliatedAccount.PUBLIC_PATH)
-            signer.link<&{ETHAffiliatedAccount.AttestationManagerPublic}>(
-                ETHAffiliatedAccount.PUBLIC_PATH,
-                target: ETHAffiliatedAccount.STORAGE_PATH
+            signer.unlink(ETHAffiliatedAccounts.PUBLIC_PATH)
+            signer.link<&{ETHAffiliatedAccounts.AttestationManagerPublic}>(
+                ETHAffiliatedAccounts.PUBLIC_PATH,
+                target: ETHAffiliatedAccounts.STORAGE_PATH
             )
         }
 
-        self.manager = signer.borrow<&ETHAffiliatedAccount.AttestationManager>(from: ETHAffiliatedAccount.STORAGE_PATH)
+        self.manager = signer.borrow<&ETHAffiliatedAccounts.AttestationManager>(from: ETHAffiliatedAccounts.STORAGE_PATH)
             ?? panic("Could not borrow a reference to the AttestationManager")
 
     }
@@ -48772,22 +48818,22 @@ transaction(
 `;
 
 const REMOVE_ATTESTATIONS = `
-import "ETHAffiliatedAccount"
+import "ETHAffiliatedAccounts"
 
 transaction(ethAddresses: [String]) {
 
-    let manager: &ETHAffiliatedAccount.AttestationManager
+    let manager: &ETHAffiliatedAccounts.AttestationManager
 
     prepare(signer: AuthAccount) {
 
-        self.manager = signer.borrow<&ETHAffiliatedAccount.AttestationManager>(from: ETHAffiliatedAccount.STORAGE_PATH)
+        self.manager = signer.borrow<&ETHAffiliatedAccounts.AttestationManager>(from: ETHAffiliatedAccounts.STORAGE_PATH)
             ?? panic("Could not borrow a reference to the AttestationManager")
 
     }
 
     execute {
         for ethAddress in ethAddresses {
-            if let attestation: @ETHAffiliatedAccount.Attestation <- self.manager.removeAttestation(ethAddress: ethAddress) {
+            if let attestation: @ETHAffiliatedAccounts.Attestation <- self.manager.removeAttestation(ethAddress: ethAddress) {
                 destroy attestation
             }
         }
@@ -48804,22 +48850,22 @@ const GET_CURRENT_BLOCK_TIMESTAMP = `
 `
 
 const GET_ATTESTED_ADDRESSES = `
-import "ETHAffiliatedAccount"
+import "ETHAffiliatedAccounts"
 
 access(all) fun main(address: Address): [String] {
-    return getAccount(address).getCapability<&{ETHAffiliatedAccount.AttestationManagerPublic}>(
-            ETHAffiliatedAccount.PUBLIC_PATH
+    return getAccount(address).getCapability<&{ETHAffiliatedAccounts.AttestationManagerPublic}>(
+            ETHAffiliatedAccounts.PUBLIC_PATH
         ).borrow()
         ?.getAttestedAddresses() ?? []
 }
 `;
 
 const GET_ATTESTED_ADDRESSES_WITH_STATUS = `
-import "ETHAffiliatedAccount"
+import "ETHAffiliatedAccounts"
 
 access(all) fun main(address: Address): {String: Bool} {
-    if let manager = getAccount(address).getCapability<&{ETHAffiliatedAccount.AttestationManagerPublic}>(
-            ETHAffiliatedAccount.PUBLIC_PATH
+    if let manager = getAccount(address).getCapability<&{ETHAffiliatedAccounts.AttestationManagerPublic}>(
+            ETHAffiliatedAccounts.PUBLIC_PATH
         ).borrow() {
         let attestedAffiliates: [String] = manager.getAttestedAddresses()
 
@@ -49091,7 +49137,7 @@ function recoverPublicKey(message, ethSig) {
 }
 
 },{"../flow.json":1,"./cadence.js":218,"./utils.js":220,"@onflow/fcl":127,"ethers":167}],220:[function(require,module,exports){
-const network = 'emulator';
+const network = 'testnet';
 
 const fclConfigInfo = {
     emulator: {
