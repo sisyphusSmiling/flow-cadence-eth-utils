@@ -71,7 +71,7 @@ async function createAttestation(hexPublicKey, signature, ethAddress, timestamp)
             ],
             limit: 9999
         })
-    const tx = await fcl.tx(txId).onceExecuted();
+    const tx = await fcl.tx(txId).onceSealed();
     console.log(tx);
     await getAttestedAddresses(user.addr)
 }
@@ -157,7 +157,7 @@ async function sendRemoveTransaction(checkedAddresses) {
             limit: 9999
         });
 
-        const transaction = await fcl.tx(txId).onceExecuted();
+        const transaction = await fcl.tx(txId).onceSealed();
         console.log('Transaction confirmed:', transaction);
 
         await getAttestedAddresses(user.addr);
