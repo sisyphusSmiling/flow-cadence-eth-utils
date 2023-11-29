@@ -28,7 +28,7 @@ You'll want to run both emulator and dev-wallet. This is most easily done with F
 
 > :information_source: If you make any changes to [`main.js`](./main.js), you'll want to run `npm run build` then `npm run dev` to start the server with your changes.
 
-Check out the frontend here: https://wispy-cherry-0666.on.fleek.co/
+Check out the frontend here: https://flow-x-eth.on.fleek.co/
 
 [And check out this demo for how to use the frontend](https://www.loom.com/share/d0581bbf0d2a4b539ae77c2e27990736?sid=2c79ea7b-9b80-49e9-b1b4-58f9f0e05ea1)
 
