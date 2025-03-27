@@ -1,39 +1,40 @@
 {
 	"contracts": {
-		"AddressUtils": {
-			"source": "./cadence/contracts/flow-utils/AddressUtils.cdc",
-			"aliases": {
-				"emulator": "f8d6e0586b0a20c7",
-				"mainnet": "a340dc0a4ec828ab",
-				"testnet": "31ad40c07a2a9788"
-			}
-		},
-		"ArrayUtils": {
-			"source": "cadence/contracts/flow-utils/ArrayUtils.cdc",
-			"aliases": {
-				"emulator": "f8d6e0586b0a20c7",
-				"mainnet": "a340dc0a4ec828ab",
-				"testnet": "31ad40c07a2a9788"
-			}
-		},
 		"ETHAffiliatedAccounts": {
 			"source": "cadence/contracts/ETHAffiliatedAccounts.cdc",
 			"aliases": {
-				"emulator": "f8d6e0586b0a20c7",
-				"testnet": "f3c8bba150be9074"
+				"emulator": "f8d6e0586b0a20c7"
 			}
 		},
 		"ETHUtils": {
 			"source": "cadence/contracts/ETHUtils.cdc",
 			"aliases": {
 				"emulator": "f8d6e0586b0a20c7",
-				"testnet": "00c9bb1788540976"
+				"testnet": "6b3bdaa64e3383f2"
+			}
+		}
+	},
+	"dependencies": {
+		"AddressUtils": {
+			"source": "mainnet://a340dc0a4ec828ab.AddressUtils",
+			"hash": "1723f0954ef25e083483b7c84f93fd159d5cc553746ea1532a79fbbbe4450487",
+			"aliases": {
+				"mainnet": "a340dc0a4ec828ab",
+				"testnet": "31ad40c07a2a9788"
+			}
+		},
+		"ArrayUtils": {
+			"source": "mainnet://a340dc0a4ec828ab.ArrayUtils",
+			"hash": "9e8f2d3e35be82da42b685045af834e16d23bcef1f322603ff91cedd1c9bbad9",
+			"aliases": {
+				"mainnet": "a340dc0a4ec828ab",
+				"testnet": "31ad40c07a2a9788"
 			}
 		},
 		"StringUtils": {
-			"source": "cadence/contracts/flow-utils/StringUtils.cdc",
+			"source": "mainnet://a340dc0a4ec828ab.StringUtils",
+			"hash": "b401c4b0f711344ed9cd02ff77c91e026f5dfbca6045f140b9ca9d4966707e83",
 			"aliases": {
-				"emulator": "f8d6e0586b0a20c7",
 				"mainnet": "a340dc0a4ec828ab",
 				"testnet": "31ad40c07a2a9788"
 			}
@@ -42,7 +43,6 @@
 	"networks": {
 		"emulator": "127.0.0.1:3569",
 		"mainnet": "access.mainnet.nodes.onflow.org:9000",
-		"sandboxnet": "access.sandboxnet.nodes.onflow.org:9000",
 		"testnet": "access.devnet.nodes.onflow.org:9000"
 	},
 	"accounts": {
@@ -53,37 +53,37 @@
 				"location": "emulator-account.pkey"
 			}
 		},
-		"testnet-account": {
-			"address": "00c9bb1788540976",
-			"key": {
-				"type": "file",
-				"location": "testnet-account.pkey"
-			}
-		},
 		"testnet-eth-affiliated-accounts": {
-			"address": "f3c8bba150be9074",
+			"address": "6011e83f82b6fddb",
 			"key": {
 				"type": "file",
 				"location": "testnet-eth-affiliated-accounts.pkey"
+			}
+		},
+		"testnet-eth-utils": {
+			"address": "6b3bdaa64e3383f2",
+			"key": {
+				"type": "file",
+				"location": "testnet-eth-utils.pkey"
 			}
 		}
 	},
 	"deployments": {
 		"emulator": {
 			"emulator-account": [
-				"ArrayUtils",
-				"StringUtils",
 				"AddressUtils",
+				"StringUtils",
+				"ArrayUtils",
 				"ETHUtils",
 				"ETHAffiliatedAccounts"
 			]
 		},
 		"testnet": {
-			"testnet-account": [
-				"ETHUtils"
-			],
 			"testnet-eth-affiliated-accounts": [
 				"ETHAffiliatedAccounts"
+			],
+			"testnet-eth-utils": [
+				"ETHUtils"
 			]
 		}
 	}
