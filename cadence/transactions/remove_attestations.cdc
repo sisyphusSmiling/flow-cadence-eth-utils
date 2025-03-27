@@ -4,10 +4,11 @@ transaction(ethAddresses: [String]) {
 
     let manager: &ETHAffiliatedAccounts.AttestationManager
 
-    prepare(signer: AuthAccount) {
+    prepare(signer: auth(BorrowValue) &Account) {
 
-        self.manager = signer.borrow<&ETHAffiliatedAccounts.AttestationManager>(from: ETHAffiliatedAccounts.STORAGE_PATH)
-            ?? panic("Could not borrow a reference to the AttestationManager")
+        self.manager = signer.storage.borrow<auth(ETHAffiliatedAccounts.Disown) &ETHAffiliatedAccounts.AttestationManager>(
+                from: ETHAffiliatedAccounts.STORAGE_PATH
+            ) ?? panic("AttestationManager not found in signer's account storage. Reconfigure at \(ETHAffiliatedAccounts.STORAGE_PATH) & try again.")
 
     }
 

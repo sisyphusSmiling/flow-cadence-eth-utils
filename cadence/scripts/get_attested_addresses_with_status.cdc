@@ -1,10 +1,9 @@
 import "ETHAffiliatedAccounts"
 
 access(all) fun main(address: Address): {String: Bool} {
-    let manager = getAccount(address).getCapability<&{ETHAffiliatedAccounts.AttestationManagerPublic}>(
+    let manager = getAccount(address).capabilities.borrow<&ETHAffiliatedAccounts.AttestationManager>(
             ETHAffiliatedAccounts.PUBLIC_PATH
-        ).borrow()
-        ?? panic("Could not borrow reference to AttestationManagerPublic from the provided account")
+        ) ?? panic("Could not borrow reference to AttestationManagerPublic from the provided account")
     let attestedAffiliates: [String] = manager.getAttestedAddresses()
     
     let response: {String: Bool} = {}
