@@ -4,15 +4,15 @@
   "description": "",
   "scripts": {
     "test": "jest --runInBand",
-    "build": "browserify src/main.js -o public/bundle.js",
+    "build": "webpack --mode production",
     "dev": "lite-server",
-    "watch": "watchify src/main.js -o public/bundle.js -v"
+    "watch": "webpack --watch --mode development"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@ethereumjs/util": "^9.0.0",
-    "@onflow/fcl": "1.7.0",
+    "@onflow/fcl": "1.14.0",
     "ethereumjs-util": "^7.1.5",
     "ethers": "^5.1.0",
     "i": "^0.3.7",
@@ -23,13 +23,36 @@
   "devDependencies": {
     "@babel/core": "^7.22.8",
     "@babel/preset-env": "^7.22.7",
-    "@onflow/flow-js-testing": "^0.4.0",
+    "@onflow/flow-js-testing": "^0.6.0",
     "babel-jest": "^29.6.1",
+    "babel-loader": "^10.0.0",
+    "babelify": "^10.0.0",
     "browserify": "^17.0.0",
     "jest": "^29.6.1",
     "jest-environment-node": "^29.6.1",
     "lite-server": "^2.6.1",
+    "webpack": "^5.98.0",
     "webpack-cli": "^5.1.4"
   },
-  "keywords": []
+  "keywords": [],
+  "browserify": {
+    "transform": [
+      [
+        "babelify",
+        {
+          "presets": [
+            "@babel/preset-env"
+          ],
+          "global": true,
+          "ignore": [
+            "/node_modules/(?!(@onflow))"
+          ]
+        }
+      ]
+    ]
+  },
+  "sideEffects": [
+    "*.css",
+    "./src/polyfills.js"
+  ]
 }

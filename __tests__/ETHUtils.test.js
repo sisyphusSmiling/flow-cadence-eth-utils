@@ -20,7 +20,7 @@ describe("ETHUtils test suite", () => {
     return new Promise((resolve) => setTimeout(resolve, 1000));
   });
 
-  test("ExampleNFT Test Suite", async () => {
+  test("Deploy ETHUtils", async () => {
     const admin = await getAccountAddress("Admin");
     const [result, error] = await deployContractByName({ to: admin, name: "ETHUtils" });
     expect(result).not.toBe(null);

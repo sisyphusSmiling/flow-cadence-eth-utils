@@ -17,6 +17,6 @@ web-build/
 .metro-health-check*
 
 *.pkey
-testnet-account.pkey
-
 .env*
+
+imports/
