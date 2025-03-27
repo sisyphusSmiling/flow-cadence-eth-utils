@@ -1,6 +1,6 @@
-pub contract ETHUtils {
+access(all) contract ETHUtils {
     
-    pub fun verifySignature(hexPublicKey: String, hexSignature: String, message: String) : Bool {
+    access(all) view fun verifySignature(hexPublicKey: String, hexSignature: String, message: String) : Bool {
         let decodedHexPublicKey = hexPublicKey.decodeHex()
         let decodedHexSignature = hexSignature.decodeHex()
         
@@ -22,7 +22,7 @@ pub contract ETHUtils {
         return isValid
     }
 
-    pub fun getETHAddressFromPublicKey(hexPublicKey: String) : String {
+    access(all) view fun getETHAddressFromPublicKey(hexPublicKey: String) : String {
         let decodedHexPublicKey = hexPublicKey.decodeHex()
         let digest = HashAlgorithm.KECCAK_256.hash(decodedHexPublicKey)
         let hexDigest = String.encodeHex(digest)

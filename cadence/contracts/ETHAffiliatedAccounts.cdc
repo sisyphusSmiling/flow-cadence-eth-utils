@@ -19,6 +19,18 @@ access(all) contract ETHAffiliatedAccounts {
 
     access(all) event AccountAffiliationUpdated(id: UInt64, flowAddress: Address, ethAddress: String, active: Bool)
 
+    //--- Public ---\\
+
+    access(all) fun createManager(): @AttestationManager {
+        return <- create AttestationManager()
+    }
+
+    access(all) view fun verifyETHAddressMatchesPublicKey(ethAddress: String, hexPublicKey: String): Bool {
+        return ETHUtils.getETHAddressFromPublicKey(hexPublicKey: hexPublicKey) == ethAddress
+    }
+
+    //--- Constructs ---\\
+
     /* AttestationMessage */
     //
     /// Struct representing the signed attestation of account affiliation
@@ -34,7 +46,7 @@ access(all) contract ETHAffiliatedAccounts {
             self.timestamp = timestamp
         }
 
-        access(all) fun toString(): String {
+        access(all) view fun toString(): String {
             return self.flowAddress.toString()
                 .concat(ETHAffiliatedAccounts.MESSAGE_DELIMETER)
                 .concat(self.ethAddress)
@@ -42,11 +54,11 @@ access(all) contract ETHAffiliatedAccounts {
                 .concat(self.timestamp.toString())
         }
 
-        access(all) fun toBytes(): [UInt8] {
+        access(all) view fun toBytes(): [UInt8] {
             return self.toString().utf8
         }
 
-        access(all) fun asEthereumMessage(): String {
+        access(all) view fun asEthereumMessage(): String {
             let suffix: String = self.toString()
             let prefix: String = "\u{0019}Ethereum Signed Message:\n".concat(suffix.length.toString())
             return prefix.concat(suffix)
@@ -74,11 +86,11 @@ access(all) contract ETHAffiliatedAccounts {
 
         //--- Public ---\\
 
-        access(all) fun getMessage(): AttestationMessage {
+        access(all) view fun getMessage(): AttestationMessage {
             return self.message
         }
 
-        access(all) fun verify(): Bool {
+        access(all) view fun verify(): Bool {
             // Valid signature
             let validSignature: Bool = ETHUtils.verifySignature(
                 hexPublicKey: self.hexPublicKey,
@@ -95,7 +107,7 @@ access(all) contract ETHAffiliatedAccounts {
 
         //--- Private ---\\
 
-        access(self) fun verifySignature(): Bool {
+        access(self) view fun verifySignature(): Bool {
             return ETHUtils.verifySignature(
                 hexPublicKey: self.hexPublicKey,
                 hexSignature: self.signature,
@@ -103,14 +115,13 @@ access(all) contract ETHAffiliatedAccounts {
             )
         }
 
-        access(self) fun verifyFlowMessageAddressMatchesOwner(): Bool {
+        access(self) view fun verifyFlowMessageAddressMatchesOwner(): Bool {
             return self.owner?.address != nil ? self.message.flowAddress == self.owner!.address : false
         }
 
-        access(self) fun verifyETHAddressMatchesPublicKey(): Bool {
+        access(self) view fun verifyETHAddressMatchesPublicKey(): Bool {
             return self.message.ethAddress == ETHUtils.getETHAddressFromPublicKey(hexPublicKey: self.hexPublicKey)
         }
-
     }
 
     /* AttestationManager */
@@ -118,10 +129,13 @@ access(all) contract ETHAffiliatedAccounts {
     /// Public interface for the AttestationManager resource
     ///
     access(all) resource interface AttestationManagerPublic {
-        access(all) fun getAttestedAddresses(): [String]
-        access(all) fun borrowAttestation(ethAddress: String): &Attestation?
-        access(all) fun verify(ethAddress: String): Bool
+        access(all) view fun getAttestedAddresses(): [String]
+        access(all) view fun borrowAttestation(ethAddress: String): &Attestation?
+        access(all) view fun verify(ethAddress: String): Bool
     }
+
+    access(all) entitlement Attest
+    access(all) entitlement Disown
 
     /// Manages the attestations of affiliated ETH accounts
     ///
@@ -134,7 +148,7 @@ access(all) contract ETHAffiliatedAccounts {
 
         //--- Owner ---\\
 
-        access(all) fun createAttestation(hexPublicKey: String, signature: String, ethAddress: String, timestamp: UFix64) {
+        access(Attest) fun createAttestation(hexPublicKey: String, signature: String, ethAddress: String, timestamp: UFix64) {
             pre {
                 self.owner != nil:
                     "No Flow owner to attest as affiliate"
@@ -169,7 +183,7 @@ access(all) contract ETHAffiliatedAccounts {
             )
         }
 
-        access(all) fun removeAttestation(ethAddress: String): @Attestation? {
+        access(Disown) fun removeAttestation(ethAddress: String): @Attestation? {
             if self.attestations[ethAddress] == nil {
                 return nil
             }
@@ -185,38 +199,24 @@ access(all) contract ETHAffiliatedAccounts {
 
         //--- Public ---\\
 
-        access(all) fun getAttestedAddresses(): [String] {
+        access(all) view fun getAttestedAddresses(): [String] {
             return self.attestations.keys
         }
 
-        access(all) fun borrowAttestation(ethAddress: String): &Attestation? {
-            return &self.attestations[ethAddress] as &Attestation?
+        access(all) view fun borrowAttestation(ethAddress: String): &Attestation? {
+            return &self.attestations[ethAddress]
         }
 
-        access(all) fun verify(ethAddress: String): Bool {
+        access(all) view fun verify(ethAddress: String): Bool {
             return self.borrowAttestation(ethAddress: ethAddress)?.verify() ?? false
         }
 
         //--- Internal ---\\
 
-        access(self) fun _validTimestampRange(_ timestamp: UFix64): Bool {
+        access(self) view fun _validTimestampRange(_ timestamp: UFix64): Bool {
             let now = getCurrentBlock().timestamp
             return now - ETHAffiliatedAccounts.MESSAGE_TIMESTAMP_BUFFER <= timestamp && timestamp <= now
         }
-
-        destroy() {
-            destroy self.attestations
-        }
-    }
-
-    //--- Public ---\\
-
-    access(all) fun createManager(): @AttestationManager {
-        return <- create AttestationManager()
-    }
-
-    access(all) fun verifyETHAddressMatchesPublicKey(ethAddress: String, hexPublicKey: String): Bool {
-        return ETHUtils.getETHAddressFromPublicKey(hexPublicKey: hexPublicKey) == ethAddress
     }
 
     init() {
