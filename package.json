@@ -50,5 +50,9 @@
         }
       ]
     ]
-  }
+  },
+  "sideEffects": [
+    "*.css",
+    "./src/polyfills.js"
+  ]
 }
