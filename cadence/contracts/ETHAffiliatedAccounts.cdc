@@ -125,21 +125,13 @@ access(all) contract ETHAffiliatedAccounts {
     }
 
     /* AttestationManager */
-    //
-    /// Public interface for the AttestationManager resource
-    ///
-    access(all) resource interface AttestationManagerPublic {
-        access(all) view fun getAttestedAddresses(): [String]
-        access(all) view fun borrowAttestation(ethAddress: String): &Attestation?
-        access(all) view fun verify(ethAddress: String): Bool
-    }
 
     access(all) entitlement Attest
     access(all) entitlement Disown
 
     /// Manages the attestations of affiliated ETH accounts
     ///
-    access(all) resource AttestationManager : AttestationManagerPublic {
+    access(all) resource AttestationManager {
         access(all) let attestations: @{String: Attestation}
 
         init() {
